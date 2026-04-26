@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0f1020">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Inspector Parker — MVP</title>
+<style>
+  :root {
+    --bg: #0f1020;
+    --bg-2: #181a2e;
+    --panel: #1f2240;
+    --panel-2: #2a2e55;
+    --ink: #e9e6d6;
+    --ink-dim: #a8a59a;
+    --gold: #d9b65a;
+    --gold-dim: #8a7536;
+    --red: #c04848;
+    --green: #5fa463;
+    --shadow: 0 4px 18px rgba(0,0,0,0.5);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Georgia', 'Times New Roman', serif;
+    min-height: 100vh;
+    overscroll-behavior: none;
+  }
+  body {
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    background:
+      radial-gradient(ellipse at top, #1a1b35 0%, #0f1020 70%),
+      var(--bg);
+  }
+  #app {
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 16px 14px 120px;
+  }
+  header {
+    text-align: center;
+    padding: 10px 0 14px;
+    border-bottom: 1px solid var(--gold-dim);
+    margin-bottom: 14px;
+  }
+  header h1 {
+    margin: 0;
+    font-size: 26px;
+    letter-spacing: 2px;
+    color: var(--gold);
+    text-shadow: 0 1px 0 #000;
+  }
+  header .sub {
+    font-size: 12px;
+    letter-spacing: 4px;
+    color: var(--ink-dim);
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+  .score {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: var(--ink-dim);
+    margin-top: 8px;
+  }
+  .score b { color: var(--gold); }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid #33365e;
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 14px;
+    box-shadow: var(--shadow);
+  }
+  .panel h2 {
+    margin: 0 0 10px;
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--gold);
+    border-bottom: 1px dashed var(--gold-dim);
+    padding-bottom: 6px;
+  }
+  .briefing { font-size: 15px; line-height: 1.5; color: var(--ink); }
+  .briefing .victim { color: var(--red); font-weight: bold; }
+
+  .clues {
+    list-style: none;
+    padding: 0; margin: 0;
+    counter-reset: clue;
+  }
+  .clues li {
+    position: relative;
+    padding: 10px 10px 10px 38px;
+    background: var(--bg-2);
+    border-left: 3px solid var(--gold);
+    border-radius: 4px;
+    margin-bottom: 8px;
+    font-size: 14px;
+    line-height: 1.45;
+  }
+  .clues li::before {
+    counter-increment: clue;
+    content: counter(clue);
+    position: absolute;
+    left: 8px; top: 8px;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--gold);
+    color: #000;
+    text-align: center;
+    line-height: 22px;
+    font-size: 12px;
+    font-weight: bold;
+    font-family: sans-serif;
+  }
+
+  .deduction {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+  }
+  .col h3 {
+    margin: 0 0 8px;
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    text-align: center;
+  }
+  .item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 52px;
+    padding: 6px 4px;
+    margin-bottom: 6px;
+    background: var(--bg-2);
+    border: 1px solid #33365e;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.2;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s, opacity 0.15s, transform 0.05s;
+  }
+  .item:active { transform: scale(0.97); }
+  .item.eliminated {
+    opacity: 0.35;
+    text-decoration: line-through;
+    background: #15162a;
+  }
+  .item.suspected {
+    background: var(--gold);
+    color: #1a1a1a;
+    border-color: var(--gold);
+    font-weight: bold;
+  }
+
+  .hint {
+    font-size: 11px;
+    color: var(--ink-dim);
+    text-align: center;
+    margin-top: 6px;
+    font-style: italic;
+  }
+
+  .actions {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
+    background: linear-gradient(to top, var(--bg) 70%, rgba(15,16,32,0));
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    max-width: 560px;
+    margin: 0 auto;
+    z-index: 10;
+  }
+  button {
+    flex: 1;
+    min-height: 56px;
+    border: none;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+  }
+  button:active { transform: translateY(1px); }
+  .btn-primary {
+    background: var(--gold);
+    color: #1a1a1a;
+  }
+  .btn-secondary {
+    background: var(--panel-2);
+    color: var(--ink);
+    border: 1px solid #4b4f80;
+  }
+
+  .modal-bg {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.75);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 20px;
+  }
+  .modal-bg.show { display: flex; }
+  .modal {
+    background: var(--panel);
+    border: 1px solid var(--gold-dim);
+    border-radius: 12px;
+    padding: 18px;
+    width: 100%;
+    max-width: 440px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal h2 {
+    margin: 0 0 12px;
+    color: var(--gold);
+    font-size: 18px;
+    letter-spacing: 1.5px;
+    text-align: center;
+  }
+  .modal label {
+    display: block;
+    margin: 12px 0 6px;
+    font-size: 12px;
+    color: var(--ink-dim);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+  .modal select {
+    width: 100%;
+    min-height: 48px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid #4b4f80;
+    background: var(--bg-2);
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 15px;
+  }
+  .modal .row {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+  }
+  .verdict {
+    text-align: center;
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 14px;
+    font-size: 15px;
+    line-height: 1.4;
+  }
+  .verdict.win { background: rgba(95,164,99,0.18); color: var(--green); border: 1px solid var(--green); }
+  .verdict.lose { background: rgba(192,72,72,0.18); color: var(--red); border: 1px solid var(--red); }
+  .truth { font-size: 13px; color: var(--ink-dim); margin-top: 8px; }
+  .truth b { color: var(--ink); }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>INSPECTOR PARKER</h1>
+    <div class="sub">— Logic Mysteries —</div>
+    <div class="score">
+      <span>Case <b id="caseNum">1</b></span>
+      <span>Solved: <b id="wins">0</b> · Missed: <b id="losses">0</b></span>
+    </div>
+  </header>
+
+  <div class="panel">
+    <h2>The Case</h2>
+    <div id="briefing" class="briefing"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Clues</h2>
+    <ol id="clues" class="clues"></ol>
+  </div>
+
+  <div class="panel">
+    <h2>Deduction Notebook</h2>
+    <div class="deduction">
+      <div class="col">
+        <h3>Suspects</h3>
+        <div id="col-suspects"></div>
+      </div>
+      <div class="col">
+        <h3>Weapons</h3>
+        <div id="col-weapons"></div>
+      </div>
+      <div class="col">
+        <h3>Rooms</h3>
+        <div id="col-rooms"></div>
+      </div>
+    </div>
+    <div class="hint">Tap to cycle: blank → ruled out → suspected</div>
+  </div>
+</div>
+
+<div class="actions">
+  <button class="btn-secondary" id="btnNew">New Case</button>
+  <button class="btn-primary" id="btnAccuse">Accuse</button>
+</div>
+
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <h2>Make Your Accusation</h2>
+    <label>Murderer</label>
+    <select id="selSuspect"></select>
+    <label>Weapon</label>
+    <select id="selWeapon"></select>
+    <label>Crime Scene</label>
+    <select id="selRoom"></select>
+    <div id="verdict"></div>
+    <div class="row">
+      <button class="btn-secondary" id="btnCancel">Cancel</button>
+      <button class="btn-primary" id="btnSubmit">J'accuse!</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  const SUSPECTS = [
+    'Lady Ashcroft', 'Colonel Vance', 'Dr. Mortimer', 'Miss Penrose',
+    'Reverend Holt', 'Captain Bligh', 'Madame Zara', 'Mr. Grimsby'
+  ];
+  const WEAPONS = [
+    'Silver Candlestick', 'Antique Revolver', 'Garden Shears', 'Crystal Decanter',
+    'Lead Pipe', 'Poisoned Tea', 'Letter Opener', 'Velvet Rope'
+  ];
+  const ROOMS = [
+    'the Library', 'the Conservatory', 'the Billiard Room', 'the Wine Cellar',
+    'the Drawing Room', 'the Observatory', 'the Greenhouse', 'the Servants’ Hall'
+  ];
+  const VICTIMS = [
+    'Sir Edmund Halloway', 'Baroness Hartwood', 'Mr. Cornelius Pike',
+    'Lord Ashby', 'Professor Fenwick'
+  ];
+  const SCENARIOS = [
+    'Found slumped in a velvet armchair just after midnight.',
+    'Discovered behind a locked door, the key still in the lock.',
+    'Last seen alive at the dinner gong; cold by the time tea was served.',
+    'Crumpled at the foot of the grand staircase under flickering candlelight.',
+    'Sprawled across the writing desk, an unfinished letter beneath the body.'
+  ];
+
+  const SUSPECT_CLUES = [
+    n => `Inspector Parker has cleared ${n} of all suspicion.`,
+    n => `${n} produced an unshakeable alibi for the time of the crime.`,
+    n => `Witnesses placed ${n} far from the scene when it happened.`,
+    n => `${n} was on the telephone with the constable’s wife at the critical moment.`
+  ];
+  const WEAPON_CLUES = [
+    w => `Forensics confirmed the ${w} was not the murder weapon.`,
+    w => `The ${w} was found locked away in the butler’s pantry.`,
+    w => `The ${w} bore no traces of the crime.`,
+    w => `Inspector Parker ruled out the ${w} after careful examination.`
+  ];
+  const ROOM_CLUES = [
+    r => `${cap(r)} has been thoroughly searched and ruled out.`,
+    r => `No evidence of the crime was found in ${r}.`,
+    r => `Three guests were chatting in ${r} the entire evening.`,
+    r => `${cap(r)} was locked from the outside all night.`
+  ];
+
+  const N = 4;
+  let state;
+
+  function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+  function pick(arr, n) {
+    const copy = arr.slice();
+    const out = [];
+    for (let i = 0; i < n; i++) {
+      const j = Math.floor(Math.random() * copy.length);
+      out.push(copy.splice(j, 1)[0]);
+    }
+    return out;
+  }
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+  function rand(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+  function newCase() {
+    const suspects = pick(SUSPECTS, N);
+    const weapons = pick(WEAPONS, N);
+    const rooms = pick(ROOMS, N);
+    const murderer = rand(suspects);
+    const weapon = rand(weapons);
+    const room = rand(rooms);
+    const victim = rand(VICTIMS);
+    const scenario = rand(SCENARIOS);
+
+    const clues = [];
+    suspects.filter(s => s !== murderer).forEach(s => {
+      clues.push(rand(SUSPECT_CLUES)(s));
+    });
+    weapons.filter(w => w !== weapon).forEach(w => {
+      clues.push(rand(WEAPON_CLUES)(w));
+    });
+    rooms.filter(r => r !== room).forEach(r => {
+      clues.push(rand(ROOM_CLUES)(r));
+    });
+
+    state.case = {
+      suspects, weapons, rooms,
+      murderer, weapon, room,
+      victim, scenario,
+      clues: shuffle(clues),
+      marks: { suspects: {}, weapons: {}, rooms: {} },
+      solved: false
+    };
+    state.caseNum++;
+    render();
+  }
+
+  // Cycle marks: '' -> 'eliminated' -> 'suspected' -> ''
+  function cycleMark(category, item) {
+    const marks = state.case.marks[category];
+    const cur = marks[item] || '';
+    marks[item] = cur === '' ? 'eliminated' : cur === 'eliminated' ? 'suspected' : '';
+    renderColumn(category);
+  }
+
+  function renderColumn(category) {
+    const map = {
+      suspects: ['col-suspects', state.case.suspects],
+      weapons: ['col-weapons', state.case.weapons],
+      rooms: ['col-rooms', state.case.rooms]
+    };
+    const [id, items] = map[category];
+    const root = document.getElementById(id);
+    root.innerHTML = '';
+    items.forEach(item => {
+      const div = document.createElement('div');
+      const mark = state.case.marks[category][item] || '';
+      div.className = 'item' + (mark ? ' ' + mark : '');
+      div.textContent = item.replace(/^the /, '');
+      div.addEventListener('click', () => cycleMark(category, item));
+      root.appendChild(div);
+    });
+  }
+
+  function render() {
+    document.getElementById('caseNum').textContent = state.caseNum;
+    document.getElementById('wins').textContent = state.wins;
+    document.getElementById('losses').textContent = state.losses;
+    const c = state.case;
+    document.getElementById('briefing').innerHTML =
+      `<span class="victim">${c.victim}</span> has been murdered at the manor. ` +
+      `${c.scenario} ` +
+      `Inspector Parker has narrowed the field to <b>${N}</b> suspects, <b>${N}</b> possible weapons, and <b>${N}</b> rooms. ` +
+      `Use the clues below to deduce the truth.`;
+    const ol = document.getElementById('clues');
+    ol.innerHTML = '';
+    c.clues.forEach(text => {
+      const li = document.createElement('li');
+      li.textContent = text;
+      ol.appendChild(li);
+    });
+    renderColumn('suspects');
+    renderColumn('weapons');
+    renderColumn('rooms');
+  }
+
+  function openAccuse() {
+    const c = state.case;
+    fillSelect('selSuspect', c.suspects);
+    fillSelect('selWeapon', c.weapons);
+    fillSelect('selRoom', c.rooms);
+    // Pre-fill with "suspected" if exactly one is marked
+    preselect('selSuspect', 'suspects', c.suspects);
+    preselect('selWeapon', 'weapons', c.weapons);
+    preselect('selRoom', 'rooms', c.rooms);
+    document.getElementById('verdict').innerHTML = '';
+    document.getElementById('btnSubmit').disabled = false;
+    document.getElementById('btnSubmit').textContent = "J'accuse!";
+    document.getElementById('modal').classList.add('show');
+  }
+  function preselect(selId, cat, items) {
+    const marks = state.case.marks[cat];
+    const suspected = items.filter(i => marks[i] === 'suspected');
+    if (suspected.length === 1) {
+      document.getElementById(selId).value = suspected[0];
+    }
+  }
+  function fillSelect(id, items) {
+    const sel = document.getElementById(id);
+    sel.innerHTML = '';
+    items.forEach(item => {
+      const opt = document.createElement('option');
+      opt.value = item;
+      opt.textContent = item.replace(/^the /, '');
+      sel.appendChild(opt);
+    });
+  }
+  function closeAccuse() { document.getElementById('modal').classList.remove('show'); }
+
+  function submitAccuse() {
+    const c = state.case;
+    if (c.solved) { closeAccuse(); return; }
+    const s = document.getElementById('selSuspect').value;
+    const w = document.getElementById('selWeapon').value;
+    const r = document.getElementById('selRoom').value;
+    const correct = (s === c.murderer && w === c.weapon && r === c.room);
+    const verdict = document.getElementById('verdict');
+    if (correct) {
+      state.wins++;
+      c.solved = true;
+      verdict.className = 'verdict win';
+      verdict.innerHTML = `<b>Case Closed!</b><br>You correctly identified the murderer.<div class="truth">It was <b>${c.murderer}</b> with the <b>${c.weapon}</b> in <b>${c.room}</b>.</div>`;
+    } else {
+      state.losses++;
+      c.solved = true;
+      verdict.className = 'verdict lose';
+      let why = [];
+      if (s !== c.murderer) why.push(`the murderer was <b>${c.murderer}</b>`);
+      if (w !== c.weapon)  why.push(`the weapon was the <b>${c.weapon}</b>`);
+      if (r !== c.room)    why.push(`it happened in <b>${c.room}</b>`);
+      verdict.innerHTML = `<b>Wrong accusation.</b> The killer escapes.<div class="truth">In truth, ${why.join('; ')}.</div>`;
+    }
+    document.getElementById('btnSubmit').textContent = 'Close';
+    document.getElementById('caseNum').textContent = state.caseNum;
+    document.getElementById('wins').textContent = state.wins;
+    document.getElementById('losses').textContent = state.losses;
+  }
+
+  function init() {
+    state = { caseNum: 0, wins: 0, losses: 0, case: null };
+    document.getElementById('btnNew').addEventListener('click', () => {
+      closeAccuse();
+      newCase();
+    });
+    document.getElementById('btnAccuse').addEventListener('click', openAccuse);
+    document.getElementById('btnCancel').addEventListener('click', closeAccuse);
+    const submitBtn = document.getElementById('btnSubmit');
+    submitBtn.addEventListener('click', () => {
+      if (submitBtn.textContent === 'Close') closeAccuse();
+      else submitAccuse();
+    });
+    document.getElementById('modal').addEventListener('click', (e) => {
+      if (e.target.id === 'modal') closeAccuse();
+    });
+    newCase();
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+})();
+</script>
+</body>
+</html>
