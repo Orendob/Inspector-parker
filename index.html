@@ -156,39 +156,29 @@
     border-radius: 6px;
     padding: 6px 6px 4px;
     min-height: 138px;
-    overflow: hidden;
   }
-  .cell .cell-bg {
-    position: absolute; inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--frame-2);
-    opacity: 0.18;
-    pointer-events: none;
-  }
-  .cell .cell-bg svg { width: 70%; height: 70%; }
   .cell .room-header {
     display: flex;
     align-items: center;
-    gap: 4px;
-    margin-bottom: 4px;
-    border-bottom: 1px dashed rgba(224,188,98,0.25);
-    padding-bottom: 3px;
-    position: relative;
+    gap: 6px;
+    margin-bottom: 5px;
+    border-bottom: 1px dashed rgba(224,188,98,0.3);
+    padding-bottom: 4px;
   }
   .cell .room-header .room-thumb {
-    width: 22px; height: 22px;
+    width: 28px; height: 28px;
     color: var(--gold);
-    background: rgba(0,0,0,0.4);
+    background: rgba(0,0,0,0.5);
     border: 1px solid var(--gold-dim);
     border-radius: 4px;
-    padding: 1px;
+    padding: 2px;
     flex-shrink: 0;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.3);
   }
+  .cell .room-header .room-thumb svg { width: 100%; height: 100%; display: block; }
   .cell .room-header .room-name {
-    font-size: 11px;
-    letter-spacing: 0.5px;
+    font-size: 12px;
+    letter-spacing: 0.3px;
     color: var(--gold);
     font-weight: bold;
     white-space: nowrap;
@@ -1511,10 +1501,7 @@
       cell.className = 'cell';
       cell.dataset.room = r;
 
-      // Background room scene
-      const bg = '<div class="cell-bg"><svg><use href="#' + c.rooms[r].icon + '"/></svg></div>';
-
-      // Header
+      // Header with small room icon (same as in clues) next to name
       const header =
         '<div class="room-header">' +
           '<div class="room-thumb"><svg><use href="#' + c.rooms[r].icon + '"/></svg></div>' +
@@ -1545,7 +1532,7 @@
       }
       wpnRow.push('</div>');
 
-      cell.innerHTML = bg + header + susRow.join('') + wpnRow.join('');
+      cell.innerHTML = header + susRow.join('') + wpnRow.join('');
       cell.querySelectorAll('.mini-icon').forEach(el => el.addEventListener('click', onMiniClick));
       grid.appendChild(cell);
     }
