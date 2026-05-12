@@ -971,10 +971,11 @@
   <div class="modal">
     <h2>How to Play</h2>
     <div class="help-text">
-      <p>A guest has been murdered in the manor. Each of the 4 rooms holds one suspect and one weapon — figure out who, where, and with what.</p>
+      <p>A guest has been murdered in the manor. There are <b>4 suspects</b>, <b>4 weapons</b>, and <b>4 rooms</b>. <b>Each room holds exactly one suspect and exactly one weapon</b> — and each suspect and each weapon is in exactly one room. Figure out who, where, and with what.</p>
       <ul>
         <li>Each room initially shows <b>all 4 candidate suspects</b> and <b>all 4 candidate weapons</b>.</li>
         <li>Read the clues and tap mini-icons to <b>cross them out</b> as impossible. Tap again to undo.</li>
+        <li>Because each room has exactly one of each, the moment you confirm "X is in room A" you can also rule out X in every other room <i>and</i> rule out every other suspect/weapon in room A.</li>
         <li>When only one suspect and one weapon remain in each room, you've solved the placement.</li>
         <li>Tap <b>Accuse</b> and pick the killer, weapon, and room.</li>
       </ul>
@@ -1486,8 +1487,9 @@
     document.getElementById('victimArt').innerHTML = '<use href="#' + c.victim.icon + '"/>';
     document.getElementById('briefing').innerHTML =
       '<span class="victim">' + c.victim.name + '</span> has been murdered. ' +
-      c.scenario + ' Inspector Parker has narrowed it down: one of these <b>' + N + '</b> rooms ' +
-      'is the scene, and in each room is exactly one suspect and one weapon.';
+      c.scenario +
+      ' <b>Each of the ' + N + ' rooms holds exactly one suspect and one weapon</b> — ' +
+      'so confirming one fact lets you cross out the rest in that row and column. Find the room where the crime occurred.';
     renderGrid();
     renderClues();
   }
