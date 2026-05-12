@@ -302,6 +302,50 @@
   .chip-rel.pos { color: var(--green); }
   .chip-rel.neg { color: var(--red); }
 
+  /* Floating clue tooltip */
+  .clue-tooltip {
+    position: fixed;
+    left: 12px; right: 12px;
+    bottom: calc(80px + env(safe-area-inset-bottom));
+    max-width: 560px;
+    margin: 0 auto;
+    background: linear-gradient(180deg, var(--panel-2) 0%, var(--panel) 100%);
+    border: 2px solid var(--gold);
+    border-radius: 10px;
+    padding: 12px 14px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.7);
+    z-index: 50;
+    display: none;
+    color: var(--ink);
+    font-size: 14px;
+    line-height: 1.45;
+    text-align: center;
+  }
+  .clue-tooltip.show { display: block; animation: tipIn 0.16s ease-out; }
+  .clue-tooltip::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%) rotate(45deg);
+    width: 12px; height: 12px;
+    background: var(--panel);
+    border-right: 2px solid var(--gold);
+    border-bottom: 2px solid var(--gold);
+  }
+  .clue-tooltip .tip-close {
+    font-size: 11px;
+    color: var(--ink-dim);
+    margin-top: 4px;
+    font-style: italic;
+  }
+  .clue-list li { cursor: pointer; }
+  .clue-list li.active { box-shadow: 0 0 0 2px var(--gold), 0 1px 4px rgba(0,0,0,0.4); }
+  @keyframes tipIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
   /* Action bar */
   .actions {
     position: fixed;
@@ -909,6 +953,11 @@
   <button class="btn-primary" id="btnAccuse">Accuse</button>
 </div>
 
+<!-- Floating clue tooltip -->
+<div id="clueTooltip" class="clue-tooltip" role="status" aria-live="polite">
+  <div class="tooltip-text"></div>
+</div>
+
 <!-- Accusation modal -->
 <div class="modal-bg" id="modalAccuse">
   <div class="modal">
@@ -1138,7 +1187,8 @@
     return {
       key: 'SIR' + s + ':' + r,
       test: c => c.sa[r] === s,
-      render: (S, W, R) => chip(susIc(S[s]), 'pos', '✓', roomIc(R[r]))
+      render: (S, W, R) => chip(susIc(S[s]), 'pos', '✓', roomIc(R[r])),
+      describe: (S, W, R) => S[s].name + ' is in the ' + R[r].name + '.'
     };
   }
   function clueSusNotInRoom(truth) {
@@ -1147,7 +1197,8 @@
     return {
       key: 'SNI' + s + ':' + r,
       test: c => c.sa[r] !== s,
-      render: (S, W, R) => chip(susIc(S[s]), 'neg', '✕', roomIc(R[r]))
+      render: (S, W, R) => chip(susIc(S[s]), 'neg', '✕', roomIc(R[r])),
+      describe: (S, W, R) => S[s].name + ' is NOT in the ' + R[r].name + '.'
     };
   }
   function clueWpnInRoom(truth) {
@@ -1155,7 +1206,8 @@
     return {
       key: 'WIR' + w + ':' + r,
       test: c => c.wa[r] === w,
-      render: (S, W, R) => chip(wpnIc(W[w]), 'pos', '✓', roomIc(R[r]))
+      render: (S, W, R) => chip(wpnIc(W[w]), 'pos', '✓', roomIc(R[r])),
+      describe: (S, W, R) => 'The ' + W[w].name + ' is in the ' + R[r].name + '.'
     };
   }
   function clueWpnNotInRoom(truth) {
@@ -1164,7 +1216,8 @@
     return {
       key: 'WNI' + w + ':' + r,
       test: c => c.wa[r] !== w,
-      render: (S, W, R) => chip(wpnIc(W[w]), 'neg', '✕', roomIc(R[r]))
+      render: (S, W, R) => chip(wpnIc(W[w]), 'neg', '✕', roomIc(R[r])),
+      describe: (S, W, R) => 'The ' + W[w].name + ' is NOT in the ' + R[r].name + '.'
     };
   }
   function clueSameRoom(truth) {
@@ -1173,7 +1226,8 @@
     return {
       key: 'SAME' + s + ':' + w,
       test: c => c.sa.indexOf(s) === c.wa.indexOf(w),
-      render: (S, W, R) => chip(susIc(S[s]), 'pos', '=', wpnIc(W[w]))
+      render: (S, W, R) => chip(susIc(S[s]), 'pos', '=', wpnIc(W[w])),
+      describe: (S, W, R) => S[s].name + ' is in the same room as the ' + W[w].name + '.'
     };
   }
   function clueDiffRoom(truth) {
@@ -1182,7 +1236,8 @@
     return {
       key: 'DIFF' + s + ':' + w,
       test: c => c.sa.indexOf(s) !== c.wa.indexOf(w),
-      render: (S, W, R) => chip(susIc(S[s]), 'neg', '≠', wpnIc(W[w]))
+      render: (S, W, R) => chip(susIc(S[s]), 'neg', '≠', wpnIc(W[w])),
+      describe: (S, W, R) => S[s].name + ' and the ' + W[w].name + ' are in different rooms.'
     };
   }
   function clueSusNorthWpn(truth) {
@@ -1195,7 +1250,8 @@
         const a = c.sa.indexOf(s), b = c.wa.indexOf(w);
         return COL(a) === COL(b) && ROW(a) < ROW(b);
       },
-      render: (S, W, R) => chip(susIc(S[s]), '', '↑', wpnIc(W[w]))
+      render: (S, W, R) => chip(susIc(S[s]), '', '↑', wpnIc(W[w])),
+      describe: (S, W, R) => S[s].name + "'s room is directly north of (above) the room with the " + W[w].name + '.'
     };
   }
   function clueSusWestWpn(truth) {
@@ -1208,7 +1264,8 @@
         const a = c.sa.indexOf(s), b = c.wa.indexOf(w);
         return ROW(a) === ROW(b) && COL(a) < COL(b);
       },
-      render: (S, W, R) => chip(susIc(S[s]), '', '←', wpnIc(W[w]))
+      render: (S, W, R) => chip(susIc(S[s]), '', '←', wpnIc(W[w])),
+      describe: (S, W, R) => S[s].name + "'s room is directly west of (left of) the room with the " + W[w].name + '.'
     };
   }
   function clueSusSouthWpn(truth) {
@@ -1221,7 +1278,8 @@
         const a = c.sa.indexOf(s), b = c.wa.indexOf(w);
         return COL(a) === COL(b) && ROW(a) > ROW(b);
       },
-      render: (S, W, R) => chip(susIc(S[s]), '', '↓', wpnIc(W[w]))
+      render: (S, W, R) => chip(susIc(S[s]), '', '↓', wpnIc(W[w])),
+      describe: (S, W, R) => S[s].name + "'s room is directly south of (below) the room with the " + W[w].name + '.'
     };
   }
   function clueSusEastWpn(truth) {
@@ -1234,7 +1292,8 @@
         const a = c.sa.indexOf(s), b = c.wa.indexOf(w);
         return ROW(a) === ROW(b) && COL(a) > COL(b);
       },
-      render: (S, W, R) => chip(susIc(S[s]), '', '→', wpnIc(W[w]))
+      render: (S, W, R) => chip(susIc(S[s]), '', '→', wpnIc(W[w])),
+      describe: (S, W, R) => S[s].name + "'s room is directly east of (right of) the room with the " + W[w].name + '.'
     };
   }
   function clueSusSameRow(truth) {
@@ -1245,7 +1304,8 @@
     return {
       key: 'SSR' + Math.min(a,b) + ':' + Math.max(a,b),
       test: c => ROW(c.sa.indexOf(a)) === ROW(c.sa.indexOf(b)),
-      render: (S, W, R) => chip(susIc(S[a]), 'pos', '⇔', susIc(S[b]))
+      render: (S, W, R) => chip(susIc(S[a]), 'pos', '⇔', susIc(S[b])),
+      describe: (S, W, R) => S[a].name + ' and ' + S[b].name + ' are in the same row.'
     };
   }
   function clueWpnSameCol(truth) {
@@ -1256,7 +1316,8 @@
     return {
       key: 'WSC' + Math.min(a,b) + ':' + Math.max(a,b),
       test: c => COL(c.wa.indexOf(a)) === COL(c.wa.indexOf(b)),
-      render: (S, W, R) => chip(wpnIc(W[a]), 'pos', '⇕', wpnIc(W[b]))
+      render: (S, W, R) => chip(wpnIc(W[a]), 'pos', '⇕', wpnIc(W[b])),
+      describe: (S, W, R) => 'The ' + W[a].name + ' and the ' + W[b].name + ' are in the same column.'
     };
   }
   function clueMurderInRoom(truth) {
@@ -1264,7 +1325,8 @@
     return {
       key: 'MIR' + r,
       test: c => c.mr === r,
-      render: (S, W, R) => chip(skullIc(), 'pos', '✓', roomIc(R[r]))
+      render: (S, W, R) => chip(skullIc(), 'pos', '✓', roomIc(R[r])),
+      describe: (S, W, R) => 'The murder happened in the ' + R[r].name + '.'
     };
   }
   function clueMurderNotInRoom(truth) {
@@ -1273,7 +1335,8 @@
     return {
       key: 'MNI' + r,
       test: c => c.mr !== r,
-      render: (S, W, R) => chip(skullIc(), 'neg', '✕', roomIc(R[r]))
+      render: (S, W, R) => chip(skullIc(), 'neg', '✕', roomIc(R[r])),
+      describe: (S, W, R) => 'The murder did NOT happen in the ' + R[r].name + '.'
     };
   }
   function clueMurdererNotSus(truth) {
@@ -1282,7 +1345,8 @@
     return {
       key: 'MNS' + s,
       test: c => c.sa[c.mr] !== s,
-      render: (S, W, R) => chip(skullIc(), 'neg', '✕', susIc(S[s]))
+      render: (S, W, R) => chip(skullIc(), 'neg', '✕', susIc(S[s])),
+      describe: (S, W, R) => 'The murderer is NOT ' + S[s].name + '.'
     };
   }
   function clueWeaponNotWpn(truth) {
@@ -1291,7 +1355,8 @@
     return {
       key: 'WNW' + w,
       test: c => c.wa[c.mr] !== w,
-      render: (S, W, R) => chip(skullIc(), 'neg', '✕', wpnIc(W[w]))
+      render: (S, W, R) => chip(skullIc(), 'neg', '✕', wpnIc(W[w])),
+      describe: (S, W, R) => 'The murder weapon was NOT the ' + W[w].name + '.'
     };
   }
 
@@ -1362,10 +1427,26 @@
       // ultra-safe fallback: directly reveal everything
       clues = [];
       for (let r = 0; r < N; r++) {
-        clues.push(clueSusInRoom({ sa, wa, mr }) && { key: 'F-SIR' + r, test: c => c.sa[r] === sa[r], render: (S, W, R) => chip(susIc(S[sa[r]]), 'pos', '✓', roomIc(R[r])) });
-        clues.push({ key: 'F-WIR' + r, test: c => c.wa[r] === wa[r], render: (S, W, R) => chip(wpnIc(W[wa[r]]), 'pos', '✓', roomIc(R[r])) });
+        const sr = sa[r], wr = wa[r];
+        clues.push({
+          key: 'F-SIR' + r,
+          test: c => c.sa[r] === sr,
+          render: (S, W, R) => chip(susIc(S[sr]), 'pos', '✓', roomIc(R[r])),
+          describe: (S, W, R) => S[sr].name + ' is in the ' + R[r].name + '.'
+        });
+        clues.push({
+          key: 'F-WIR' + r,
+          test: c => c.wa[r] === wr,
+          render: (S, W, R) => chip(wpnIc(W[wr]), 'pos', '✓', roomIc(R[r])),
+          describe: (S, W, R) => 'The ' + W[wr].name + ' is in the ' + R[r].name + '.'
+        });
       }
-      clues.push({ key: 'F-MIR', test: c => c.mr === mr, render: (S, W, R) => chip(skullIc(), 'pos', '✓', roomIc(R[mr])) });
+      clues.push({
+        key: 'F-MIR',
+        test: c => c.mr === mr,
+        render: (S, W, R) => chip(skullIc(), 'pos', '✓', roomIc(R[mr])),
+        describe: (S, W, R) => 'The murder happened in the ' + R[mr].name + '.'
+      });
     }
 
     // Pick the visual props for this case
@@ -1484,11 +1565,41 @@
     const c = state.case;
     const ol = document.getElementById('clues');
     ol.innerHTML = '';
-    c.clues.forEach(clue => {
+    c.clues.forEach((clue, idx) => {
       const li = document.createElement('li');
       li.innerHTML = clue.render(c.suspects, c.weapons, c.rooms);
+      li.dataset.idx = idx;
+      li.addEventListener('click', onClueClick);
       ol.appendChild(li);
     });
+  }
+
+  let activeClueLi = null;
+  function onClueClick(e) {
+    e.stopPropagation();
+    Audio.unlock(); Audio.tick();
+    const li = e.currentTarget;
+    const idx = +li.dataset.idx;
+    const clue = state.case.clues[idx];
+    const text = clue.describe
+      ? clue.describe(state.case.suspects, state.case.weapons, state.case.rooms)
+      : 'Tap the help icon to see clue meanings.';
+    showClueTooltip(text, li);
+  }
+  function showClueTooltip(text, sourceLi) {
+    const tip = document.getElementById('clueTooltip');
+    tip.querySelector('.tooltip-text').innerHTML = text +
+      '<div class="tip-close">Tap anywhere to close</div>';
+    tip.classList.add('show');
+    if (activeClueLi) activeClueLi.classList.remove('active');
+    activeClueLi = sourceLi || null;
+    if (activeClueLi) activeClueLi.classList.add('active');
+  }
+  function hideClueTooltip() {
+    const tip = document.getElementById('clueTooltip');
+    if (!tip.classList.contains('show')) return;
+    tip.classList.remove('show');
+    if (activeClueLi) { activeClueLi.classList.remove('active'); activeClueLi = null; }
   }
 
   // ============================================================
@@ -1591,7 +1702,12 @@
   // ============================================================
   function init() {
     state = { caseNum: 0, wins: 0, losses: 0, case: null };
-    document.getElementById('btnNew').addEventListener('click', () => { Audio.unlock(); closeAccuse(); newCase(); });
+    // Dismiss the clue tooltip when tapping it or anywhere outside a clue chip
+    document.getElementById('clueTooltip').addEventListener('click', (e) => { e.stopPropagation(); hideClueTooltip(); });
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#clues li')) hideClueTooltip();
+    });
+    document.getElementById('btnNew').addEventListener('click', () => { Audio.unlock(); closeAccuse(); hideClueTooltip(); newCase(); });
     document.getElementById('btnAccuse').addEventListener('click', openAccuse);
     document.getElementById('btnCancel').addEventListener('click', () => { Audio.tick(); closeAccuse(); });
     const submitBtn = document.getElementById('btnSubmit');
