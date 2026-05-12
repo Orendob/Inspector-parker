@@ -3,23 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#0f1020">
+<meta name="theme-color" content="#1a1408">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Inspector Parker — MVP</title>
 <style>
   :root {
-    --bg: #0f1020;
-    --bg-2: #181a2e;
-    --panel: #1f2240;
-    --panel-2: #2a2e55;
-    --ink: #e9e6d6;
-    --ink-dim: #a8a59a;
-    --gold: #d9b65a;
-    --gold-dim: #8a7536;
-    --red: #c04848;
-    --green: #5fa463;
-    --shadow: 0 4px 18px rgba(0,0,0,0.5);
+    --bg: #1a1408;
+    --bg-2: #241a0c;
+    --panel: #2a2010;
+    --panel-2: #3a2c18;
+    --frame: #6b4a22;
+    --frame-2: #8a6532;
+    --ink: #f1e6c8;
+    --ink-dim: #b8a880;
+    --gold: #e0bc62;
+    --gold-dim: #a6863a;
+    --red: #c04a3a;
+    --green: #6ba858;
+    --blue: #4a82b8;
+    --shadow: 0 6px 22px rgba(0,0,0,0.6);
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body {
@@ -33,63 +36,233 @@
   body {
     padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
     background:
-      radial-gradient(ellipse at top, #1a1b35 0%, #0f1020 70%),
+      radial-gradient(ellipse at top, #2c2010 0%, #1a1408 60%),
       var(--bg);
   }
   #app {
-    max-width: 560px;
+    max-width: 600px;
     margin: 0 auto;
-    padding: 16px 14px 120px;
+    padding: 12px 12px 130px;
   }
   header {
     text-align: center;
-    padding: 10px 0 14px;
-    border-bottom: 1px solid var(--gold-dim);
-    margin-bottom: 14px;
+    padding: 6px 0 12px;
+    border-bottom: 2px solid var(--frame);
+    margin-bottom: 12px;
+    position: relative;
   }
+  header .banner {
+    height: 56px;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  header .banner svg { height: 56px; width: 100%; max-width: 320px; color: var(--frame-2); }
   header h1 {
     margin: 0;
-    font-size: 26px;
+    font-size: 24px;
     letter-spacing: 2px;
     color: var(--gold);
-    text-shadow: 0 1px 0 #000;
+    text-shadow: 0 1px 0 #000, 0 0 12px rgba(224,188,98,0.3);
   }
   header .sub {
-    font-size: 12px;
+    font-size: 11px;
     letter-spacing: 4px;
     color: var(--ink-dim);
     text-transform: uppercase;
-    margin-top: 4px;
+    margin-top: 3px;
   }
-  .score {
+  .topbar {
     display: flex;
     justify-content: space-between;
-    font-size: 13px;
+    align-items: center;
+    font-size: 12px;
     color: var(--ink-dim);
     margin-top: 8px;
+    gap: 8px;
   }
-  .score b { color: var(--gold); }
+  .topbar .score b { color: var(--gold); }
+  .iconbtn {
+    background: var(--panel);
+    border: 1px solid var(--frame);
+    color: var(--ink);
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+  }
+  .iconbtn svg { width: 18px; height: 18px; }
 
   .panel {
-    background: var(--panel);
-    border: 1px solid #33365e;
-    border-radius: 10px;
-    padding: 14px;
-    margin-bottom: 14px;
-    box-shadow: var(--shadow);
+    background: linear-gradient(180deg, var(--panel) 0%, var(--bg-2) 100%);
+    border: 2px solid var(--frame);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 12px;
+    box-shadow: var(--shadow), inset 0 0 0 1px rgba(224,188,98,0.08);
   }
   .panel h2 {
     margin: 0 0 10px;
-    font-size: 15px;
+    font-size: 13px;
     text-transform: uppercase;
-    letter-spacing: 2px;
+    letter-spacing: 2.5px;
     color: var(--gold);
     border-bottom: 1px dashed var(--gold-dim);
     padding-bottom: 6px;
+    text-align: center;
   }
-  .briefing { font-size: 15px; line-height: 1.5; color: var(--ink); }
-  .briefing .victim { color: var(--red); font-weight: bold; }
 
+  /* Case briefing */
+  .briefing {
+    display: grid;
+    grid-template-columns: 72px 1fr;
+    gap: 12px;
+    align-items: center;
+  }
+  .briefing .victim-frame {
+    width: 72px; height: 72px;
+    border: 3px solid var(--frame-2);
+    border-radius: 50%;
+    background: var(--bg);
+    box-shadow: inset 0 0 0 2px rgba(0,0,0,0.4), 0 0 12px rgba(0,0,0,0.5);
+    overflow: hidden;
+    position: relative;
+  }
+  .briefing .victim-frame svg { width: 100%; height: 100%; display: block; }
+  .briefing .victim-frame::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(circle, transparent 50%, rgba(0,0,0,0.5) 100%);
+    pointer-events: none;
+  }
+  .briefing .text {
+    font-size: 13px;
+    line-height: 1.45;
+  }
+  .briefing .text .victim {
+    color: var(--red);
+    font-weight: bold;
+  }
+
+  /* 3x3 Manor Grid */
+  .manor {
+    position: relative;
+    border: 3px solid var(--frame-2);
+    border-radius: 6px;
+    background: #1a1208;
+    padding: 6px;
+    box-shadow: inset 0 0 16px rgba(0,0,0,0.6);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 4px;
+  }
+  .cell {
+    position: relative;
+    aspect-ratio: 1 / 1.05;
+    background: linear-gradient(180deg, #3a2c18 0%, #1f1408 100%);
+    border: 1.5px solid var(--frame);
+    border-radius: 4px;
+    overflow: hidden;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.06s;
+  }
+  .cell:active { transform: scale(0.97); }
+  .cell .scene {
+    position: absolute; inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--frame-2);
+    opacity: 0.55;
+  }
+  .cell .scene svg { width: 80%; height: 80%; }
+  .cell .portrait {
+    position: absolute;
+    top: 4px; left: 50%;
+    transform: translateX(-50%);
+    width: 44%;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    border: 1.5px solid var(--gold-dim);
+    background: var(--bg);
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.6);
+  }
+  .cell .portrait svg { width: 100%; height: 100%; display: block; }
+  .cell .weapon {
+    position: absolute;
+    bottom: 14px; right: 3px;
+    width: 30%;
+    aspect-ratio: 1 / 1;
+    background: rgba(15,10,5,0.7);
+    border: 1px solid var(--gold-dim);
+    border-radius: 4px;
+    padding: 2px;
+    color: var(--gold);
+  }
+  .cell .weapon svg { width: 100%; height: 100%; display: block; }
+  .cell .room-name {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    background: rgba(15,10,5,0.85);
+    color: var(--ink);
+    text-align: center;
+    font-size: 9px;
+    letter-spacing: 0.5px;
+    padding: 2px;
+    line-height: 1.1;
+    border-top: 1px solid var(--frame);
+  }
+  .cell .mark-overlay {
+    position: absolute; inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 60px;
+    font-weight: bold;
+    font-family: sans-serif;
+    pointer-events: none;
+  }
+  .cell.eliminated .mark-overlay {
+    display: flex;
+    color: var(--red);
+    text-shadow: 0 0 6px #000;
+    background: rgba(0,0,0,0.45);
+  }
+  .cell.eliminated .mark-overlay::before { content: '✕'; }
+  .cell.suspected {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 2px var(--gold), 0 0 16px rgba(224,188,98,0.5);
+  }
+  .cell.suspected .mark-overlay {
+    display: flex;
+    color: var(--gold);
+    background: rgba(0,0,0,0.15);
+  }
+  .cell.suspected .mark-overlay::before {
+    content: '';
+    width: 70%; height: 70%;
+    border: 4px solid var(--gold);
+    border-radius: 50%;
+    background: transparent;
+    box-shadow: 0 0 12px var(--gold);
+  }
+  .hint {
+    font-size: 11px;
+    color: var(--ink-dim);
+    text-align: center;
+    margin-top: 8px;
+    font-style: italic;
+  }
+
+  /* Clues */
   .clues {
     list-style: none;
     padding: 0; margin: 0;
@@ -98,135 +271,94 @@
   .clues li {
     position: relative;
     padding: 10px 10px 10px 38px;
-    background: var(--bg-2);
+    background: linear-gradient(90deg, #2e2210 0%, #1f1408 100%);
     border-left: 3px solid var(--gold);
     border-radius: 4px;
-    margin-bottom: 8px;
-    font-size: 14px;
-    line-height: 1.45;
+    margin-bottom: 7px;
+    font-size: 13px;
+    line-height: 1.4;
   }
   .clues li::before {
     counter-increment: clue;
     content: counter(clue);
     position: absolute;
-    left: 8px; top: 8px;
+    left: 8px; top: 9px;
     width: 22px; height: 22px;
     border-radius: 50%;
     background: var(--gold);
-    color: #000;
+    color: #1a1408;
     text-align: center;
     line-height: 22px;
     font-size: 12px;
     font-weight: bold;
     font-family: sans-serif;
   }
-
-  .deduction {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 10px;
-  }
-  .col h3 {
-    margin: 0 0 8px;
-    font-size: 12px;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: var(--ink-dim);
-    text-align: center;
-  }
-  .item {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    min-height: 52px;
-    padding: 6px 4px;
-    margin-bottom: 6px;
-    background: var(--bg-2);
-    border: 1px solid #33365e;
-    border-radius: 8px;
-    font-size: 13px;
-    line-height: 1.2;
-    cursor: pointer;
-    user-select: none;
-    transition: background 0.15s, opacity 0.15s, transform 0.05s;
-  }
-  .item:active { transform: scale(0.97); }
-  .item.eliminated {
-    opacity: 0.35;
-    text-decoration: line-through;
-    background: #15162a;
-  }
-  .item.suspected {
-    background: var(--gold);
-    color: #1a1a1a;
-    border-color: var(--gold);
-    font-weight: bold;
+  .clues .inline-icon {
+    display: inline-block;
+    width: 18px; height: 18px;
+    vertical-align: middle;
+    color: var(--gold);
+    margin: 0 1px;
   }
 
-  .hint {
-    font-size: 11px;
-    color: var(--ink-dim);
-    text-align: center;
-    margin-top: 6px;
-    font-style: italic;
-  }
-
+  /* Action bar */
   .actions {
     position: fixed;
     bottom: 0; left: 0; right: 0;
-    padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
-    background: linear-gradient(to top, var(--bg) 70%, rgba(15,16,32,0));
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+    background: linear-gradient(to top, var(--bg) 75%, rgba(26,20,8,0));
     display: flex;
     gap: 10px;
     justify-content: center;
-    max-width: 560px;
+    max-width: 600px;
     margin: 0 auto;
     z-index: 10;
   }
   button {
     flex: 1;
-    min-height: 56px;
-    border: none;
-    border-radius: 10px;
+    min-height: 54px;
+    border: 2px solid var(--frame-2);
+    border-radius: 8px;
     font-family: inherit;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: bold;
-    letter-spacing: 1px;
+    letter-spacing: 1.5px;
     text-transform: uppercase;
     cursor: pointer;
     box-shadow: var(--shadow);
   }
   button:active { transform: translateY(1px); }
   .btn-primary {
-    background: var(--gold);
-    color: #1a1a1a;
+    background: linear-gradient(180deg, #e0bc62, #b88c30);
+    color: #1a1408;
+    border-color: var(--gold);
   }
   .btn-secondary {
-    background: var(--panel-2);
+    background: linear-gradient(180deg, #4a3820, #2a2010);
     color: var(--ink);
-    border: 1px solid #4b4f80;
   }
 
+  /* Modal */
   .modal-bg {
     position: fixed; inset: 0;
-    background: rgba(0,0,0,0.75);
+    background: rgba(0,0,0,0.78);
     display: none;
     align-items: center;
     justify-content: center;
     z-index: 100;
-    padding: 20px;
+    padding: 16px;
   }
   .modal-bg.show { display: flex; }
   .modal {
-    background: var(--panel);
-    border: 1px solid var(--gold-dim);
+    background: linear-gradient(180deg, var(--panel) 0%, var(--bg-2) 100%);
+    border: 2px solid var(--gold-dim);
     border-radius: 12px;
     padding: 18px;
     width: 100%;
-    max-width: 440px;
-    max-height: 90vh;
+    max-width: 460px;
+    max-height: 92vh;
     overflow-y: auto;
+    box-shadow: 0 0 40px rgba(0,0,0,0.8);
   }
   .modal h2 {
     margin: 0 0 12px;
@@ -237,80 +369,538 @@
   }
   .modal label {
     display: block;
-    margin: 12px 0 6px;
-    font-size: 12px;
+    margin: 14px 0 6px;
+    font-size: 11px;
     color: var(--ink-dim);
     letter-spacing: 1.5px;
     text-transform: uppercase;
   }
-  .modal select {
-    width: 100%;
-    min-height: 48px;
-    padding: 8px 10px;
-    border-radius: 8px;
-    border: 1px solid #4b4f80;
+  .picker {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+  .picker .opt {
+    border: 1.5px solid var(--frame);
     background: var(--bg-2);
     color: var(--ink);
-    font-family: inherit;
-    font-size: 15px;
+    border-radius: 6px;
+    padding: 6px 4px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    font-size: 10px;
+    line-height: 1.1;
+    min-height: 70px;
   }
+  .picker .opt .opt-art {
+    width: 36px; height: 36px;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gold);
+  }
+  .picker .opt .opt-art svg { width: 100%; height: 100%; }
+  .picker .opt.selected {
+    background: var(--gold);
+    color: #1a1408;
+    border-color: var(--gold);
+    box-shadow: 0 0 10px rgba(224,188,98,0.6);
+  }
+  .picker .opt.selected .opt-art { color: #1a1408; }
   .modal .row {
     display: flex;
     gap: 10px;
-    margin-top: 16px;
+    margin-top: 18px;
   }
   .verdict {
     text-align: center;
-    padding: 10px;
+    padding: 12px;
     border-radius: 8px;
     margin-top: 14px;
-    font-size: 15px;
-    line-height: 1.4;
+    font-size: 14px;
+    line-height: 1.45;
   }
-  .verdict.win { background: rgba(95,164,99,0.18); color: var(--green); border: 1px solid var(--green); }
-  .verdict.lose { background: rgba(192,72,72,0.18); color: var(--red); border: 1px solid var(--red); }
-  .truth { font-size: 13px; color: var(--ink-dim); margin-top: 8px; }
+  .verdict.win { background: rgba(107,168,88,0.18); color: var(--green); border: 1px solid var(--green); }
+  .verdict.lose { background: rgba(192,74,58,0.18); color: var(--red); border: 1px solid var(--red); }
+  .verdict-art {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin: 10px 0;
+  }
+  .verdict-art .pic {
+    width: 60px;
+    text-align: center;
+    font-size: 10px;
+    color: var(--ink-dim);
+  }
+  .verdict-art .pic .frame {
+    width: 60px; height: 60px;
+    border: 2px solid var(--frame-2);
+    border-radius: 6px;
+    background: var(--bg);
+    margin-bottom: 4px;
+    overflow: hidden;
+  }
+  .verdict-art .pic .frame.circle { border-radius: 50%; }
+  .verdict-art .pic .frame svg { width: 100%; height: 100%; }
+  .verdict-art .pic .label { font-size: 10px; color: var(--ink); }
+  .truth { font-size: 12px; color: var(--ink-dim); margin-top: 6px; }
   .truth b { color: var(--ink); }
+
+  /* Help text */
+  .help-text {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--ink);
+  }
+  .help-text ul { padding-left: 20px; }
+  .help-text li { margin-bottom: 6px; }
+
+  /* Small screen tweaks */
+  @media (max-width: 360px) {
+    .cell .room-name { font-size: 8px; }
+    header h1 { font-size: 20px; }
+    .clues li { font-size: 12px; }
+  }
 </style>
 </head>
 <body>
+
+<!-- SVG sprite definitions: all original line/silhouette art -->
+<svg id="sprites" width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- Banner: manor silhouette with moon -->
+    <symbol id="banner" viewBox="0 0 320 56">
+      <circle cx="270" cy="18" r="10" fill="currentColor" opacity="0.7"/>
+      <circle cx="266" cy="14" r="8" fill="#1a1408"/>
+      <!-- manor silhouette -->
+      <path d="M20 50 L20 30 L40 30 L40 20 L60 20 L60 8 L100 8 L100 20 L130 20 L130 14 L170 14 L170 20 L200 20 L200 8 L240 8 L240 20 L260 20 L260 30 L280 30 L280 50 Z"
+            fill="currentColor"/>
+      <!-- windows -->
+      <rect x="68" y="22" width="6" height="8" fill="#e0bc62" opacity="0.6"/>
+      <rect x="84" y="22" width="6" height="8" fill="#e0bc62" opacity="0.6"/>
+      <rect x="148" y="22" width="6" height="6" fill="#e0bc62" opacity="0.4"/>
+      <rect x="210" y="22" width="6" height="8" fill="#e0bc62" opacity="0.6"/>
+      <rect x="224" y="22" width="6" height="8" fill="#e0bc62" opacity="0.6"/>
+    </symbol>
+
+    <!-- Audio toggle icons -->
+    <symbol id="ic-sound" viewBox="0 0 24 24">
+      <path d="M4 9v6h4l5 4V5L8 9H4z M16 8c1.5 1.5 1.5 6.5 0 8 M19 5c3 3 3 11 0 14"
+            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-mute" viewBox="0 0 24 24">
+      <path d="M4 9v6h4l5 4V5L8 9H4z M15 9l6 6 M21 9l-6 6"
+            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-help" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/>
+      <path d="M9 9c0-2 1.5-3 3-3s3 1 3 3-3 2-3 4 M12 17v.5"
+            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </symbol>
+
+    <!-- ROOMS (9): simple line scenes -->
+    <symbol id="room-library" viewBox="0 0 64 64">
+      <g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round">
+        <rect x="10" y="18" width="6" height="28"/>
+        <rect x="18" y="20" width="6" height="26"/>
+        <rect x="26" y="16" width="6" height="30"/>
+        <rect x="34" y="22" width="6" height="24"/>
+        <path d="M42 24 L50 22 L52 46 L44 48 Z"/>
+        <line x1="6" y1="48" x2="58" y2="48"/>
+        <line x1="6" y1="52" x2="58" y2="52"/>
+      </g>
+    </symbol>
+    <symbol id="room-conservatory" viewBox="0 0 64 64">
+      <g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M22 46 L42 46 L40 56 L24 56 Z"/>
+        <path d="M32 46 L32 30"/>
+        <path d="M32 38 Q22 36 18 22 Q26 26 32 36"/>
+        <path d="M32 38 Q42 36 46 22 Q38 26 32 36"/>
+        <path d="M32 30 Q26 24 24 14 Q30 18 32 28"/>
+      </g>
+    </symbol>
+    <symbol id="room-study" viewBox="0 0 64 64">
+      <g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round">
+        <rect x="8" y="38" width="48" height="6"/>
+        <line x1="12" y1="44" x2="12" y2="56"/>
+        <line x1="52" y1="44" x2="52" y2="56"/>
+        <rect x="38" y="20" width="14" height="6"/>
+        <path d="M34 14 L52 14 L46 20 L40 20 Z"/>
+        <line x1="44" y1="26" x2="44" y2="38"/>
+        <rect x="14" y="32" width="14" height="6"/>
+      </g>
+    </symbol>
+    <symbol id="room-billiard" viewBox="0 0 64 64">
+      <g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+        <circle cx="20" cy="44" r="8"/>
+        <line x1="28" y1="36" x2="58" y2="8"/>
+        <circle cx="20" cy="44" r="3"/>
+        <line x1="6" y1="56" x2="58" y2="56"/>
+      </g>
+    </symbol>
+    <symbol id="room-drawing" viewBox="0 0 64 64">
+      <g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round">
+        <rect x="12" y="16" width="40" height="22"/>
+        <rect x="8" y="20" width="6" height="22"/>
+        <rect x="50" y="20" width="6" height="22"/>
+        <rect x="10" y="38" width="44" height="10"/>
+        <line x1="14" y1="48" x2="14" y2="56"/>
+        <line x1="50" y1="48" x2="50" y2="56"/>
+      </g>
+    </symbol>
+    <symbol id="room-kitchen" viewBox="0 0 64 64">
+      <g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M16 30 L48 30 L46 44 L18 44 Z"/>
+        <line x1="14" y1="30" x2="50" y2="30"/>
+        <line x1="12" y1="32" x2="16" y2="32"/>
+        <line x1="48" y1="32" x2="52" y2="32"/>
+        <path d="M24 14 Q22 18 26 22 M32 12 Q30 16 34 20 M40 14 Q38 18 42 22"/>
+        <rect x="10" y="44" width="44" height="10"/>
+      </g>
+    </symbol>
+    <symbol id="room-cellar" viewBox="0 0 64 64">
+      <g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round">
+        <path d="M28 12 L36 12 L36 22 L40 26 L40 52 L24 52 L24 26 L28 22 Z"/>
+        <rect x="26" y="30" width="12" height="12"/>
+        <line x1="26" y1="36" x2="38" y2="36"/>
+        <circle cx="48" cy="18" r="4"/>
+      </g>
+    </symbol>
+    <symbol id="room-observatory" viewBox="0 0 64 64">
+      <g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M20 50 L32 30 L44 50"/>
+        <line x1="32" y1="30" x2="32" y2="40"/>
+        <path d="M38 18 L52 32 L48 36 L34 22 Z"/>
+        <line x1="38" y1="18" x2="34" y2="14"/>
+        <line x1="52" y1="32" x2="56" y2="28"/>
+        <circle cx="12" cy="14" r="1.2" fill="currentColor"/>
+        <circle cx="22" cy="10" r="1.2" fill="currentColor"/>
+        <circle cx="16" cy="22" r="1" fill="currentColor"/>
+      </g>
+    </symbol>
+    <symbol id="room-ballroom" viewBox="0 0 64 64">
+      <g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+        <line x1="32" y1="6" x2="32" y2="14"/>
+        <circle cx="32" cy="20" r="5"/>
+        <path d="M18 26 L32 20 L46 26"/>
+        <line x1="18" y1="26" x2="18" y2="38"/>
+        <line x1="26" y1="28" x2="26" y2="38"/>
+        <line x1="38" y1="28" x2="38" y2="38"/>
+        <line x1="46" y1="26" x2="46" y2="38"/>
+        <line x1="14" y1="38" x2="22" y2="38"/>
+        <line x1="22" y1="38" x2="30" y2="38"/>
+        <line x1="34" y1="38" x2="42" y2="38"/>
+        <line x1="42" y1="38" x2="50" y2="38"/>
+      </g>
+    </symbol>
+
+    <!-- WEAPONS (9): line-art icons -->
+    <symbol id="weap-candlestick" viewBox="0 0 64 64">
+      <g fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M32 8 C 28 12 28 16 32 18 C 36 16 36 12 32 8 Z" fill="currentColor"/>
+        <line x1="32" y1="18" x2="32" y2="22"/>
+        <rect x="27" y="22" width="10" height="8"/>
+        <line x1="32" y1="30" x2="32" y2="46"/>
+        <path d="M22 48 L42 48 L40 54 L24 54 Z"/>
+      </g>
+    </symbol>
+    <symbol id="weap-revolver" viewBox="0 0 64 64">
+      <g fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M8 30 L40 30 L40 38 L8 38 Z"/>
+        <circle cx="46" cy="34" r="8"/>
+        <circle cx="46" cy="34" r="2" fill="currentColor"/>
+        <path d="M44 42 L44 52 L28 52 L28 44"/>
+      </g>
+    </symbol>
+    <symbol id="weap-shears" viewBox="0 0 64 64">
+      <g fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round">
+        <circle cx="14" cy="14" r="6"/>
+        <circle cx="50" cy="14" r="6"/>
+        <line x1="18" y1="18" x2="40" y2="48"/>
+        <line x1="46" y1="18" x2="24" y2="48"/>
+        <line x1="32" y1="32" x2="32" y2="34"/>
+        <line x1="22" y1="48" x2="22" y2="56"/>
+        <line x1="42" y1="48" x2="42" y2="56"/>
+      </g>
+    </symbol>
+    <symbol id="weap-decanter" viewBox="0 0 64 64">
+      <g fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round">
+        <rect x="28" y="6" width="8" height="6"/>
+        <path d="M26 12 L38 12 L42 22 L42 52 L22 52 L22 22 Z"/>
+        <line x1="22" y1="30" x2="42" y2="30"/>
+        <line x1="22" y1="40" x2="42" y2="40"/>
+      </g>
+    </symbol>
+    <symbol id="weap-pipe" viewBox="0 0 64 64">
+      <g fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round">
+        <rect x="10" y="28" width="44" height="10"/>
+        <ellipse cx="10" cy="33" rx="2.5" ry="5"/>
+        <ellipse cx="54" cy="33" rx="2.5" ry="5"/>
+      </g>
+    </symbol>
+    <symbol id="weap-tea" viewBox="0 0 64 64">
+      <g fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M16 32 L46 32 L44 52 L18 52 Z"/>
+        <path d="M46 36 Q56 36 56 42 Q56 48 46 48"/>
+        <path d="M22 16 Q20 20 24 24 M30 12 Q28 16 32 20 M38 16 Q36 20 40 24"/>
+      </g>
+    </symbol>
+    <symbol id="weap-opener" viewBox="0 0 64 64">
+      <g fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M32 6 L36 14 L36 38 L32 44 L28 38 L28 14 Z"/>
+        <rect x="26" y="38" width="12" height="5"/>
+        <rect x="30" y="43" width="4" height="14"/>
+      </g>
+    </symbol>
+    <symbol id="weap-rope" viewBox="0 0 64 64">
+      <g fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round">
+        <circle cx="12" cy="14" r="4"/>
+        <circle cx="52" cy="14" r="4"/>
+        <line x1="12" y1="18" x2="12" y2="54"/>
+        <line x1="52" y1="18" x2="52" y2="54"/>
+        <line x1="6" y1="54" x2="18" y2="54"/>
+        <line x1="46" y1="54" x2="58" y2="54"/>
+        <path d="M14 24 Q32 42 50 24"/>
+      </g>
+    </symbol>
+    <symbol id="weap-wrench" viewBox="0 0 64 64">
+      <g fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M14 12 L20 6 L26 12 L26 20 L20 26 L14 20 Z M20 26 L36 42"/>
+        <path d="M50 52 L44 58 L38 52 L38 44 L44 38 L50 44 Z M44 38 L36 42"/>
+      </g>
+    </symbol>
+
+    <!-- SUSPECTS (9): portrait silhouettes with distinguishing features
+         Each portrait card: tinted background + face + hair/hat + accessory -->
+    <symbol id="sus-1" viewBox="0 0 64 64">
+      <!-- Lady Ashcroft: updo + pearls -->
+      <rect width="64" height="64" fill="#4a2a3a"/>
+      <path d="M8 64 Q32 46 56 64 Z" fill="#e8d4b8"/>
+      <rect x="28" y="38" width="8" height="10" fill="#e8d4b8"/>
+      <circle cx="32" cy="30" r="13" fill="#e8d4b8"/>
+      <path d="M21 24 Q22 12 32 10 Q42 12 43 24 Q44 28 32 26 Q20 28 21 24 Z" fill="#3a1f1f"/>
+      <ellipse cx="32" cy="9" rx="6" ry="3" fill="#3a1f1f"/>
+      <circle cx="28" cy="29" r="1" fill="#1a1408"/>
+      <circle cx="36" cy="29" r="1" fill="#1a1408"/>
+      <path d="M28 35 Q32 37 36 35" fill="none" stroke="#1a1408" stroke-width="1"/>
+      <circle cx="26" cy="46" r="1.4" fill="#f4e9b0"/>
+      <circle cx="30" cy="48" r="1.4" fill="#f4e9b0"/>
+      <circle cx="34" cy="48" r="1.4" fill="#f4e9b0"/>
+      <circle cx="38" cy="46" r="1.4" fill="#f4e9b0"/>
+    </symbol>
+    <symbol id="sus-2" viewBox="0 0 64 64">
+      <!-- Colonel Vance: military cap + mustache -->
+      <rect width="64" height="64" fill="#3a4a2a"/>
+      <path d="M8 64 Q32 46 56 64 Z" fill="#d8c0a0"/>
+      <rect x="28" y="38" width="8" height="10" fill="#d8c0a0"/>
+      <circle cx="32" cy="30" r="13" fill="#d8c0a0"/>
+      <path d="M18 22 L46 22 L42 16 L22 16 Z" fill="#2a3a1c"/>
+      <path d="M16 22 L48 22 L48 26 L16 26 Z" fill="#1f2a14"/>
+      <rect x="29" y="18" width="6" height="3" fill="#e0bc62"/>
+      <circle cx="28" cy="30" r="1" fill="#1a1408"/>
+      <circle cx="36" cy="30" r="1" fill="#1a1408"/>
+      <path d="M24 36 Q28 34 32 36 Q36 34 40 36 L40 38 Q32 40 24 38 Z" fill="#3a2a1c"/>
+    </symbol>
+    <symbol id="sus-3" viewBox="0 0 64 64">
+      <!-- Dr. Mortimer: bald + round glasses + bowtie -->
+      <rect width="64" height="64" fill="#2a3a4a"/>
+      <path d="M8 64 Q32 46 56 64 Z" fill="#e0c8a8"/>
+      <rect x="28" y="38" width="8" height="10" fill="#e0c8a8"/>
+      <circle cx="32" cy="30" r="13" fill="#e0c8a8"/>
+      <path d="M22 24 Q24 18 32 18 Q40 18 42 24" fill="#3a2820"/>
+      <circle cx="27" cy="30" r="3.5" fill="none" stroke="#1a1408" stroke-width="1.5"/>
+      <circle cx="37" cy="30" r="3.5" fill="none" stroke="#1a1408" stroke-width="1.5"/>
+      <line x1="30.5" y1="30" x2="33.5" y2="30" stroke="#1a1408" stroke-width="1"/>
+      <path d="M30 36 L34 36" stroke="#1a1408" stroke-width="1"/>
+      <path d="M24 48 L32 44 L40 48 L36 54 L32 50 L28 54 Z" fill="#7a1f1f"/>
+    </symbol>
+    <symbol id="sus-4" viewBox="0 0 64 64">
+      <!-- Miss Penrose: bob + beret -->
+      <rect width="64" height="64" fill="#5a4a3a"/>
+      <path d="M8 64 Q32 46 56 64 Z" fill="#f0d4b8"/>
+      <rect x="28" y="38" width="8" height="10" fill="#f0d4b8"/>
+      <circle cx="32" cy="30" r="13" fill="#f0d4b8"/>
+      <!-- bob hair -->
+      <path d="M20 32 Q18 18 32 14 Q46 18 44 32 L44 38 L40 32 L40 24 Q38 22 32 22 Q26 22 24 24 L24 32 L20 38 Z" fill="#2a1a14"/>
+      <!-- beret -->
+      <ellipse cx="32" cy="13" rx="14" ry="4" fill="#7a1f1f"/>
+      <circle cx="40" cy="10" r="2" fill="#a82828"/>
+      <circle cx="28" cy="30" r="1" fill="#1a1408"/>
+      <circle cx="36" cy="30" r="1" fill="#1a1408"/>
+      <path d="M28 35 Q32 37 36 35" fill="none" stroke="#7a1f1f" stroke-width="1.5" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="sus-5" viewBox="0 0 64 64">
+      <!-- Reverend Holt: parted hair + clerical collar -->
+      <rect width="64" height="64" fill="#1f1f1f"/>
+      <path d="M8 64 Q32 46 56 64 Z" fill="#2a2a2a"/>
+      <rect x="28" y="38" width="8" height="10" fill="#e0c8a8"/>
+      <rect x="24" y="46" width="16" height="4" fill="#f1e6c8"/>
+      <circle cx="32" cy="30" r="13" fill="#e0c8a8"/>
+      <path d="M20 24 Q22 16 32 14 Q42 16 44 24 Q40 22 32 22 Q24 22 20 24 Z" fill="#3a2a1c"/>
+      <line x1="32" y1="16" x2="32" y2="22" stroke="#1a1408" stroke-width="0.7"/>
+      <circle cx="28" cy="30" r="1" fill="#1a1408"/>
+      <circle cx="36" cy="30" r="1" fill="#1a1408"/>
+      <path d="M28 36 Q32 37 36 36" fill="none" stroke="#1a1408" stroke-width="1"/>
+    </symbol>
+    <symbol id="sus-6" viewBox="0 0 64 64">
+      <!-- Captain Bligh: sailor cap + beard -->
+      <rect width="64" height="64" fill="#1f3a4a"/>
+      <path d="M8 64 Q32 46 56 64 Z" fill="#d8c0a0"/>
+      <rect x="28" y="38" width="8" height="10" fill="#d8c0a0"/>
+      <circle cx="32" cy="30" r="13" fill="#d8c0a0"/>
+      <!-- sailor cap -->
+      <ellipse cx="32" cy="20" rx="15" ry="4" fill="#1f2a3a"/>
+      <path d="M18 20 L46 20 L46 13 Q32 9 18 13 Z" fill="#e8d4b8"/>
+      <rect x="29" y="14" width="6" height="3" fill="#0a1a2a"/>
+      <!-- beard -->
+      <path d="M22 32 Q22 46 32 50 Q42 46 42 32 Q40 36 32 38 Q24 36 22 32 Z" fill="#3a2a1c"/>
+      <circle cx="28" cy="30" r="1" fill="#1a1408"/>
+      <circle cx="36" cy="30" r="1" fill="#1a1408"/>
+    </symbol>
+    <symbol id="sus-7" viewBox="0 0 64 64">
+      <!-- Madame Zara: turban + earrings -->
+      <rect width="64" height="64" fill="#4a2a4a"/>
+      <path d="M8 64 Q32 46 56 64 Z" fill="#e0a888"/>
+      <rect x="28" y="38" width="8" height="10" fill="#e0a888"/>
+      <circle cx="32" cy="30" r="13" fill="#e0a888"/>
+      <!-- turban -->
+      <path d="M18 22 Q14 14 32 10 Q50 14 46 22 Q42 18 32 18 Q22 18 18 22 Z" fill="#7a2a5a"/>
+      <path d="M20 20 Q32 12 44 20 Q40 16 32 16 Q24 16 20 20" fill="#a83a7a"/>
+      <ellipse cx="34" cy="14" rx="3" ry="2" fill="#e0bc62"/>
+      <!-- earrings -->
+      <circle cx="18" cy="34" r="1.5" fill="#e0bc62"/>
+      <circle cx="46" cy="34" r="1.5" fill="#e0bc62"/>
+      <circle cx="28" cy="30" r="1" fill="#1a1408"/>
+      <circle cx="36" cy="30" r="1" fill="#1a1408"/>
+      <path d="M28 35 Q32 37 36 35" fill="none" stroke="#a83a3a" stroke-width="1.5" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="sus-8" viewBox="0 0 64 64">
+      <!-- Mr. Grimsby: bowler hat + thick mustache -->
+      <rect width="64" height="64" fill="#3a3a2a"/>
+      <path d="M8 64 Q32 46 56 64 Z" fill="#d0b890"/>
+      <rect x="28" y="38" width="8" height="10" fill="#d0b890"/>
+      <circle cx="32" cy="30" r="13" fill="#d0b890"/>
+      <!-- bowler hat -->
+      <path d="M18 22 Q18 12 32 12 Q46 12 46 22" fill="#1a1408"/>
+      <rect x="14" y="20" width="36" height="4" fill="#1a1408"/>
+      <circle cx="28" cy="30" r="1" fill="#1a1408"/>
+      <circle cx="36" cy="30" r="1" fill="#1a1408"/>
+      <path d="M22 36 Q28 32 32 36 Q36 32 42 36 L42 40 Q32 42 22 40 Z" fill="#2a1a10"/>
+    </symbol>
+    <symbol id="sus-9" viewBox="0 0 64 64">
+      <!-- Professor Whittaker: wild hair + monocle -->
+      <rect width="64" height="64" fill="#3a3a4a"/>
+      <path d="M8 64 Q32 46 56 64 Z" fill="#e8d4b8"/>
+      <rect x="28" y="38" width="8" height="10" fill="#e8d4b8"/>
+      <circle cx="32" cy="30" r="13" fill="#e8d4b8"/>
+      <!-- wild white hair -->
+      <path d="M18 24 Q14 8 22 10 Q24 6 30 12 Q32 6 34 12 Q40 6 42 10 Q50 8 46 24 Q44 18 32 20 Q20 18 18 24 Z" fill="#f0f0e0"/>
+      <path d="M18 26 Q14 32 16 38 M46 26 Q50 32 48 38" fill="#f0f0e0" stroke="#f0f0e0" stroke-width="3" stroke-linecap="round"/>
+      <!-- monocle -->
+      <circle cx="36" cy="30" r="4" fill="none" stroke="#1a1408" stroke-width="1.5"/>
+      <line x1="40" y1="32" x2="42" y2="40" stroke="#1a1408" stroke-width="1"/>
+      <circle cx="28" cy="30" r="1" fill="#1a1408"/>
+      <!-- mustache -->
+      <path d="M26 38 Q32 36 38 38" fill="none" stroke="#f0f0e0" stroke-width="2"/>
+    </symbol>
+
+    <!-- VICTIMS (5) -->
+    <symbol id="vic-1" viewBox="0 0 64 64">
+      <rect width="64" height="64" fill="#2a1f1f"/>
+      <path d="M8 64 Q32 46 56 64 Z" fill="#d8c0a0"/>
+      <circle cx="32" cy="30" r="13" fill="#d8c0a0"/>
+      <path d="M20 24 Q22 14 32 12 Q42 14 44 24 Q40 22 32 22 Q24 22 20 24 Z" fill="#7a6a4a"/>
+      <line x1="26" y1="28" x2="30" y2="32" stroke="#1a1408" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="30" y1="28" x2="26" y2="32" stroke="#1a1408" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="34" y1="28" x2="38" y2="32" stroke="#1a1408" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="38" y1="28" x2="34" y2="32" stroke="#1a1408" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M26 40 Q32 36 38 40" fill="none" stroke="#1a1408" stroke-width="1.5"/>
+    </symbol>
+    <symbol id="vic-2" viewBox="0 0 64 64">
+      <rect width="64" height="64" fill="#2a1f1f"/>
+      <path d="M8 64 Q32 46 56 64 Z" fill="#e8d0b0"/>
+      <circle cx="32" cy="30" r="13" fill="#e8d0b0"/>
+      <path d="M19 22 Q22 12 32 10 Q42 12 45 22 Q42 20 32 20 Q22 20 19 22 Z" fill="#cfcfcf"/>
+      <line x1="26" y1="28" x2="30" y2="32" stroke="#1a1408" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="30" y1="28" x2="26" y2="32" stroke="#1a1408" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="34" y1="28" x2="38" y2="32" stroke="#1a1408" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="38" y1="28" x2="34" y2="32" stroke="#1a1408" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M26 40 Q32 36 38 40" fill="none" stroke="#1a1408" stroke-width="1.5"/>
+    </symbol>
+    <symbol id="vic-3" viewBox="0 0 64 64">
+      <rect width="64" height="64" fill="#2a1f1f"/>
+      <path d="M8 64 Q32 46 56 64 Z" fill="#d4b890"/>
+      <circle cx="32" cy="30" r="13" fill="#d4b890"/>
+      <path d="M20 22 Q22 14 32 12 Q42 14 44 22 Q42 20 32 20 Q22 20 20 22 Z" fill="#2a2a1c"/>
+      <line x1="26" y1="28" x2="30" y2="32" stroke="#1a1408" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="30" y1="28" x2="26" y2="32" stroke="#1a1408" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="34" y1="28" x2="38" y2="32" stroke="#1a1408" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="38" y1="28" x2="34" y2="32" stroke="#1a1408" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M22 38 Q22 44 32 46 Q42 44 42 38 Q38 40 32 40 Q26 40 22 38 Z" fill="#2a2a1c"/>
+    </symbol>
+    <symbol id="vic-4" viewBox="0 0 64 64">
+      <rect width="64" height="64" fill="#2a1f1f"/>
+      <path d="M8 64 Q32 46 56 64 Z" fill="#e8c8a0"/>
+      <circle cx="32" cy="30" r="13" fill="#e8c8a0"/>
+      <path d="M19 24 Q18 12 32 10 Q46 12 45 24 Q42 18 32 18 Q22 18 19 24 Z" fill="#7a4a2a"/>
+      <line x1="26" y1="28" x2="30" y2="32" stroke="#1a1408" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="30" y1="28" x2="26" y2="32" stroke="#1a1408" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="34" y1="28" x2="38" y2="32" stroke="#1a1408" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="38" y1="28" x2="34" y2="32" stroke="#1a1408" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M26 40 Q32 36 38 40" fill="none" stroke="#1a1408" stroke-width="1.5"/>
+    </symbol>
+    <symbol id="vic-5" viewBox="0 0 64 64">
+      <rect width="64" height="64" fill="#2a1f1f"/>
+      <path d="M8 64 Q32 46 56 64 Z" fill="#f0d8b8"/>
+      <circle cx="32" cy="30" r="13" fill="#f0d8b8"/>
+      <path d="M20 24 Q18 14 32 12 Q46 14 44 24 Q40 20 32 20 Q24 20 20 24 Z" fill="#a8741a"/>
+      <ellipse cx="32" cy="13" rx="14" ry="3" fill="#a8741a"/>
+      <line x1="26" y1="28" x2="30" y2="32" stroke="#1a1408" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="30" y1="28" x2="26" y2="32" stroke="#1a1408" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="34" y1="28" x2="38" y2="32" stroke="#1a1408" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="38" y1="28" x2="34" y2="32" stroke="#1a1408" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M26 40 Q32 36 38 40" fill="none" stroke="#1a1408" stroke-width="1.5"/>
+    </symbol>
+  </defs>
+</svg>
+
 <div id="app">
   <header>
+    <div class="banner"><svg><use href="#banner"/></svg></div>
     <h1>INSPECTOR PARKER</h1>
     <div class="sub">— Logic Mysteries —</div>
-    <div class="score">
-      <span>Case <b id="caseNum">1</b></span>
-      <span>Solved: <b id="wins">0</b> · Missed: <b id="losses">0</b></span>
+    <div class="topbar">
+      <button class="iconbtn" id="btnHelp" title="How to play"><svg><use href="#ic-help"/></svg></button>
+      <span class="score">Case <b id="caseNum">1</b> · Solved <b id="wins">0</b> / Missed <b id="losses">0</b></span>
+      <button class="iconbtn" id="btnSound" title="Sound"><svg id="soundIcon"><use href="#ic-sound"/></svg></button>
     </div>
   </header>
 
   <div class="panel">
     <h2>The Case</h2>
-    <div id="briefing" class="briefing"></div>
+    <div class="briefing">
+      <div class="victim-frame"><svg id="victimArt"></svg></div>
+      <div class="text" id="briefing"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>The Manor</h2>
+    <div class="manor">
+      <div class="grid" id="grid"></div>
+    </div>
+    <div class="hint">Tap a room: blank → ruled out → suspected</div>
   </div>
 
   <div class="panel">
     <h2>Clues</h2>
     <ol id="clues" class="clues"></ol>
-  </div>
-
-  <div class="panel">
-    <h2>Deduction Notebook</h2>
-    <div class="deduction">
-      <div class="col">
-        <h3>Suspects</h3>
-        <div id="col-suspects"></div>
-      </div>
-      <div class="col">
-        <h3>Weapons</h3>
-        <div id="col-weapons"></div>
-      </div>
-      <div class="col">
-        <h3>Rooms</h3>
-        <div id="col-rooms"></div>
-      </div>
-    </div>
-    <div class="hint">Tap to cycle: blank → ruled out → suspected</div>
   </div>
 </div>
 
@@ -319,15 +909,16 @@
   <button class="btn-primary" id="btnAccuse">Accuse</button>
 </div>
 
-<div class="modal-bg" id="modal">
+<!-- Accusation modal -->
+<div class="modal-bg" id="modalAccuse">
   <div class="modal">
     <h2>Make Your Accusation</h2>
-    <label>Murderer</label>
-    <select id="selSuspect"></select>
-    <label>Weapon</label>
-    <select id="selWeapon"></select>
-    <label>Crime Scene</label>
-    <select id="selRoom"></select>
+    <label>The Murderer</label>
+    <div class="picker" id="pickSuspect"></div>
+    <label>The Weapon</label>
+    <div class="picker" id="pickWeapon"></div>
+    <label>The Crime Scene</label>
+    <div class="picker" id="pickRoom"></div>
     <div id="verdict"></div>
     <div class="row">
       <button class="btn-secondary" id="btnCancel">Cancel</button>
@@ -336,66 +927,184 @@
   </div>
 </div>
 
+<!-- Help modal -->
+<div class="modal-bg" id="modalHelp">
+  <div class="modal">
+    <h2>How to Play</h2>
+    <div class="help-text">
+      <p>A guest of the manor has been murdered. Use the clues to deduce <b>who</b> did it, <b>with what</b>, and <b>where</b>.</p>
+      <ul>
+        <li>The manor has 9 rooms in a 3 × 3 grid. Each room contains one suspect and one possible weapon.</li>
+        <li>One of these rooms is the crime scene. The suspect there is the murderer; the weapon there is the murder weapon.</li>
+        <li>Read the clues carefully — some reference <b>spatial relations</b> (rows, columns, adjacency, direction).</li>
+        <li>Tap a room to mark it: blank → <span style="color:#c04a3a;">✕ ruled out</span> → <span style="color:#e0bc62;">○ suspected</span> → blank.</li>
+        <li>When ready, tap <b>Accuse</b> and pick the murderer, weapon, and room. All three must be correct.</li>
+      </ul>
+    </div>
+    <div class="row">
+      <button class="btn-primary" id="btnHelpClose">Got it</button>
+    </div>
+  </div>
+</div>
+
 <script>
 (function () {
   'use strict';
 
+  // ============================================================
+  //  DATA
+  // ============================================================
   const SUSPECTS = [
-    'Lady Ashcroft', 'Colonel Vance', 'Dr. Mortimer', 'Miss Penrose',
-    'Reverend Holt', 'Captain Bligh', 'Madame Zara', 'Mr. Grimsby'
+    { name: 'Lady Ashcroft',       icon: 'sus-1' },
+    { name: 'Colonel Vance',       icon: 'sus-2' },
+    { name: 'Dr. Mortimer',        icon: 'sus-3' },
+    { name: 'Miss Penrose',        icon: 'sus-4' },
+    { name: 'Reverend Holt',       icon: 'sus-5' },
+    { name: 'Captain Bligh',       icon: 'sus-6' },
+    { name: 'Madame Zara',         icon: 'sus-7' },
+    { name: 'Mr. Grimsby',         icon: 'sus-8' },
+    { name: 'Professor Whittaker', icon: 'sus-9' }
   ];
   const WEAPONS = [
-    'Silver Candlestick', 'Antique Revolver', 'Garden Shears', 'Crystal Decanter',
-    'Lead Pipe', 'Poisoned Tea', 'Letter Opener', 'Velvet Rope'
+    { name: 'Silver Candlestick',  icon: 'weap-candlestick' },
+    { name: 'Antique Revolver',    icon: 'weap-revolver' },
+    { name: 'Garden Shears',       icon: 'weap-shears' },
+    { name: 'Crystal Decanter',    icon: 'weap-decanter' },
+    { name: 'Lead Pipe',           icon: 'weap-pipe' },
+    { name: 'Poisoned Tea',        icon: 'weap-tea' },
+    { name: 'Letter Opener',       icon: 'weap-opener' },
+    { name: 'Velvet Rope',         icon: 'weap-rope' },
+    { name: 'Heavy Wrench',        icon: 'weap-wrench' }
   ];
   const ROOMS = [
-    'the Library', 'the Conservatory', 'the Billiard Room', 'the Wine Cellar',
-    'the Drawing Room', 'the Observatory', 'the Greenhouse', 'the Servants’ Hall'
+    { name: 'Library',       icon: 'room-library' },
+    { name: 'Conservatory',  icon: 'room-conservatory' },
+    { name: 'Study',         icon: 'room-study' },
+    { name: 'Billiard Room', icon: 'room-billiard' },
+    { name: 'Drawing Room',  icon: 'room-drawing' },
+    { name: 'Kitchen',       icon: 'room-kitchen' },
+    { name: 'Wine Cellar',   icon: 'room-cellar' },
+    { name: 'Observatory',   icon: 'room-observatory' },
+    { name: 'Ballroom',      icon: 'room-ballroom' }
   ];
   const VICTIMS = [
-    'Sir Edmund Halloway', 'Baroness Hartwood', 'Mr. Cornelius Pike',
-    'Lord Ashby', 'Professor Fenwick'
+    { name: 'Sir Edmund Halloway', icon: 'vic-1' },
+    { name: 'Baroness Hartwood',   icon: 'vic-2' },
+    { name: 'Mr. Cornelius Pike',  icon: 'vic-3' },
+    { name: 'Lord Ashby',          icon: 'vic-4' },
+    { name: 'Professor Fenwick',   icon: 'vic-5' }
   ];
   const SCENARIOS = [
-    'Found slumped in a velvet armchair just after midnight.',
-    'Discovered behind a locked door, the key still in the lock.',
-    'Last seen alive at the dinner gong; cold by the time tea was served.',
-    'Crumpled at the foot of the grand staircase under flickering candlelight.',
-    'Sprawled across the writing desk, an unfinished letter beneath the body.'
+    'Found slumped behind a locked door just after the dinner gong.',
+    'Discovered in a pool of moonlight, the candles still burning.',
+    'Last seen alive at midnight; cold by the chiming of three.',
+    'Sprawled across a writing desk, an unfinished letter beneath the body.',
+    'Crumpled at the foot of the grand staircase as the storm raged.'
   ];
 
-  const SUSPECT_CLUES = [
-    n => `Inspector Parker has cleared ${n} of all suspicion.`,
-    n => `${n} produced an unshakeable alibi for the time of the crime.`,
-    n => `Witnesses placed ${n} far from the scene when it happened.`,
-    n => `${n} was on the telephone with the constable’s wife at the critical moment.`
-  ];
-  const WEAPON_CLUES = [
-    w => `Forensics confirmed the ${w} was not the murder weapon.`,
-    w => `The ${w} was found locked away in the butler’s pantry.`,
-    w => `The ${w} bore no traces of the crime.`,
-    w => `Inspector Parker ruled out the ${w} after careful examination.`
-  ];
-  const ROOM_CLUES = [
-    r => `${cap(r)} has been thoroughly searched and ruled out.`,
-    r => `No evidence of the crime was found in ${r}.`,
-    r => `Three guests were chatting in ${r} the entire evening.`,
-    r => `${cap(r)} was locked from the outside all night.`
-  ];
+  const N = 9; // 3x3 grid
+  const ROW = i => Math.floor(i / 3);
+  const COL = i => i % 3;
+  const ROW_NAMES = ['top', 'middle', 'bottom'];
+  const COL_NAMES = ['west', 'central', 'east'];
 
-  const N = 4;
-  let state;
+  function adjacent(a, b) {
+    const dr = Math.abs(ROW(a) - ROW(b));
+    const dc = Math.abs(COL(a) - COL(b));
+    return (dr + dc === 1);
+  }
+  function direction(from, to) {
+    // returns 'north'|'south'|'east'|'west' if `to` is directly in that direction
+    // from `from`, with `from` being the anchor — else null
+    if (COL(from) === COL(to) && ROW(to) === ROW(from) - 1) return 'north';
+    if (COL(from) === COL(to) && ROW(to) === ROW(from) + 1) return 'south';
+    if (ROW(from) === ROW(to) && COL(to) === COL(from) + 1) return 'east';
+    if (ROW(from) === ROW(to) && COL(to) === COL(from) - 1) return 'west';
+    return null;
+  }
 
-  function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
-
-  function pick(arr, n) {
-    const copy = arr.slice();
-    const out = [];
-    for (let i = 0; i < n; i++) {
-      const j = Math.floor(Math.random() * copy.length);
-      out.push(copy.splice(j, 1)[0]);
+  // ============================================================
+  //  AUDIO (Web Audio procedurally generated)
+  // ============================================================
+  const Audio = (function () {
+    let ctx = null;
+    let muted = false;
+    function getCtx() {
+      if (!ctx) {
+        try { ctx = new (window.AudioContext || window.webkitAudioContext)(); }
+        catch (e) { return null; }
+      }
+      return ctx;
     }
-    return out;
+    function unlock() {
+      const c = getCtx();
+      if (c && c.state === 'suspended') c.resume();
+    }
+    function tone(freq, dur, type, vol, atTime) {
+      const c = getCtx();
+      if (!c || muted) return;
+      const t0 = atTime || c.currentTime;
+      const osc = c.createOscillator();
+      const g = c.createGain();
+      osc.type = type || 'sine';
+      osc.frequency.setValueAtTime(freq, t0);
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(vol, t0 + 0.005);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      osc.connect(g).connect(c.destination);
+      osc.start(t0);
+      osc.stop(t0 + dur + 0.02);
+    }
+    function noise(dur, vol, lowpassHz) {
+      const c = getCtx();
+      if (!c || muted) return;
+      const buf = c.createBuffer(1, Math.floor(c.sampleRate * dur), c.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < data.length; i++) {
+        const env = Math.pow(1 - i / data.length, 1.6);
+        data[i] = (Math.random() * 2 - 1) * env;
+      }
+      const src = c.createBufferSource();
+      src.buffer = buf;
+      const g = c.createGain();
+      g.gain.value = vol;
+      const f = c.createBiquadFilter();
+      f.type = 'lowpass';
+      f.frequency.value = lowpassHz || 2000;
+      src.connect(f).connect(g).connect(c.destination);
+      src.start();
+    }
+    function chord(freqs, dur, type, vol, stagger) {
+      const c = getCtx();
+      if (!c) return;
+      const t0 = c.currentTime;
+      const step = stagger || 0;
+      freqs.forEach((f, i) => tone(f, dur, type, vol, t0 + i * step));
+    }
+    return {
+      unlock,
+      tick:  () => tone(880, 0.04, 'square', 0.05),
+      cycle: () => tone(520, 0.08, 'square', 0.07),
+      page:  () => noise(0.18, 0.12, 1500),
+      open:  () => { tone(440, 0.08, 'sine', 0.08); setTimeout(() => tone(660, 0.1, 'sine', 0.08), 70); },
+      win:   () => chord([523.25, 659.25, 783.99, 1046.5], 0.55, 'triangle', 0.10, 0.10),
+      lose:  () => chord([311.1, 277.18, 233.08], 0.7, 'triangle', 0.12, 0.13),
+      isMuted: () => muted,
+      setMuted: (v) => { muted = v; }
+    };
+  })();
+
+  // ============================================================
+  //  HELPERS
+  // ============================================================
+  function pick(arr, n) {
+    const c = arr.slice();
+    const o = [];
+    for (let i = 0; i < n; i++) {
+      const j = Math.floor(Math.random() * c.length);
+      o.push(c.splice(j, 1)[0]);
+    }
+    return o;
   }
   function shuffle(arr) {
     const a = arr.slice();
@@ -405,168 +1114,410 @@
     }
     return a;
   }
-  function rand(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+  function randEl(a) { return a[Math.floor(Math.random() * a.length)]; }
+  function iconRef(id) { return '<svg><use href="#' + id + '"/></svg>'; }
+
+  // ============================================================
+  //  CLUE GENERATION
+  // ============================================================
+  // Each clue: { text, test: candidateIndex => boolean }
+  // Generated such that test(murderRoom) is always true.
+
+  function makeClueRow(murderRoom) {
+    const r = ROW(murderRoom);
+    return {
+      text: 'The crime occurred in the <b>' + ROW_NAMES[r] + '</b> row of the manor.',
+      test: i => ROW(i) === r
+    };
+  }
+  function makeClueCol(murderRoom) {
+    const c = COL(murderRoom);
+    return {
+      text: 'The crime occurred in the <b>' + COL_NAMES[c] + '</b> column of the manor.',
+      test: i => COL(i) === c
+    };
+  }
+  function makeClueDirection(murderRoom, roomData) {
+    // pick a neighbor of murderRoom; describe murderRoom's direction from it
+    const neighbors = [];
+    for (let i = 0; i < N; i++) {
+      if (i === murderRoom) continue;
+      const d = direction(i, murderRoom);
+      if (d) neighbors.push({ anchor: i, dir: d });
+    }
+    if (!neighbors.length) return null;
+    const n = randEl(neighbors);
+    const anchorName = roomData[n.anchor].name;
+    return {
+      text: 'The crime scene lies directly <b>' + n.dir + '</b> of the ' + anchorName + '.',
+      test: i => direction(n.anchor, i) === n.dir
+    };
+  }
+  function makeClueAdjacent(murderRoom, roomData) {
+    const candidates = [];
+    for (let i = 0; i < N; i++) {
+      if (i !== murderRoom && adjacent(i, murderRoom)) candidates.push(i);
+    }
+    if (!candidates.length) return null;
+    const a = randEl(candidates);
+    return {
+      text: 'The crime scene is <b>adjacent</b> to the ' + roomData[a].name + '.',
+      test: i => adjacent(i, a)
+    };
+  }
+  function makeClueCorner(murderRoom) {
+    const corners = [0, 2, 6, 8];
+    const isCorner = corners.indexOf(murderRoom) !== -1;
+    return {
+      text: 'The crime ' + (isCorner ? 'did occur' : 'did <b>not</b> occur') + ' in a corner room.',
+      test: i => isCorner === (corners.indexOf(i) !== -1)
+    };
+  }
+  function makeClueElimRoom(murderRoom, roomData) {
+    // pick a non-murder room to rule out
+    const opts = [];
+    for (let i = 0; i < N; i++) if (i !== murderRoom) opts.push(i);
+    if (!opts.length) return null;
+    const r = randEl(opts);
+    return {
+      text: 'Inspector Parker has ruled out the ' + roomData[r].name + ' as the crime scene.',
+      test: i => i !== r
+    };
+  }
+  function makeClueElimSuspect(murderRoom, suspectAt) {
+    const opts = [];
+    for (let i = 0; i < N; i++) if (i !== murderRoom) opts.push(i);
+    if (!opts.length) return null;
+    const r = randEl(opts);
+    const n = suspectAt[r].name;
+    return {
+      text: n + ' has been <b>cleared</b> of all suspicion.',
+      test: i => suspectAt[i].name !== n
+    };
+  }
+  function makeClueElimWeapon(murderRoom, weaponAt) {
+    const opts = [];
+    for (let i = 0; i < N; i++) if (i !== murderRoom) opts.push(i);
+    if (!opts.length) return null;
+    const r = randEl(opts);
+    const w = weaponAt[r].name;
+    return {
+      text: 'Forensics confirmed the ' + w + ' was not the murder weapon.',
+      test: i => weaponAt[i].name !== w
+    };
+  }
+
+  const CLUE_FACTORIES = [
+    { fn: makeClueRow,         weight: 2 },
+    { fn: makeClueCol,         weight: 2 },
+    { fn: makeClueDirection,   weight: 3 },
+    { fn: makeClueAdjacent,    weight: 2 },
+    { fn: makeClueCorner,      weight: 1 },
+    { fn: makeClueElimRoom,    weight: 3 },
+    { fn: makeClueElimSuspect, weight: 2 },
+    { fn: makeClueElimWeapon,  weight: 2 }
+  ];
+
+  function pickFactory() {
+    const total = CLUE_FACTORIES.reduce((s, f) => s + f.weight, 0);
+    let r = Math.random() * total;
+    for (const f of CLUE_FACTORIES) {
+      r -= f.weight;
+      if (r <= 0) return f.fn;
+    }
+    return CLUE_FACTORIES[0].fn;
+  }
+
+  function generateClues(murderRoom, suspectAt, weaponAt, roomData) {
+    let candidates = [];
+    for (let i = 0; i < N; i++) candidates.push(i);
+    const clues = [];
+    let attempts = 0;
+    const seen = new Set();
+    while (candidates.length > 1 && attempts < 200 && clues.length < 8) {
+      attempts++;
+      const fn = pickFactory();
+      const clue = fn(murderRoom, fn === makeClueElimSuspect ? suspectAt :
+                                 fn === makeClueElimWeapon  ? weaponAt :
+                                 roomData);
+      if (!clue) continue;
+      if (seen.has(clue.text)) continue;
+      const next = candidates.filter(i => clue.test(i));
+      if (next.length < candidates.length && next.length > 0) {
+        candidates = next;
+        clues.push(clue);
+        seen.add(clue.text);
+      }
+    }
+    if (candidates.length !== 1) return null;
+    return clues;
+  }
+
+  // ============================================================
+  //  GAME STATE
+  // ============================================================
+  let state;
 
   function newCase() {
-    const suspects = pick(SUSPECTS, N);
-    const weapons = pick(WEAPONS, N);
-    const rooms = pick(ROOMS, N);
-    const murderer = rand(suspects);
-    const weapon = rand(weapons);
-    const room = rand(rooms);
-    const victim = rand(VICTIMS);
-    const scenario = rand(SCENARIOS);
-
-    const clues = [];
-    suspects.filter(s => s !== murderer).forEach(s => {
-      clues.push(rand(SUSPECT_CLUES)(s));
-    });
-    weapons.filter(w => w !== weapon).forEach(w => {
-      clues.push(rand(WEAPON_CLUES)(w));
-    });
-    rooms.filter(r => r !== room).forEach(r => {
-      clues.push(rand(ROOM_CLUES)(r));
-    });
-
+    let clues = null, suspectAt, weaponAt, murderRoom;
+    const roomData = ROOMS; // fixed 9 rooms in fixed order
+    // Try up to 50 times to produce a solvable puzzle
+    for (let t = 0; t < 50 && !clues; t++) {
+      suspectAt = shuffle(SUSPECTS);
+      weaponAt  = shuffle(WEAPONS);
+      murderRoom = Math.floor(Math.random() * N);
+      clues = generateClues(murderRoom, suspectAt, weaponAt, roomData);
+    }
+    if (!clues) {
+      // ultra-safe fallback: pure elimination clues
+      clues = [];
+      for (let i = 0; i < N; i++) {
+        if (i !== murderRoom) {
+          const r = i;
+          clues.push({
+            text: 'Inspector Parker has ruled out the ' + roomData[r].name + ' as the crime scene.',
+            test: x => x !== r
+          });
+        }
+      }
+      clues = shuffle(clues);
+    }
     state.case = {
-      suspects, weapons, rooms,
-      murderer, weapon, room,
-      victim, scenario,
-      clues: shuffle(clues),
-      marks: { suspects: {}, weapons: {}, rooms: {} },
-      solved: false
+      roomData,
+      suspectAt,
+      weaponAt,
+      murderRoom,
+      murderer: suspectAt[murderRoom],
+      weapon:   weaponAt[murderRoom],
+      room:     roomData[murderRoom],
+      victim:   randEl(VICTIMS),
+      scenario: randEl(SCENARIOS),
+      clues:    shuffle(clues),
+      marks:    new Array(N).fill(''), // '', 'eliminated', 'suspected'
+      solved:   false
     };
     state.caseNum++;
     render();
+    Audio.page();
   }
 
-  // Cycle marks: '' -> 'eliminated' -> 'suspected' -> ''
-  function cycleMark(category, item) {
-    const marks = state.case.marks[category];
-    const cur = marks[item] || '';
-    marks[item] = cur === '' ? 'eliminated' : cur === 'eliminated' ? 'suspected' : '';
-    renderColumn(category);
-  }
-
-  function renderColumn(category) {
-    const map = {
-      suspects: ['col-suspects', state.case.suspects],
-      weapons: ['col-weapons', state.case.weapons],
-      rooms: ['col-rooms', state.case.rooms]
-    };
-    const [id, items] = map[category];
-    const root = document.getElementById(id);
-    root.innerHTML = '';
-    items.forEach(item => {
-      const div = document.createElement('div');
-      const mark = state.case.marks[category][item] || '';
-      div.className = 'item' + (mark ? ' ' + mark : '');
-      div.textContent = item.replace(/^the /, '');
-      div.addEventListener('click', () => cycleMark(category, item));
-      root.appendChild(div);
-    });
-  }
-
+  // ============================================================
+  //  RENDERING
+  // ============================================================
   function render() {
+    const c = state.case;
     document.getElementById('caseNum').textContent = state.caseNum;
     document.getElementById('wins').textContent = state.wins;
     document.getElementById('losses').textContent = state.losses;
-    const c = state.case;
+
+    // victim portrait
+    const va = document.getElementById('victimArt');
+    va.innerHTML = '<use href="#' + c.victim.icon + '"/>';
+
+    // briefing
     document.getElementById('briefing').innerHTML =
-      `<span class="victim">${c.victim}</span> has been murdered at the manor. ` +
-      `${c.scenario} ` +
-      `Inspector Parker has narrowed the field to <b>${N}</b> suspects, <b>${N}</b> possible weapons, and <b>${N}</b> rooms. ` +
-      `Use the clues below to deduce the truth.`;
-    const ol = document.getElementById('clues');
-    ol.innerHTML = '';
-    c.clues.forEach(text => {
-      const li = document.createElement('li');
-      li.textContent = text;
-      ol.appendChild(li);
-    });
-    renderColumn('suspects');
-    renderColumn('weapons');
-    renderColumn('rooms');
+      '<span class="victim">' + c.victim.name + '</span> has been murdered. ' +
+      c.scenario + ' The constable has gathered the guests in the manor — ' +
+      'one of them did it. Use the clues to find the truth.';
+
+    renderGrid();
+    renderClues();
   }
 
-  function openAccuse() {
+  function renderGrid() {
     const c = state.case;
-    fillSelect('selSuspect', c.suspects);
-    fillSelect('selWeapon', c.weapons);
-    fillSelect('selRoom', c.rooms);
-    // Pre-fill with "suspected" if exactly one is marked
-    preselect('selSuspect', 'suspects', c.suspects);
-    preselect('selWeapon', 'weapons', c.weapons);
-    preselect('selRoom', 'rooms', c.rooms);
-    document.getElementById('verdict').innerHTML = '';
-    document.getElementById('btnSubmit').disabled = false;
-    document.getElementById('btnSubmit').textContent = "J'accuse!";
-    document.getElementById('modal').classList.add('show');
-  }
-  function preselect(selId, cat, items) {
-    const marks = state.case.marks[cat];
-    const suspected = items.filter(i => marks[i] === 'suspected');
-    if (suspected.length === 1) {
-      document.getElementById(selId).value = suspected[0];
+    const grid = document.getElementById('grid');
+    grid.innerHTML = '';
+    for (let i = 0; i < N; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      if (c.marks[i]) cell.classList.add(c.marks[i]);
+      cell.dataset.idx = i;
+      cell.innerHTML =
+        '<div class="scene">'    + iconRef(c.roomData[i].icon)    + '</div>' +
+        '<div class="portrait">' + iconRef(c.suspectAt[i].icon)   + '</div>' +
+        '<div class="weapon">'   + iconRef(c.weaponAt[i].icon)    + '</div>' +
+        '<div class="room-name">' + c.roomData[i].name + '</div>' +
+        '<div class="mark-overlay"></div>';
+      cell.addEventListener('click', onCellClick);
+      grid.appendChild(cell);
     }
   }
-  function fillSelect(id, items) {
-    const sel = document.getElementById(id);
-    sel.innerHTML = '';
-    items.forEach(item => {
-      const opt = document.createElement('option');
-      opt.value = item;
-      opt.textContent = item.replace(/^the /, '');
-      sel.appendChild(opt);
+
+  function renderClues() {
+    const ol = document.getElementById('clues');
+    ol.innerHTML = '';
+    state.case.clues.forEach(clue => {
+      const li = document.createElement('li');
+      li.innerHTML = clue.text;
+      ol.appendChild(li);
     });
   }
-  function closeAccuse() { document.getElementById('modal').classList.remove('show'); }
+
+  function onCellClick(e) {
+    Audio.unlock();
+    const idx = parseInt(e.currentTarget.dataset.idx, 10);
+    const cur = state.case.marks[idx];
+    state.case.marks[idx] = cur === '' ? 'eliminated' : cur === 'eliminated' ? 'suspected' : '';
+    Audio.cycle();
+    // Update only this cell
+    e.currentTarget.classList.remove('eliminated', 'suspected');
+    if (state.case.marks[idx]) e.currentTarget.classList.add(state.case.marks[idx]);
+  }
+
+  // ============================================================
+  //  ACCUSATION FLOW
+  // ============================================================
+  function openAccuse() {
+    Audio.unlock();
+    Audio.open();
+    const c = state.case;
+    // Build pickers
+    buildPicker('pickSuspect', SUSPECTS, c.suspectAt[c.murderRoom] && null);
+    buildPicker('pickWeapon',  WEAPONS,  null);
+    buildPicker('pickRoom',    ROOMS,    null);
+    // Preselect: if any cell is marked 'suspected', use that as default
+    const suspectedIdx = state.case.marks.findIndex(m => m === 'suspected');
+    if (suspectedIdx >= 0) {
+      selectInPicker('pickSuspect', c.suspectAt[suspectedIdx].name);
+      selectInPicker('pickWeapon',  c.weaponAt[suspectedIdx].name);
+      selectInPicker('pickRoom',    c.roomData[suspectedIdx].name);
+    }
+    document.getElementById('verdict').innerHTML = '';
+    document.getElementById('btnSubmit').textContent = "J'accuse!";
+    document.getElementById('btnSubmit').disabled = false;
+    document.getElementById('modalAccuse').classList.add('show');
+  }
+
+  function buildPicker(containerId, items, preselect) {
+    const root = document.getElementById(containerId);
+    root.innerHTML = '';
+    items.forEach(item => {
+      const o = document.createElement('div');
+      o.className = 'opt';
+      o.dataset.name = item.name;
+      o.innerHTML =
+        '<div class="opt-art">' + iconRef(item.icon) + '</div>' +
+        '<div>' + item.name + '</div>';
+      o.addEventListener('click', () => {
+        Audio.tick();
+        root.querySelectorAll('.opt').forEach(x => x.classList.remove('selected'));
+        o.classList.add('selected');
+      });
+      root.appendChild(o);
+    });
+    if (preselect) selectInPicker(containerId, preselect);
+  }
+  function selectInPicker(containerId, name) {
+    const root = document.getElementById(containerId);
+    root.querySelectorAll('.opt').forEach(x => {
+      if (x.dataset.name === name) x.classList.add('selected');
+      else x.classList.remove('selected');
+    });
+  }
+  function getSelected(containerId) {
+    const sel = document.querySelector('#' + containerId + ' .opt.selected');
+    return sel ? sel.dataset.name : null;
+  }
 
   function submitAccuse() {
     const c = state.case;
     if (c.solved) { closeAccuse(); return; }
-    const s = document.getElementById('selSuspect').value;
-    const w = document.getElementById('selWeapon').value;
-    const r = document.getElementById('selRoom').value;
-    const correct = (s === c.murderer && w === c.weapon && r === c.room);
+    const s = getSelected('pickSuspect');
+    const w = getSelected('pickWeapon');
+    const r = getSelected('pickRoom');
+    if (!s || !w || !r) {
+      const v = document.getElementById('verdict');
+      v.className = 'verdict lose';
+      v.textContent = 'Pick a suspect, a weapon, and a room first.';
+      return;
+    }
+    const correct = (s === c.murderer.name && w === c.weapon.name && r === c.room.name);
     const verdict = document.getElementById('verdict');
     if (correct) {
       state.wins++;
       c.solved = true;
       verdict.className = 'verdict win';
-      verdict.innerHTML = `<b>Case Closed!</b><br>You correctly identified the murderer.<div class="truth">It was <b>${c.murderer}</b> with the <b>${c.weapon}</b> in <b>${c.room}</b>.</div>`;
+      verdict.innerHTML =
+        '<b>Case Closed!</b><br>You named the killer.' +
+        '<div class="verdict-art">' +
+          frame(c.murderer.icon, 'Murderer', true) +
+          frame(c.weapon.icon,   'Weapon',   false) +
+          frame(c.room.icon,     'Room',     false) +
+        '</div>' +
+        '<div class="truth">It was <b>' + c.murderer.name + '</b> with the <b>' + c.weapon.name + '</b> in the <b>' + c.room.name + '</b>.</div>';
+      Audio.win();
     } else {
       state.losses++;
       c.solved = true;
       verdict.className = 'verdict lose';
-      let why = [];
-      if (s !== c.murderer) why.push(`the murderer was <b>${c.murderer}</b>`);
-      if (w !== c.weapon)  why.push(`the weapon was the <b>${c.weapon}</b>`);
-      if (r !== c.room)    why.push(`it happened in <b>${c.room}</b>`);
-      verdict.innerHTML = `<b>Wrong accusation.</b> The killer escapes.<div class="truth">In truth, ${why.join('; ')}.</div>`;
+      const parts = [];
+      if (s !== c.murderer.name) parts.push('the murderer was <b>' + c.murderer.name + '</b>');
+      if (w !== c.weapon.name)   parts.push('the weapon was the <b>' + c.weapon.name + '</b>');
+      if (r !== c.room.name)     parts.push('the scene was the <b>' + c.room.name + '</b>');
+      verdict.innerHTML =
+        '<b>Wrong accusation.</b> The killer slips away.' +
+        '<div class="verdict-art">' +
+          frame(c.murderer.icon, 'Murderer', true) +
+          frame(c.weapon.icon,   'Weapon',   false) +
+          frame(c.room.icon,     'Room',     false) +
+        '</div>' +
+        '<div class="truth">In truth, ' + parts.join('; ') + '.</div>';
+      Audio.lose();
     }
     document.getElementById('btnSubmit').textContent = 'Close';
     document.getElementById('caseNum').textContent = state.caseNum;
     document.getElementById('wins').textContent = state.wins;
     document.getElementById('losses').textContent = state.losses;
   }
+  function frame(icon, label, circle) {
+    return '<div class="pic">' +
+      '<div class="frame' + (circle ? ' circle' : '') + '"><svg><use href="#' + icon + '"/></svg></div>' +
+      '<div class="label">' + label + '</div>' +
+    '</div>';
+  }
 
+  function closeAccuse() { document.getElementById('modalAccuse').classList.remove('show'); }
+
+  // ============================================================
+  //  INIT
+  // ============================================================
   function init() {
     state = { caseNum: 0, wins: 0, losses: 0, case: null };
-    document.getElementById('btnNew').addEventListener('click', () => {
-      closeAccuse();
-      newCase();
-    });
+    document.getElementById('btnNew').addEventListener('click', () => { Audio.unlock(); closeAccuse(); newCase(); });
     document.getElementById('btnAccuse').addEventListener('click', openAccuse);
-    document.getElementById('btnCancel').addEventListener('click', closeAccuse);
+    document.getElementById('btnCancel').addEventListener('click', () => { Audio.tick(); closeAccuse(); });
     const submitBtn = document.getElementById('btnSubmit');
     submitBtn.addEventListener('click', () => {
       if (submitBtn.textContent === 'Close') closeAccuse();
       else submitAccuse();
     });
-    document.getElementById('modal').addEventListener('click', (e) => {
-      if (e.target.id === 'modal') closeAccuse();
+    document.getElementById('modalAccuse').addEventListener('click', (e) => {
+      if (e.target.id === 'modalAccuse') closeAccuse();
     });
+
+    // Help modal
+    document.getElementById('btnHelp').addEventListener('click', () => {
+      Audio.unlock(); Audio.open();
+      document.getElementById('modalHelp').classList.add('show');
+    });
+    document.getElementById('btnHelpClose').addEventListener('click', () => {
+      Audio.tick();
+      document.getElementById('modalHelp').classList.remove('show');
+    });
+    document.getElementById('modalHelp').addEventListener('click', (e) => {
+      if (e.target.id === 'modalHelp') document.getElementById('modalHelp').classList.remove('show');
+    });
+
+    // Sound toggle
+    document.getElementById('btnSound').addEventListener('click', () => {
+      const muted = !Audio.isMuted();
+      Audio.setMuted(muted);
+      document.getElementById('soundIcon').innerHTML =
+        '<use href="#' + (muted ? 'ic-mute' : 'ic-sound') + '"/>';
+      if (!muted) { Audio.unlock(); Audio.tick(); }
+    });
+
     newCase();
   }
 
