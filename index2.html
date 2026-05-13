@@ -161,8 +161,8 @@
   }
   .grid {
     display: grid;
-    grid-template-columns: repeat(2, 240px);
-    gap: 8px;
+    grid-template-columns: repeat(3, 122px);
+    gap: 6px;
     width: max-content;
   }
   .cell {
@@ -170,32 +170,32 @@
     background: linear-gradient(180deg, #3a2c18 0%, #1f1408 100%);
     border: 2px solid var(--frame);
     border-radius: 6px;
-    padding: 8px;
-    width: 240px;
-    min-height: 200px;
+    padding: 6px;
+    width: 122px;
+    min-height: 240px;
   }
   .cell .room-header {
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 8px;
+    gap: 5px;
+    margin-bottom: 5px;
     border-bottom: 1px dashed rgba(224,188,98,0.3);
-    padding-bottom: 6px;
+    padding-bottom: 4px;
   }
   .cell .room-header .room-thumb {
-    width: 48px; height: 48px;
+    width: 30px; height: 30px;
     color: var(--gold);
     background: rgba(0,0,0,0.5);
     border: 1px solid var(--gold-dim);
-    border-radius: 5px;
-    padding: 3px;
+    border-radius: 4px;
+    padding: 2px;
     flex-shrink: 0;
     box-shadow: inset 0 0 0 1px rgba(0,0,0,0.3);
   }
   .cell .room-header .room-thumb svg { width: 100%; height: 100%; display: block; }
   .cell .room-header .room-name {
-    font-size: 17px;
-    letter-spacing: 0.3px;
+    font-size: 11px;
+    letter-spacing: 0.2px;
     color: var(--gold);
     font-weight: bold;
     white-space: nowrap;
@@ -204,9 +204,9 @@
   }
   .mini-row {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 6px;
-    margin-bottom: 6px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 3px;
+    margin-bottom: 4px;
     position: relative;
   }
   .mini-row .row-tag {
@@ -239,22 +239,27 @@
       linear-gradient(-45deg, transparent 44%, rgba(208,74,58,0.95) 47%, rgba(208,74,58,0.95) 53%, transparent 56%);
     pointer-events: none;
   }
-  /* Highlight all instances of items referred to by an open clue tooltip */
+  /* Highlight all instances of items referred to by an open clue tooltip.
+     Cyan stripes + glow stand out against the gold UI. */
   .mini-icon.highlight {
-    border-color: var(--gold);
-    box-shadow: 0 0 0 2px var(--gold), 0 0 14px rgba(224,188,98,0.85);
-    animation: hlPulse 1.4s ease-in-out infinite;
-    z-index: 2;
+    border-color: #4ee0ff;
+    box-shadow: 0 0 0 3px #4ee0ff, 0 0 16px 3px rgba(78,224,255,0.95);
+    outline: 2px dashed #d8f8ff;
+    outline-offset: 3px;
+    animation: hlPulse 0.9s ease-in-out infinite;
+    z-index: 5;
   }
   .mini-icon.highlight.crossed { opacity: 0.55; }
   .cell.highlight {
-    border-color: var(--gold);
-    box-shadow: 0 0 0 2px var(--gold), 0 0 18px rgba(224,188,98,0.6);
-    animation: hlPulse 1.4s ease-in-out infinite;
+    border-color: #4ee0ff;
+    box-shadow: 0 0 0 3px #4ee0ff, 0 0 22px 5px rgba(78,224,255,0.85);
+    outline: 2px dashed #d8f8ff;
+    outline-offset: 4px;
+    animation: hlPulse 0.9s ease-in-out infinite;
   }
   @keyframes hlPulse {
-    0%, 100% { box-shadow: 0 0 0 2px var(--gold), 0 0 8px rgba(224,188,98,0.55); }
-    50%      { box-shadow: 0 0 0 2px var(--gold), 0 0 18px rgba(224,188,98,1); }
+    0%, 100% { outline-offset: 3px; filter: brightness(1); }
+    50%      { outline-offset: 7px; filter: brightness(1.35); }
   }
   .hint {
     font-size: 11px;
@@ -446,7 +451,7 @@
   }
   .picker {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 6px;
   }
   .picker .opt {
@@ -1280,9 +1285,9 @@
   <div class="modal">
     <h2>How to Play</h2>
     <div class="help-text">
-      <p>A guest has been murdered in the manor. There are <b>4 suspects</b>, <b>4 weapons</b>, and <b>4 rooms</b>. <b>Each room holds exactly one suspect and exactly one weapon</b> — and each suspect and each weapon is in exactly one room. Figure out who, where, and with what.</p>
+      <p>A guest has been murdered in the manor. There are <b>9 suspects</b>, <b>9 weapons</b>, and <b>9 rooms</b> in a 3 × 3 layout. <b>Each room holds exactly one suspect and exactly one weapon</b> — and each suspect and each weapon is in exactly one room. Figure out who, where, and with what.</p>
       <ul>
-        <li>Each room initially shows <b>all 4 candidate suspects</b> and <b>all 4 candidate weapons</b>.</li>
+        <li>Each room initially shows <b>all 9 candidate suspects</b> and <b>all 9 candidate weapons</b>.</li>
         <li>Read the clues and tap mini-icons to <b>cross them out</b> as impossible. Tap again to undo.</li>
         <li>Because each room has exactly one of each, the moment you confirm "X is in room A" you can also rule out X in every other room <i>and</i> rule out every other suspect/weapon in room A.</li>
         <li>When only one suspect and one weapon remain in each room, you've solved the placement.</li>
@@ -1384,7 +1389,7 @@
   ];
 
   // 2x2 grid layout
-  const ROWS = 2, COLS = 2, N = ROWS * COLS; // 4
+  const ROWS = 3, COLS = 3, N = ROWS * COLS; // 9
   const ROW = i => Math.floor(i / COLS);
   const COL = i => i % COLS;
 
@@ -1458,35 +1463,148 @@
     }
     return result;
   }
-  const ALL_PERMS = permutations([0, 1, 2, 3]); // 24 perms, used twice for all cases
-
   // ============================================================
-  //  CLUE GENERATION (logic-grid with uniqueness check)
+  //  CLUE GENERATION (constraint propagation — 9x9x9 is far too
+  //  large to enumerate cases, so we track per-room possibility
+  //  sets and prune them by applying clues.)
   // ============================================================
-  // A "case" is { sa: number[N], wa: number[N], mr: number }
-  //   sa[room] = suspectId; wa[room] = weaponId; mr = murderRoom
-  // Truth predicate: sa[r] === suspectAt[r] && wa[r] === weaponAt[r] && mr === murderRoom
+  // PState: { sus: Set<int>[N], wpn: Set<int>[N], mr: Set<int> }
+  //   sus[r] = possible suspect ids for room r
+  //   wpn[r] = possible weapon  ids for room r
+  //   mr     = possible murder rooms
 
-  function enumerateCases() {
-    const cases = [];
-    for (const sa of ALL_PERMS) {
-      for (const wa of ALL_PERMS) {
-        for (let mr = 0; mr < N; mr++) cases.push({ sa, wa, mr });
+  function newPState() {
+    const all = [];
+    for (let i = 0; i < N; i++) all.push(i);
+    return {
+      sus: Array.from({ length: N }, () => new Set(all)),
+      wpn: Array.from({ length: N }, () => new Set(all)),
+      mr:  new Set(all)
+    };
+  }
+  function clonePState(s) {
+    return {
+      sus: s.sus.map(set => new Set(set)),
+      wpn: s.wpn.map(set => new Set(set)),
+      mr:  new Set(s.mr)
+    };
+  }
+  function totalSize(state) {
+    let n = state.mr.size;
+    state.sus.forEach(s => n += s.size);
+    state.wpn.forEach(w => n += w.size);
+    return n;
+  }
+  function isSolvedState(state) {
+    return state.sus.every(s => s.size === 1) &&
+           state.wpn.every(w => w.size === 1) &&
+           state.mr.size === 1;
+  }
+  // Each suspect (and weapon) lives in exactly one room. After any
+  // direct removal, propagate that uniqueness across rooms.
+  function propagate(state) {
+    let changed = true;
+    while (changed) {
+      changed = false;
+      for (const cat of ['sus', 'wpn']) {
+        // Room with a single candidate → strip that value from siblings.
+        for (let r = 0; r < N; r++) {
+          if (state[cat][r].size === 0) return false;
+          if (state[cat][r].size === 1) {
+            const x = state[cat][r].values().next().value;
+            for (let r2 = 0; r2 < N; r2++) {
+              if (r2 !== r && state[cat][r2].has(x)) {
+                state[cat][r2].delete(x);
+                if (state[cat][r2].size === 0) return false;
+                changed = true;
+              }
+            }
+          }
+        }
+        // Value that fits in only one room → fix that room to it.
+        for (let x = 0; x < N; x++) {
+          let only = -1, count = 0;
+          for (let r = 0; r < N; r++) {
+            if (state[cat][r].has(x)) { count++; only = r; if (count > 1) break; }
+          }
+          if (count === 0) return false;
+          if (count === 1 && state[cat][only].size > 1) {
+            state[cat][only] = new Set([x]);
+            changed = true;
+          }
+        }
       }
     }
-    return cases; // 24*24*4 = 2304
+    return true;
   }
-  const ALL_CASES = enumerateCases();
 
-  function roomOfSuspect(c, s) { return c.sa.indexOf(s); }
-  function roomOfWeapon(c, w) { return c.wa.indexOf(w); }
+  // Shared helper: spatial relation between a suspect and a weapon.
+  // pred(susRoom, wpnRoom) is true when those room indices satisfy the relation.
+  function applySpatialSW(state, s, w, pred) {
+    let changed = true;
+    while (changed) {
+      changed = false;
+      const sRooms = [], wRooms = [];
+      for (let r = 0; r < N; r++) {
+        if (state.sus[r].has(s)) sRooms.push(r);
+        if (state.wpn[r].has(w)) wRooms.push(r);
+      }
+      for (const sr of sRooms) {
+        if (!wRooms.some(wr => pred(sr, wr))) {
+          state.sus[sr].delete(s);
+          if (state.sus[sr].size === 0) return false;
+          changed = true;
+        }
+      }
+      for (const wr of wRooms) {
+        if (!sRooms.some(sr => pred(sr, wr))) {
+          state.wpn[wr].delete(w);
+          if (state.wpn[wr].size === 0) return false;
+          changed = true;
+        }
+      }
+    }
+    return propagate(state);
+  }
+  // Two items of the same category share a row (or column).
+  function applySameLine(state, cat, a, b, sameLine) {
+    if (a === b) return propagate(state);
+    let changed = true;
+    while (changed) {
+      changed = false;
+      const ar = [], br = [];
+      for (let r = 0; r < N; r++) {
+        if (state[cat][r].has(a)) ar.push(r);
+        if (state[cat][r].has(b)) br.push(r);
+      }
+      for (const r of ar) {
+        if (!br.some(r2 => r2 !== r && sameLine(r, r2))) {
+          state[cat][r].delete(a);
+          if (state[cat][r].size === 0) return false;
+          changed = true;
+        }
+      }
+      for (const r of br) {
+        if (!ar.some(r2 => r2 !== r && sameLine(r, r2))) {
+          state[cat][r].delete(b);
+          if (state[cat][r].size === 0) return false;
+          changed = true;
+        }
+      }
+    }
+    return propagate(state);
+  }
 
-  // --- Clue factories. Each returns { test, render, key } or null. ---
+  // --- Clue factories. Each returns { key, apply, refs, render, describe } or null. ---
   function clueSusInRoom(truth) {
     const r = randInt(N), s = truth.sa[r];
     return {
       key: 'SIR' + s + ':' + r,
-      test: c => c.sa[r] === s,
+      apply: state => {
+        if (!state.sus[r].has(s)) return false;
+        state.sus[r] = new Set([s]);
+        return propagate(state);
+      },
       render: (S, W, R) => chip(susIc(S[s]), 'pos', '✓', roomIc(R[r])),
       describe: (S, W, R) => S[s].name + ' is in the ' + R[r].name + '.',
       refs: { sus: [s], wpn: [], room: [r] }
@@ -1497,7 +1615,12 @@
     if (truth.sa[r] === s) return null;
     return {
       key: 'SNI' + s + ':' + r,
-      test: c => c.sa[r] !== s,
+      apply: state => {
+        if (!state.sus[r].has(s)) return true;
+        state.sus[r].delete(s);
+        if (state.sus[r].size === 0) return false;
+        return propagate(state);
+      },
       render: (S, W, R) => chip(susIc(S[s]), 'neg', '✕', roomIc(R[r])),
       describe: (S, W, R) => S[s].name + ' is NOT in the ' + R[r].name + '.',
       refs: { sus: [s], wpn: [], room: [r] }
@@ -1507,7 +1630,11 @@
     const r = randInt(N), w = truth.wa[r];
     return {
       key: 'WIR' + w + ':' + r,
-      test: c => c.wa[r] === w,
+      apply: state => {
+        if (!state.wpn[r].has(w)) return false;
+        state.wpn[r] = new Set([w]);
+        return propagate(state);
+      },
       render: (S, W, R) => chip(wpnIc(W[w]), 'pos', '✓', roomIc(R[r])),
       describe: (S, W, R) => 'The ' + W[w].name + ' is in the ' + R[r].name + '.',
       refs: { sus: [], wpn: [w], room: [r] }
@@ -1518,7 +1645,12 @@
     if (truth.wa[r] === w) return null;
     return {
       key: 'WNI' + w + ':' + r,
-      test: c => c.wa[r] !== w,
+      apply: state => {
+        if (!state.wpn[r].has(w)) return true;
+        state.wpn[r].delete(w);
+        if (state.wpn[r].size === 0) return false;
+        return propagate(state);
+      },
       render: (S, W, R) => chip(wpnIc(W[w]), 'neg', '✕', roomIc(R[r])),
       describe: (S, W, R) => 'The ' + W[w].name + ' is NOT in the ' + R[r].name + '.',
       refs: { sus: [], wpn: [w], room: [r] }
@@ -1529,7 +1661,7 @@
     if (truth.sa.indexOf(s) !== truth.wa.indexOf(w)) return null;
     return {
       key: 'SAME' + s + ':' + w,
-      test: c => c.sa.indexOf(s) === c.wa.indexOf(w),
+      apply: state => applySpatialSW(state, s, w, (sr, wr) => sr === wr),
       render: (S, W, R) => chip(susIc(S[s]), 'pos', '=', wpnIc(W[w])),
       describe: (S, W, R) => S[s].name + ' is in the same room as the ' + W[w].name + '.',
       refs: { sus: [s], wpn: [w], room: [] }
@@ -1540,7 +1672,7 @@
     if (truth.sa.indexOf(s) === truth.wa.indexOf(w)) return null;
     return {
       key: 'DIFF' + s + ':' + w,
-      test: c => c.sa.indexOf(s) !== c.wa.indexOf(w),
+      apply: state => applySpatialSW(state, s, w, (sr, wr) => sr !== wr),
       render: (S, W, R) => chip(susIc(S[s]), 'neg', '≠', wpnIc(W[w])),
       describe: (S, W, R) => S[s].name + ' and the ' + W[w].name + ' are in different rooms.',
       refs: { sus: [s], wpn: [w], room: [] }
@@ -1552,10 +1684,7 @@
     if (!(COL(sr) === COL(wr) && ROW(sr) < ROW(wr))) return null;
     return {
       key: 'SNW' + s + ':' + w,
-      test: c => {
-        const a = c.sa.indexOf(s), b = c.wa.indexOf(w);
-        return COL(a) === COL(b) && ROW(a) < ROW(b);
-      },
+      apply: state => applySpatialSW(state, s, w, (a, b) => COL(a) === COL(b) && ROW(a) < ROW(b)),
       render: (S, W, R) => chip(susIc(S[s]), '', '↑', wpnIc(W[w])),
       describe: (S, W, R) => S[s].name + "'s room is directly north of (above) the room with the " + W[w].name + '.',
       refs: { sus: [s], wpn: [w], room: [] }
@@ -1567,10 +1696,7 @@
     if (!(ROW(sr) === ROW(wr) && COL(sr) < COL(wr))) return null;
     return {
       key: 'SWW' + s + ':' + w,
-      test: c => {
-        const a = c.sa.indexOf(s), b = c.wa.indexOf(w);
-        return ROW(a) === ROW(b) && COL(a) < COL(b);
-      },
+      apply: state => applySpatialSW(state, s, w, (a, b) => ROW(a) === ROW(b) && COL(a) < COL(b)),
       render: (S, W, R) => chip(susIc(S[s]), '', '←', wpnIc(W[w])),
       describe: (S, W, R) => S[s].name + "'s room is directly west of (left of) the room with the " + W[w].name + '.',
       refs: { sus: [s], wpn: [w], room: [] }
@@ -1582,10 +1708,7 @@
     if (!(COL(sr) === COL(wr) && ROW(sr) > ROW(wr))) return null;
     return {
       key: 'SSW' + s + ':' + w,
-      test: c => {
-        const a = c.sa.indexOf(s), b = c.wa.indexOf(w);
-        return COL(a) === COL(b) && ROW(a) > ROW(b);
-      },
+      apply: state => applySpatialSW(state, s, w, (a, b) => COL(a) === COL(b) && ROW(a) > ROW(b)),
       render: (S, W, R) => chip(susIc(S[s]), '', '↓', wpnIc(W[w])),
       describe: (S, W, R) => S[s].name + "'s room is directly south of (below) the room with the " + W[w].name + '.',
       refs: { sus: [s], wpn: [w], room: [] }
@@ -1597,10 +1720,7 @@
     if (!(ROW(sr) === ROW(wr) && COL(sr) > COL(wr))) return null;
     return {
       key: 'SEW' + s + ':' + w,
-      test: c => {
-        const a = c.sa.indexOf(s), b = c.wa.indexOf(w);
-        return ROW(a) === ROW(b) && COL(a) > COL(b);
-      },
+      apply: state => applySpatialSW(state, s, w, (a, b) => ROW(a) === ROW(b) && COL(a) > COL(b)),
       render: (S, W, R) => chip(susIc(S[s]), '', '→', wpnIc(W[w])),
       describe: (S, W, R) => S[s].name + "'s room is directly east of (right of) the room with the " + W[w].name + '.',
       refs: { sus: [s], wpn: [w], room: [] }
@@ -1613,7 +1733,7 @@
     if (ROW(ar) !== ROW(br)) return null;
     return {
       key: 'SSR' + Math.min(a,b) + ':' + Math.max(a,b),
-      test: c => ROW(c.sa.indexOf(a)) === ROW(c.sa.indexOf(b)),
+      apply: state => applySameLine(state, 'sus', a, b, (r1, r2) => ROW(r1) === ROW(r2)),
       render: (S, W, R) => chip(susIc(S[a]), 'pos', '⇔', susIc(S[b])),
       describe: (S, W, R) => S[a].name + ' and ' + S[b].name + ' are in the same row.',
       refs: { sus: [a, b], wpn: [], room: [] }
@@ -1626,7 +1746,7 @@
     if (COL(ar) !== COL(br)) return null;
     return {
       key: 'WSC' + Math.min(a,b) + ':' + Math.max(a,b),
-      test: c => COL(c.wa.indexOf(a)) === COL(c.wa.indexOf(b)),
+      apply: state => applySameLine(state, 'wpn', a, b, (r1, r2) => COL(r1) === COL(r2)),
       render: (S, W, R) => chip(wpnIc(W[a]), 'pos', '⇕', wpnIc(W[b])),
       describe: (S, W, R) => 'The ' + W[a].name + ' and the ' + W[b].name + ' are in the same column.',
       refs: { sus: [], wpn: [a, b], room: [] }
@@ -1636,7 +1756,11 @@
     const r = truth.mr;
     return {
       key: 'MIR' + r,
-      test: c => c.mr === r,
+      apply: state => {
+        if (!state.mr.has(r)) return false;
+        state.mr = new Set([r]);
+        return propagate(state);
+      },
       render: (S, W, R) => chip(skullIc(), 'pos', '✓', roomIc(R[r])),
       describe: (S, W, R) => 'The murder happened in the ' + R[r].name + '.',
       refs: { sus: [], wpn: [], room: [r] }
@@ -1647,18 +1771,46 @@
     if (truth.mr === r) return null;
     return {
       key: 'MNI' + r,
-      test: c => c.mr !== r,
+      apply: state => {
+        if (!state.mr.has(r)) return true;
+        state.mr.delete(r);
+        if (state.mr.size === 0) return false;
+        return propagate(state);
+      },
       render: (S, W, R) => chip(skullIc(), 'neg', '✕', roomIc(R[r])),
       describe: (S, W, R) => 'The murder did NOT happen in the ' + R[r].name + '.',
       refs: { sus: [], wpn: [], room: [r] }
     };
+  }
+  // "Suspect in the murder room is not S" — couples mr with sus[mr].
+  function applyMurdererNotIs(state, cat, x) {
+    let changed = true;
+    while (changed) {
+      changed = false;
+      if (state.mr.size === 1) {
+        const r = state.mr.values().next().value;
+        if (state[cat][r].has(x)) {
+          state[cat][r].delete(x);
+          if (state[cat][r].size === 0) return false;
+          changed = true;
+        }
+      }
+      for (const r of [...state.mr]) {
+        if (state[cat][r].size === 1 && state[cat][r].has(x)) {
+          state.mr.delete(r);
+          if (state.mr.size === 0) return false;
+          changed = true;
+        }
+      }
+    }
+    return propagate(state);
   }
   function clueMurdererNotSus(truth) {
     const s = randInt(N);
     if (truth.sa[truth.mr] === s) return null;
     return {
       key: 'MNS' + s,
-      test: c => c.sa[c.mr] !== s,
+      apply: state => applyMurdererNotIs(state, 'sus', s),
       render: (S, W, R) => chip(skullIc(), 'neg', '✕', susIc(S[s])),
       describe: (S, W, R) => 'The murderer is NOT ' + S[s].name + '.',
       refs: { sus: [s], wpn: [], room: [] }
@@ -1669,7 +1821,7 @@
     if (truth.wa[truth.mr] === w) return null;
     return {
       key: 'WNW' + w,
-      test: c => c.wa[c.mr] !== w,
+      apply: state => applyMurdererNotIs(state, 'wpn', w),
       render: (S, W, R) => chip(skullIc(), 'neg', '✕', wpnIc(W[w])),
       describe: (S, W, R) => 'The murder weapon was NOT the ' + W[w].name + '.',
       refs: { sus: [], wpn: [w], room: [] }
@@ -1703,25 +1855,31 @@
   }
 
   function generateClues(truth) {
-    let candidates = ALL_CASES.slice();
+    let state = newPState();
+    propagate(state);
     const clues = [];
     const seen = new Set();
-    let attempts = 0;
-    while (candidates.length > 1 && attempts < 800 && clues.length < 12) {
+    let attempts = 0, dryStreak = 0;
+    while (!isSolvedState(state) && attempts < 3000 && clues.length < 30) {
       attempts++;
-      // Greedy: try several random clues, pick the one that narrows most
-      let best = null, bestNext = null;
-      for (let k = 0; k < 6; k++) {
+      // Greedy: try a batch of random candidate clues, pick the one
+      // that prunes the most cells in one step.
+      let bestClue = null, bestNext = null, bestReduction = 0;
+      for (let k = 0; k < 24; k++) {
         const fn = pickFactory();
         const clue = fn(truth);
         if (!clue || seen.has(clue.key)) continue;
-        const next = candidates.filter(clue.test);
-        if (next.length === 0 || next.length === candidates.length) continue;
-        if (!best || next.length < bestNext.length) { best = clue; bestNext = next; }
+        const next = clonePState(state);
+        const ok = clue.apply(next);
+        if (!ok) continue;
+        const reduction = totalSize(state) - totalSize(next);
+        if (reduction <= 0) continue;
+        if (reduction > bestReduction) { bestReduction = reduction; bestClue = clue; bestNext = next; }
       }
-      if (best) { candidates = bestNext; clues.push(best); seen.add(best.key); }
+      if (bestClue) { state = bestNext; clues.push(bestClue); seen.add(bestClue.key); dryStreak = 0; }
+      else { dryStreak++; if (dryStreak > 40) break; }
     }
-    return candidates.length === 1 ? clues : null;
+    return isSolvedState(state) ? clues : null;
   }
 
   // ============================================================
@@ -1730,11 +1888,12 @@
   let state;
 
   function newCase() {
+    const range = Array.from({ length: N }, (_, i) => i);
     let clues = null, sa, wa, mr;
     let attempts = 0;
     while (!clues && attempts < 30) {
-      sa = shuffle([0, 1, 2, 3]);
-      wa = shuffle([0, 1, 2, 3]);
+      sa = shuffle(range);
+      wa = shuffle(range);
       mr = randInt(N);
       clues = generateClues({ sa, wa, mr });
       attempts++;
@@ -1746,14 +1905,22 @@
         const sr = sa[r], wr = wa[r];
         clues.push({
           key: 'F-SIR' + r,
-          test: c => c.sa[r] === sr,
+          apply: state => {
+            if (!state.sus[r].has(sr)) return false;
+            state.sus[r] = new Set([sr]);
+            return propagate(state);
+          },
           render: (S, W, R) => chip(susIc(S[sr]), 'pos', '✓', roomIc(R[r])),
           describe: (S, W, R) => S[sr].name + ' is in the ' + R[r].name + '.',
           refs: { sus: [sr], wpn: [], room: [r] }
         });
         clues.push({
           key: 'F-WIR' + r,
-          test: c => c.wa[r] === wr,
+          apply: state => {
+            if (!state.wpn[r].has(wr)) return false;
+            state.wpn[r] = new Set([wr]);
+            return propagate(state);
+          },
           render: (S, W, R) => chip(wpnIc(W[wr]), 'pos', '✓', roomIc(R[r])),
           describe: (S, W, R) => 'The ' + W[wr].name + ' is in the ' + R[r].name + '.',
           refs: { sus: [], wpn: [wr], room: [r] }
@@ -1761,7 +1928,11 @@
       }
       clues.push({
         key: 'F-MIR',
-        test: c => c.mr === mr,
+        apply: state => {
+          if (!state.mr.has(mr)) return false;
+          state.mr = new Set([mr]);
+          return propagate(state);
+        },
         render: (S, W, R) => chip(skullIc(), 'pos', '✓', roomIc(R[mr])),
         describe: (S, W, R) => 'The murder happened in the ' + R[mr].name + '.',
         refs: { sus: [], wpn: [], room: [mr] }
