@@ -544,6 +544,17 @@
   .verdict-art .pic .label { font-size: 10px; color: var(--ink); }
   .truth { font-size: 12px; color: var(--ink-dim); margin-top: 6px; }
   .truth b { color: var(--ink); }
+  /* Once the player has submitted, collapse the picker section so the
+     verdict + the Cancel/Next-Level buttons fit on screen without
+     scrolling. (The portraits in the verdict already say who/what/where.) */
+  #modalAccuse.verdict-shown .modal > h2,
+  #modalAccuse.verdict-shown .modal > label,
+  #modalAccuse.verdict-shown .modal > .picker { display: none; }
+  #modalAccuse.verdict-shown .modal .row { margin-top: 14px; }
+  #modalAccuse.verdict-shown .verdict { margin-top: 0; }
+  #modalAccuse.verdict-shown .verdict-art { gap: 10px; margin: 8px 0; }
+  #modalAccuse.verdict-shown .verdict-art .pic { width: 56px; }
+  #modalAccuse.verdict-shown .verdict-art .pic .frame { width: 56px; height: 56px; }
 
   .help-text { font-size: 13px; line-height: 1.5; color: var(--ink); }
   .help-text ul { padding-left: 20px; }
@@ -2561,7 +2572,9 @@
     buildPicker('pickRoom',    c.rooms);
     document.getElementById('verdict').innerHTML = '';
     document.getElementById('btnSubmit').textContent = "J'accuse!";
-    document.getElementById('modalAccuse').classList.add('show');
+    const m = document.getElementById('modalAccuse');
+    m.classList.remove('verdict-shown');
+    m.classList.add('show');
   }
   function buildPicker(containerId, items) {
     const root = document.getElementById(containerId);
@@ -2641,6 +2654,9 @@
     } else {
       submitBtn.textContent = 'Close';
     }
+    // Collapse the picker grids and modal title once a verdict is set so
+    // the verdict text + action buttons fit on screen without scrolling.
+    document.getElementById('modalAccuse').classList.add('verdict-shown');
     if (!IS_LEVEL) {
       document.getElementById('caseNum').textContent = state.caseNum;
       document.getElementById('wins').textContent = state.wins;
