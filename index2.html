@@ -240,26 +240,38 @@
     pointer-events: none;
   }
   /* Highlight all instances of items referred to by an open clue tooltip.
-     Cyan stripes + glow stand out against the gold UI. */
+     Solid cyan border with a soft neon glow that flickers subtly. */
   .mini-icon.highlight {
     border-color: #4ee0ff;
-    box-shadow: 0 0 0 3px #4ee0ff, 0 0 16px 3px rgba(78,224,255,0.95);
-    outline: 2px dashed #d8f8ff;
-    outline-offset: 3px;
-    animation: hlPulse 0.9s ease-in-out infinite;
+    animation: neonFlickerMini 2.6s linear infinite;
     z-index: 5;
   }
   .mini-icon.highlight.crossed { opacity: 0.55; }
   .cell.highlight {
     border-color: #4ee0ff;
-    box-shadow: 0 0 0 3px #4ee0ff, 0 0 22px 5px rgba(78,224,255,0.85);
-    outline: 2px dashed #d8f8ff;
-    outline-offset: 4px;
-    animation: hlPulse 0.9s ease-in-out infinite;
+    animation: neonFlickerCell 2.6s linear infinite;
   }
-  @keyframes hlPulse {
-    0%, 100% { outline-offset: 3px; filter: brightness(1); }
-    50%      { outline-offset: 7px; filter: brightness(1.35); }
+  @keyframes neonFlickerMini {
+    0%, 17%, 21%, 38%, 42%, 60%, 100% {
+      box-shadow: 0 0 0 2px #4ee0ff, 0 0 12px 2px rgba(78,224,255,0.85);
+    }
+    19%, 40% {
+      box-shadow: 0 0 0 1px rgba(78,224,255,0.45), 0 0 4px 1px rgba(78,224,255,0.3);
+    }
+    63%, 66% {
+      box-shadow: 0 0 0 2px rgba(78,224,255,0.7), 0 0 8px 1px rgba(78,224,255,0.5);
+    }
+  }
+  @keyframes neonFlickerCell {
+    0%, 17%, 21%, 38%, 42%, 60%, 100% {
+      box-shadow: 0 0 0 2px #4ee0ff, 0 0 20px 4px rgba(78,224,255,0.75);
+    }
+    19%, 40% {
+      box-shadow: 0 0 0 1px rgba(78,224,255,0.45), 0 0 6px 2px rgba(78,224,255,0.3);
+    }
+    63%, 66% {
+      box-shadow: 0 0 0 2px rgba(78,224,255,0.7), 0 0 12px 2px rgba(78,224,255,0.5);
+    }
   }
   .hint {
     font-size: 11px;
@@ -1828,23 +1840,233 @@
     };
   }
 
+  // ----- Distance-2 spatial clues (skip a row/column) -----
+  function clueSusTwoNorthOfWpn(truth) {
+    const s = randInt(N), w = randInt(N);
+    const sr = truth.sa.indexOf(s), wr = truth.wa.indexOf(w);
+    if (!(COL(sr) === COL(wr) && ROW(sr) === ROW(wr) - 2)) return null;
+    return {
+      key: 'S2N' + s + ':' + w,
+      apply: state => applySpatialSW(state, s, w, (a, b) => COL(a) === COL(b) && ROW(a) === ROW(b) - 2),
+      render: (S, W, R) => chip(susIc(S[s]), '', '⇈', wpnIc(W[w])),
+      describe: (S, W, R) => S[s].name + "'s room is two rooms directly north of (two rows above) the room with the " + W[w].name + '.',
+      refs: { sus: [s], wpn: [w], room: [] }
+    };
+  }
+  function clueSusTwoSouthOfWpn(truth) {
+    const s = randInt(N), w = randInt(N);
+    const sr = truth.sa.indexOf(s), wr = truth.wa.indexOf(w);
+    if (!(COL(sr) === COL(wr) && ROW(sr) === ROW(wr) + 2)) return null;
+    return {
+      key: 'S2S' + s + ':' + w,
+      apply: state => applySpatialSW(state, s, w, (a, b) => COL(a) === COL(b) && ROW(a) === ROW(b) + 2),
+      render: (S, W, R) => chip(susIc(S[s]), '', '⇊', wpnIc(W[w])),
+      describe: (S, W, R) => S[s].name + "'s room is two rooms directly south of (two rows below) the room with the " + W[w].name + '.',
+      refs: { sus: [s], wpn: [w], room: [] }
+    };
+  }
+  function clueSusTwoWestOfWpn(truth) {
+    const s = randInt(N), w = randInt(N);
+    const sr = truth.sa.indexOf(s), wr = truth.wa.indexOf(w);
+    if (!(ROW(sr) === ROW(wr) && COL(sr) === COL(wr) - 2)) return null;
+    return {
+      key: 'S2W' + s + ':' + w,
+      apply: state => applySpatialSW(state, s, w, (a, b) => ROW(a) === ROW(b) && COL(a) === COL(b) - 2),
+      render: (S, W, R) => chip(susIc(S[s]), '', '⇇', wpnIc(W[w])),
+      describe: (S, W, R) => S[s].name + "'s room is two rooms directly west of (two columns left of) the room with the " + W[w].name + '.',
+      refs: { sus: [s], wpn: [w], room: [] }
+    };
+  }
+  function clueSusTwoEastOfWpn(truth) {
+    const s = randInt(N), w = randInt(N);
+    const sr = truth.sa.indexOf(s), wr = truth.wa.indexOf(w);
+    if (!(ROW(sr) === ROW(wr) && COL(sr) === COL(wr) + 2)) return null;
+    return {
+      key: 'S2E' + s + ':' + w,
+      apply: state => applySpatialSW(state, s, w, (a, b) => ROW(a) === ROW(b) && COL(a) === COL(b) + 2),
+      render: (S, W, R) => chip(susIc(S[s]), '', '⇉', wpnIc(W[w])),
+      describe: (S, W, R) => S[s].name + "'s room is two rooms directly east of (two columns right of) the room with the " + W[w].name + '.',
+      refs: { sus: [s], wpn: [w], room: [] }
+    };
+  }
+
+  // ----- Diagonal spatial clues (above-and-right, etc., any distance) -----
+  function clueSusNEofWpn(truth) {
+    const s = randInt(N), w = randInt(N);
+    const sr = truth.sa.indexOf(s), wr = truth.wa.indexOf(w);
+    if (!(ROW(sr) < ROW(wr) && COL(sr) > COL(wr))) return null;
+    return {
+      key: 'SDNE' + s + ':' + w,
+      apply: state => applySpatialSW(state, s, w, (a, b) => ROW(a) < ROW(b) && COL(a) > COL(b)),
+      render: (S, W, R) => chip(susIc(S[s]), '', '↗', wpnIc(W[w])),
+      describe: (S, W, R) => S[s].name + "'s room is to the north-east of (above and to the right of) the room with the " + W[w].name + '.',
+      refs: { sus: [s], wpn: [w], room: [] }
+    };
+  }
+  function clueSusNWofWpn(truth) {
+    const s = randInt(N), w = randInt(N);
+    const sr = truth.sa.indexOf(s), wr = truth.wa.indexOf(w);
+    if (!(ROW(sr) < ROW(wr) && COL(sr) < COL(wr))) return null;
+    return {
+      key: 'SDNW' + s + ':' + w,
+      apply: state => applySpatialSW(state, s, w, (a, b) => ROW(a) < ROW(b) && COL(a) < COL(b)),
+      render: (S, W, R) => chip(susIc(S[s]), '', '↖', wpnIc(W[w])),
+      describe: (S, W, R) => S[s].name + "'s room is to the north-west of (above and to the left of) the room with the " + W[w].name + '.',
+      refs: { sus: [s], wpn: [w], room: [] }
+    };
+  }
+  function clueSusSEofWpn(truth) {
+    const s = randInt(N), w = randInt(N);
+    const sr = truth.sa.indexOf(s), wr = truth.wa.indexOf(w);
+    if (!(ROW(sr) > ROW(wr) && COL(sr) > COL(wr))) return null;
+    return {
+      key: 'SDSE' + s + ':' + w,
+      apply: state => applySpatialSW(state, s, w, (a, b) => ROW(a) > ROW(b) && COL(a) > COL(b)),
+      render: (S, W, R) => chip(susIc(S[s]), '', '↘', wpnIc(W[w])),
+      describe: (S, W, R) => S[s].name + "'s room is to the south-east of (below and to the right of) the room with the " + W[w].name + '.',
+      refs: { sus: [s], wpn: [w], room: [] }
+    };
+  }
+  function clueSusSWofWpn(truth) {
+    const s = randInt(N), w = randInt(N);
+    const sr = truth.sa.indexOf(s), wr = truth.wa.indexOf(w);
+    if (!(ROW(sr) > ROW(wr) && COL(sr) < COL(wr))) return null;
+    return {
+      key: 'SDSW' + s + ':' + w,
+      apply: state => applySpatialSW(state, s, w, (a, b) => ROW(a) > ROW(b) && COL(a) < COL(b)),
+      render: (S, W, R) => chip(susIc(S[s]), '', '↙', wpnIc(W[w])),
+      describe: (S, W, R) => S[s].name + "'s room is to the south-west of (below and to the left of) the room with the " + W[w].name + '.',
+      refs: { sus: [s], wpn: [w], room: [] }
+    };
+  }
+
+  // ----- Three-item chain clues (A before B before C on a row/column) -----
+  // Prunes any candidate that can't be part of a valid ordered triple.
+  function applyChainSameLine(state, cat, a, b, c, axis) {
+    if (a === b || a === c || b === c) return propagate(state);
+    const before = axis === 'row'
+      ? (x, y) => ROW(x) === ROW(y) && COL(x) < COL(y)
+      : (x, y) => COL(x) === COL(y) && ROW(x) < ROW(y);
+    let changed = true;
+    while (changed) {
+      changed = false;
+      const aR = [], bR = [], cR = [];
+      for (let r = 0; r < N; r++) {
+        if (state[cat][r].has(a)) aR.push(r);
+        if (state[cat][r].has(b)) bR.push(r);
+        if (state[cat][r].has(c)) cR.push(r);
+      }
+      const hasTriple = (xa, xb, xc) => before(xa, xb) && before(xb, xc) && xa !== xb && xb !== xc && xa !== xc;
+      for (const ar of aR) {
+        let ok = false;
+        for (const br of bR) {
+          if (!before(ar, br)) continue;
+          for (const cr of cR) {
+            if (hasTriple(ar, br, cr)) { ok = true; break; }
+          }
+          if (ok) break;
+        }
+        if (!ok) {
+          state[cat][ar].delete(a);
+          if (state[cat][ar].size === 0) return false;
+          changed = true;
+        }
+      }
+      for (const br of bR) {
+        let ok = false;
+        for (const ar of aR) {
+          if (!before(ar, br)) continue;
+          for (const cr of cR) {
+            if (hasTriple(ar, br, cr)) { ok = true; break; }
+          }
+          if (ok) break;
+        }
+        if (!ok) {
+          state[cat][br].delete(b);
+          if (state[cat][br].size === 0) return false;
+          changed = true;
+        }
+      }
+      for (const cr of cR) {
+        let ok = false;
+        for (const ar of aR) {
+          for (const br of bR) {
+            if (hasTriple(ar, br, cr)) { ok = true; break; }
+          }
+          if (ok) break;
+        }
+        if (!ok) {
+          state[cat][cr].delete(c);
+          if (state[cat][cr].size === 0) return false;
+          changed = true;
+        }
+      }
+    }
+    return propagate(state);
+  }
+  function clueChainSusRow(truth) {
+    for (let tries = 0; tries < 20; tries++) {
+      const a = randInt(N), b = randInt(N), c = randInt(N);
+      if (a === b || a === c || b === c) continue;
+      const ar = truth.sa.indexOf(a), br = truth.sa.indexOf(b), cr = truth.sa.indexOf(c);
+      if (ROW(ar) === ROW(br) && ROW(br) === ROW(cr) && COL(ar) < COL(br) && COL(br) < COL(cr)) {
+        return {
+          key: 'CSR' + a + ':' + b + ':' + c,
+          apply: state => applyChainSameLine(state, 'sus', a, b, c, 'row'),
+          render: (S, W, R) => chip3(susIc(S[a]), '→', susIc(S[b]), '→', susIc(S[c])),
+          describe: (S, W, R) => S[a].name + ' is in a room left of ' + S[b].name + ", who is left of " + S[c].name + ' — all three in the same row.',
+          refs: { sus: [a, b, c], wpn: [], room: [] }
+        };
+      }
+    }
+    return null;
+  }
+  function clueChainWpnCol(truth) {
+    for (let tries = 0; tries < 20; tries++) {
+      const a = randInt(N), b = randInt(N), c = randInt(N);
+      if (a === b || a === c || b === c) continue;
+      const ar = truth.wa.indexOf(a), br = truth.wa.indexOf(b), cr = truth.wa.indexOf(c);
+      if (COL(ar) === COL(br) && COL(br) === COL(cr) && ROW(ar) < ROW(br) && ROW(br) < ROW(cr)) {
+        return {
+          key: 'CWC' + a + ':' + b + ':' + c,
+          apply: state => applyChainSameLine(state, 'wpn', a, b, c, 'col'),
+          render: (S, W, R) => chip3(wpnIc(W[a]), '↓', wpnIc(W[b]), '↓', wpnIc(W[c])),
+          describe: (S, W, R) => 'The ' + W[a].name + ' is in a room above the ' + W[b].name + ', which is above the ' + W[c].name + ' — all three in the same column.',
+          refs: { sus: [], wpn: [a, b, c], room: [] }
+        };
+      }
+    }
+    return null;
+  }
+
   const FACTORIES = [
-    { fn: clueSusInRoom,       w: 2 },
-    { fn: clueSusNotInRoom,    w: 5 },
-    { fn: clueWpnInRoom,       w: 2 },
-    { fn: clueWpnNotInRoom,    w: 5 },
-    { fn: clueSameRoom,        w: 3 },
-    { fn: clueDiffRoom,        w: 4 },
-    { fn: clueSusNorthWpn,     w: 2 },
-    { fn: clueSusSouthWpn,     w: 2 },
-    { fn: clueSusWestWpn,      w: 2 },
-    { fn: clueSusEastWpn,      w: 2 },
-    { fn: clueSusSameRow,      w: 2 },
-    { fn: clueWpnSameCol,      w: 2 },
-    { fn: clueMurderInRoom,    w: 1 },
-    { fn: clueMurderNotInRoom, w: 3 },
-    { fn: clueMurdererNotSus,  w: 2 },
-    { fn: clueWeaponNotWpn,    w: 2 }
+    { fn: clueSusInRoom,         w: 2 },
+    { fn: clueSusNotInRoom,      w: 5 },
+    { fn: clueWpnInRoom,         w: 2 },
+    { fn: clueWpnNotInRoom,      w: 5 },
+    { fn: clueSameRoom,          w: 3 },
+    { fn: clueDiffRoom,          w: 4 },
+    { fn: clueSusNorthWpn,       w: 2 },
+    { fn: clueSusSouthWpn,       w: 2 },
+    { fn: clueSusWestWpn,        w: 2 },
+    { fn: clueSusEastWpn,        w: 2 },
+    { fn: clueSusSameRow,        w: 2 },
+    { fn: clueWpnSameCol,        w: 2 },
+    { fn: clueMurderInRoom,      w: 1 },
+    { fn: clueMurderNotInRoom,   w: 3 },
+    { fn: clueMurdererNotSus,    w: 2 },
+    { fn: clueWeaponNotWpn,      w: 2 },
+    // 3x3-only clue shapes:
+    { fn: clueSusTwoNorthOfWpn,  w: 2 },
+    { fn: clueSusTwoSouthOfWpn,  w: 2 },
+    { fn: clueSusTwoWestOfWpn,   w: 2 },
+    { fn: clueSusTwoEastOfWpn,   w: 2 },
+    { fn: clueSusNEofWpn,        w: 2 },
+    { fn: clueSusNWofWpn,        w: 2 },
+    { fn: clueSusSEofWpn,        w: 2 },
+    { fn: clueSusSWofWpn,        w: 2 },
+    { fn: clueChainSusRow,       w: 3 },
+    { fn: clueChainWpnCol,       w: 3 }
   ];
 
   function pickFactory() {
@@ -1974,6 +2196,15 @@
            '<span class="chip-rel ' + (relClass || '') + '">' + relSym + '</span>' +
            '<div class="' + cls(b) + '"><svg><use href="#' + b.id + '"/></svg></div>';
   }
+  // Three-icon chip for ordered-triple clues (A → B → C).
+  function chip3(a, sym1, b, sym2, c) {
+    const cls = x => 'chip-icon' + (x.kind === 'sus' ? '' : ' ' + x.kind);
+    return '<div class="' + cls(a) + '"><svg><use href="#' + a.id + '"/></svg></div>' +
+           '<span class="chip-rel">' + sym1 + '</span>' +
+           '<div class="' + cls(b) + '"><svg><use href="#' + b.id + '"/></svg></div>' +
+           '<span class="chip-rel">' + sym2 + '</span>' +
+           '<div class="' + cls(c) + '"><svg><use href="#' + c.id + '"/></svg></div>';
+  }
 
   // ============================================================
   //  RENDERING
@@ -2067,6 +2298,11 @@
     e.stopPropagation();
     Audio.unlock(); Audio.tick();
     const li = e.currentTarget;
+    // Toggle: tapping the currently active clue deselects it.
+    if (activeClueLi === li) {
+      hideClueTooltip();
+      return;
+    }
     const idx = +li.dataset.idx;
     const clue = state.case.clues[idx];
     const text = clue.describe
@@ -2097,7 +2333,7 @@
   function showClueTooltip(text, sourceLi, refs) {
     const tip = document.getElementById('clueTooltip');
     tip.querySelector('.tooltip-text').innerHTML = text +
-      '<div class="tip-close">Tap anywhere to close</div>';
+      '<div class="tip-close">Tap this clue again to close · tap another to switch</div>';
     tip.classList.add('show');
     if (activeClueLi) activeClueLi.classList.remove('active');
     activeClueLi = sourceLi || null;
@@ -2212,11 +2448,10 @@
   // ============================================================
   function init() {
     state = { caseNum: 0, wins: 0, losses: 0, case: null };
-    // Dismiss the clue tooltip when tapping it or anywhere outside a clue chip
-    document.getElementById('clueTooltip').addEventListener('click', (e) => { e.stopPropagation(); hideClueTooltip(); });
-    document.addEventListener('click', (e) => {
-      if (!e.target.closest('#clues li')) hideClueTooltip();
-    });
+    // Clue tooltip stays open until the same clue is tapped again or a
+    // different clue is tapped. Tapping mini-icons or the tooltip body
+    // itself leaves the selection intact so the highlights stay on
+    // screen while you're crossing icons off.
     document.getElementById('btnNew').addEventListener('click', () => { Audio.unlock(); closeAccuse(); hideClueTooltip(); newCase(); });
     document.getElementById('btnAccuse').addEventListener('click', openAccuse);
     document.getElementById('btnCancel').addEventListener('click', () => { Audio.tick(); closeAccuse(); });
