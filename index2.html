@@ -1342,7 +1342,7 @@
           <span class="chip-rel">↘</span>
           <div class="chip-icon weapon"><svg><use href="#weap-shears"/></svg></div>
         </div>
-        <span>left item is up-and-to-the-left of the right item (arrow points down-right to reach right item, any distance)</span>
+        <span>left item is diagonally adjacent above-and-to-the-left of the right item (one row up and one column left)</span>
       </div>
       <div class="legend">
         <div class="swatch">
@@ -1749,7 +1749,7 @@
       key: 'SNW' + s + ':' + w,
       apply: state => applySpatialSW(state, s, w, (a, b) => COL(a) === COL(b) && ROW(a) === ROW(b) - 1),
       render: (S, W, R) => chip(susIc(S[s]), '', '↓', wpnIc(W[w])),
-      describe: (S, W, R) => S[s].name + "'s room is directly north of (one row immediately above, same column as) the room with the " + W[w].name + '.',
+      describe: (S, W, R) => S[s].name + "'s room is directly above (one row up, same column as) the room with the " + W[w].name + '.',
       refs: { sus: [s], wpn: [w], room: [] }
     };
   }
@@ -1761,7 +1761,7 @@
       key: 'SWW' + s + ':' + w,
       apply: state => applySpatialSW(state, s, w, (a, b) => ROW(a) === ROW(b) && COL(a) === COL(b) - 1),
       render: (S, W, R) => chip(susIc(S[s]), '', '→', wpnIc(W[w])),
-      describe: (S, W, R) => S[s].name + "'s room is directly west of (one column immediately left of, same row as) the room with the " + W[w].name + '.',
+      describe: (S, W, R) => S[s].name + "'s room is directly to the left of (one column left, same row as) the room with the " + W[w].name + '.',
       refs: { sus: [s], wpn: [w], room: [] }
     };
   }
@@ -1773,7 +1773,7 @@
       key: 'SSW' + s + ':' + w,
       apply: state => applySpatialSW(state, s, w, (a, b) => COL(a) === COL(b) && ROW(a) === ROW(b) + 1),
       render: (S, W, R) => chip(susIc(S[s]), '', '↑', wpnIc(W[w])),
-      describe: (S, W, R) => S[s].name + "'s room is directly south of (one row immediately below, same column as) the room with the " + W[w].name + '.',
+      describe: (S, W, R) => S[s].name + "'s room is directly below (one row down, same column as) the room with the " + W[w].name + '.',
       refs: { sus: [s], wpn: [w], room: [] }
     };
   }
@@ -1785,7 +1785,7 @@
       key: 'SEW' + s + ':' + w,
       apply: state => applySpatialSW(state, s, w, (a, b) => ROW(a) === ROW(b) && COL(a) === COL(b) + 1),
       render: (S, W, R) => chip(susIc(S[s]), '', '←', wpnIc(W[w])),
-      describe: (S, W, R) => S[s].name + "'s room is directly east of (one column immediately right of, same row as) the room with the " + W[w].name + '.',
+      describe: (S, W, R) => S[s].name + "'s room is directly to the right of (one column right, same row as) the room with the " + W[w].name + '.',
       refs: { sus: [s], wpn: [w], room: [] }
     };
   }
@@ -1950,7 +1950,7 @@
       key: 'S2N' + s + ':' + w,
       apply: state => applySpatialSW(state, s, w, (a, b) => COL(a) === COL(b) && ROW(a) === ROW(b) - 2),
       render: (S, W, R) => chip(susIc(S[s]), '', '⇊', wpnIc(W[w])),
-      describe: (S, W, R) => S[s].name + "'s room is two rooms directly north of (two rows above) the room with the " + W[w].name + '.',
+      describe: (S, W, R) => S[s].name + "'s room is two rooms above (same column, two rows up from) the room with the " + W[w].name + '.',
       refs: { sus: [s], wpn: [w], room: [] }
     };
   }
@@ -1962,7 +1962,7 @@
       key: 'S2S' + s + ':' + w,
       apply: state => applySpatialSW(state, s, w, (a, b) => COL(a) === COL(b) && ROW(a) === ROW(b) + 2),
       render: (S, W, R) => chip(susIc(S[s]), '', '⇈', wpnIc(W[w])),
-      describe: (S, W, R) => S[s].name + "'s room is two rooms directly south of (two rows below) the room with the " + W[w].name + '.',
+      describe: (S, W, R) => S[s].name + "'s room is two rooms below (same column, two rows down from) the room with the " + W[w].name + '.',
       refs: { sus: [s], wpn: [w], room: [] }
     };
   }
@@ -1974,7 +1974,7 @@
       key: 'S2W' + s + ':' + w,
       apply: state => applySpatialSW(state, s, w, (a, b) => ROW(a) === ROW(b) && COL(a) === COL(b) - 2),
       render: (S, W, R) => chip(susIc(S[s]), '', '⇉', wpnIc(W[w])),
-      describe: (S, W, R) => S[s].name + "'s room is two rooms directly west of (two columns left of) the room with the " + W[w].name + '.',
+      describe: (S, W, R) => S[s].name + "'s room is two rooms to the left of (same row, two columns left of) the room with the " + W[w].name + '.',
       refs: { sus: [s], wpn: [w], room: [] }
     };
   }
@@ -1986,7 +1986,7 @@
       key: 'S2E' + s + ':' + w,
       apply: state => applySpatialSW(state, s, w, (a, b) => ROW(a) === ROW(b) && COL(a) === COL(b) + 2),
       render: (S, W, R) => chip(susIc(S[s]), '', '⇇', wpnIc(W[w])),
-      describe: (S, W, R) => S[s].name + "'s room is two rooms directly east of (two columns right of) the room with the " + W[w].name + '.',
+      describe: (S, W, R) => S[s].name + "'s room is two rooms to the right of (same row, two columns right of) the room with the " + W[w].name + '.',
       refs: { sus: [s], wpn: [w], room: [] }
     };
   }
@@ -1995,48 +1995,48 @@
   function clueSusNEofWpn(truth) {
     const s = randInt(N), w = randInt(N);
     const sr = truth.sa.indexOf(s), wr = truth.wa.indexOf(w);
-    if (!(ROW(sr) < ROW(wr) && COL(sr) > COL(wr))) return null;
+    if (!(ROW(sr) === ROW(wr) - 1 && COL(sr) === COL(wr) + 1)) return null;
     return {
       key: 'SDNE' + s + ':' + w,
-      apply: state => applySpatialSW(state, s, w, (a, b) => ROW(a) < ROW(b) && COL(a) > COL(b)),
+      apply: state => applySpatialSW(state, s, w, (a, b) => ROW(a) === ROW(b) - 1 && COL(a) === COL(b) + 1),
       render: (S, W, R) => chip(susIc(S[s]), '', '↙', wpnIc(W[w])),
-      describe: (S, W, R) => S[s].name + "'s room is to the north-east of (above and to the right of) the room with the " + W[w].name + '.',
+      describe: (S, W, R) => S[s].name + "'s room is diagonally adjacent, one row above and one column to the right of, the room with the " + W[w].name + '.',
       refs: { sus: [s], wpn: [w], room: [] }
     };
   }
   function clueSusNWofWpn(truth) {
     const s = randInt(N), w = randInt(N);
     const sr = truth.sa.indexOf(s), wr = truth.wa.indexOf(w);
-    if (!(ROW(sr) < ROW(wr) && COL(sr) < COL(wr))) return null;
+    if (!(ROW(sr) === ROW(wr) - 1 && COL(sr) === COL(wr) - 1)) return null;
     return {
       key: 'SDNW' + s + ':' + w,
-      apply: state => applySpatialSW(state, s, w, (a, b) => ROW(a) < ROW(b) && COL(a) < COL(b)),
+      apply: state => applySpatialSW(state, s, w, (a, b) => ROW(a) === ROW(b) - 1 && COL(a) === COL(b) - 1),
       render: (S, W, R) => chip(susIc(S[s]), '', '↘', wpnIc(W[w])),
-      describe: (S, W, R) => S[s].name + "'s room is to the north-west of (above and to the left of) the room with the " + W[w].name + '.',
+      describe: (S, W, R) => S[s].name + "'s room is diagonally adjacent, one row above and one column to the left of, the room with the " + W[w].name + '.',
       refs: { sus: [s], wpn: [w], room: [] }
     };
   }
   function clueSusSEofWpn(truth) {
     const s = randInt(N), w = randInt(N);
     const sr = truth.sa.indexOf(s), wr = truth.wa.indexOf(w);
-    if (!(ROW(sr) > ROW(wr) && COL(sr) > COL(wr))) return null;
+    if (!(ROW(sr) === ROW(wr) + 1 && COL(sr) === COL(wr) + 1)) return null;
     return {
       key: 'SDSE' + s + ':' + w,
-      apply: state => applySpatialSW(state, s, w, (a, b) => ROW(a) > ROW(b) && COL(a) > COL(b)),
+      apply: state => applySpatialSW(state, s, w, (a, b) => ROW(a) === ROW(b) + 1 && COL(a) === COL(b) + 1),
       render: (S, W, R) => chip(susIc(S[s]), '', '↖', wpnIc(W[w])),
-      describe: (S, W, R) => S[s].name + "'s room is to the south-east of (below and to the right of) the room with the " + W[w].name + '.',
+      describe: (S, W, R) => S[s].name + "'s room is diagonally adjacent, one row below and one column to the right of, the room with the " + W[w].name + '.',
       refs: { sus: [s], wpn: [w], room: [] }
     };
   }
   function clueSusSWofWpn(truth) {
     const s = randInt(N), w = randInt(N);
     const sr = truth.sa.indexOf(s), wr = truth.wa.indexOf(w);
-    if (!(ROW(sr) > ROW(wr) && COL(sr) < COL(wr))) return null;
+    if (!(ROW(sr) === ROW(wr) + 1 && COL(sr) === COL(wr) - 1)) return null;
     return {
       key: 'SDSW' + s + ':' + w,
-      apply: state => applySpatialSW(state, s, w, (a, b) => ROW(a) > ROW(b) && COL(a) < COL(b)),
+      apply: state => applySpatialSW(state, s, w, (a, b) => ROW(a) === ROW(b) + 1 && COL(a) === COL(b) - 1),
       render: (S, W, R) => chip(susIc(S[s]), '', '↗', wpnIc(W[w])),
-      describe: (S, W, R) => S[s].name + "'s room is to the south-west of (below and to the left of) the room with the " + W[w].name + '.',
+      describe: (S, W, R) => S[s].name + "'s room is diagonally adjacent, one row below and one column to the left of, the room with the " + W[w].name + '.',
       refs: { sus: [s], wpn: [w], room: [] }
     };
   }
