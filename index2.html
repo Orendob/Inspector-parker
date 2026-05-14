@@ -439,6 +439,34 @@
     padding: 16px;
   }
   .modal-bg.show { display: flex; }
+
+  /* Confetti shower on a correct accusation. Spawned in JS, removed
+     after the animation completes. */
+  .confetti-container {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 200;
+    overflow: hidden;
+  }
+  .confetti-piece {
+    position: absolute;
+    top: -24px;
+    width: 9px;
+    height: 14px;
+    --rot: 0deg;
+    --drift: 0px;
+    --dur: 3s;
+    --delay: 0s;
+    animation: confetti-fall var(--dur) ease-in var(--delay) forwards;
+    box-shadow: 0 0 4px rgba(0,0,0,0.4);
+  }
+  .confetti-piece.circle { border-radius: 50%; width: 10px; height: 10px; }
+  .confetti-piece.thin { width: 4px; height: 16px; }
+  @keyframes confetti-fall {
+    0%   { transform: translate3d(0, -30px, 0) rotate(var(--rot)); opacity: 1; }
+    100% { transform: translate3d(var(--drift), 110vh, 0) rotate(calc(var(--rot) + 720deg)); opacity: 0.5; }
+  }
   .modal {
     background: linear-gradient(180deg, var(--panel) 0%, var(--bg-2) 100%);
     border: 2px solid var(--gold-dim);
@@ -1295,12 +1323,12 @@
 <div class="modal-bg" id="modalAccuse">
   <div class="modal">
     <h2>Make Your Accusation</h2>
+    <label>The Crime Scene</label>
+    <div class="picker" id="pickRoom"></div>
     <label>The Murderer</label>
     <div class="picker" id="pickSuspect"></div>
     <label>The Weapon</label>
     <div class="picker" id="pickWeapon"></div>
-    <label>The Crime Scene</label>
-    <div class="picker" id="pickRoom"></div>
     <div id="verdict"></div>
     <div class="row">
       <button class="btn-secondary" id="btnCancel">Cancel</button>
@@ -1555,6 +1583,43 @@
       open:  () => { tone(440, 0.08, 'sine', 0.08); setTimeout(() => tone(660, 0.1, 'sine', 0.08), 70); },
       win:   () => chord([523.25, 659.25, 783.99, 1046.5], 0.55, 'triangle', 0.10, 0.10),
       lose:  () => chord([311.1, 277.18, 233.08], 0.7, 'triangle', 0.12, 0.13),
+      // Crowd applause — synthesizes ~80 short noise bursts into a
+      // single buffer with a brief swell and fade, band-passed around
+      // 2 kHz so it sounds like clapping hands rather than static.
+      applause: (durationSec) => {
+        const c = getCtx(); if (!c || muted) return;
+        const dur = durationSec || 2.6;
+        const sr = c.sampleRate;
+        const buf = c.createBuffer(1, Math.floor(sr * dur), sr);
+        const data = buf.getChannelData(0);
+        const rate = 38;
+        const total = Math.floor(dur * rate);
+        const clapLen = Math.floor(sr * 0.025);
+        for (let k = 0; k < total; k++) {
+          const center = ((k + 0.5) / rate + (Math.random() * 0.06 - 0.03)) * sr;
+          const amp = 0.45 + Math.random() * 0.55;
+          const start = Math.floor(center);
+          for (let j = 0; j < clapLen && (start + j) < data.length; j++) {
+            const env = Math.pow(1 - j / clapLen, 2.2);
+            data[start + j] += (Math.random() * 2 - 1) * env * amp;
+          }
+        }
+        // overall envelope: swell in, hold, fade out
+        for (let i = 0; i < data.length; i++) {
+          const t = i / sr;
+          let g;
+          if (t < 0.25) g = t / 0.25;
+          else if (t > dur - 0.5) g = (dur - t) / 0.5;
+          else g = 1;
+          data[i] *= g * 0.35;
+          if (data[i] > 1) data[i] = 1; else if (data[i] < -1) data[i] = -1;
+        }
+        const src = c.createBufferSource(); src.buffer = buf;
+        const g = c.createGain(); g.gain.value = 0.9;
+        const f = c.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 2000; f.Q.value = 0.5;
+        src.connect(f).connect(g).connect(c.destination);
+        src.start();
+      },
       isMuted: () => muted,
       setMuted: (v) => { muted = v; }
     };
@@ -2630,6 +2695,8 @@
         '</div>' +
         '<div class="truth">It was <b>' + trueMurderer.name + '</b> with the <b>' + trueWeapon.name + '</b> in the <b>' + trueRoom.name + '</b>.</div>';
       Audio.win();
+      Audio.applause();
+      launchConfetti();
     } else {
       state.losses++; c.solved = true;
       verdict.className = 'verdict lose';
@@ -2663,6 +2730,30 @@
       document.getElementById('losses').textContent = state.losses;
     }
   }
+  // Shower of falling pieces, cleaned up after the animation completes.
+  function launchConfetti() {
+    const old = document.querySelector('.confetti-container');
+    if (old) old.remove();
+    const container = document.createElement('div');
+    container.className = 'confetti-container';
+    const colors = ['#e0bc62', '#c04a3a', '#6ba858', '#4a82b8', '#a82a5a', '#f4e040', '#f48a30', '#d8d8d8'];
+    const COUNT = 80;
+    for (let i = 0; i < COUNT; i++) {
+      const piece = document.createElement('div');
+      const shape = i % 4;
+      piece.className = 'confetti-piece' + (shape === 0 ? ' circle' : shape === 1 ? ' thin' : '');
+      piece.style.left = (Math.random() * 100) + '%';
+      piece.style.background = colors[i % colors.length];
+      piece.style.setProperty('--rot', (Math.random() * 360) + 'deg');
+      piece.style.setProperty('--drift', ((Math.random() * 200) - 100) + 'px');
+      piece.style.setProperty('--dur', (2.4 + Math.random() * 1.8) + 's');
+      piece.style.setProperty('--delay', (Math.random() * 0.7) + 's');
+      container.appendChild(piece);
+    }
+    document.body.appendChild(container);
+    setTimeout(() => container.remove(), 6000);
+  }
+
   function frame(icon, label, circle) {
     return '<div class="pic">' +
       '<div class="frame' + (circle ? ' circle' : '') + '"><svg><use href="#' + icon + '"/></svg></div>' +
