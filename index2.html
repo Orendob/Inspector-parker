@@ -1302,6 +1302,7 @@
         <li>Tap <b>Accuse</b> and pick the killer, weapon, and room.</li>
       </ul>
       <p style="margin-top:10px;"><b>Clue symbols:</b></p>
+      <p style="font-size:12px;color:var(--ink-dim);margin:0 0 8px;">Read every chip as <b>left icon</b> is <i>(symbol)</i> <b>right icon</b>. The arrow shows the position of the left icon's room relative to the right icon's room.</p>
       <div class="legend">
         <div class="swatch">
           <div class="chip-icon"><svg><use href="#sus-1"/></svg></div>
@@ -1324,7 +1325,41 @@
           <span class="chip-rel">↑</span>
           <div class="chip-icon weapon"><svg><use href="#weap-pipe"/></svg></div>
         </div>
-        <span>is north of (above)</span>
+        <span>is directly north (one row up, same column)</span>
+      </div>
+      <div class="legend">
+        <div class="swatch">
+          <div class="chip-icon"><svg><use href="#sus-3"/></svg></div>
+          <span class="chip-rel">⇈</span>
+          <div class="chip-icon weapon"><svg><use href="#weap-pipe"/></svg></div>
+        </div>
+        <span>is two rows north (skipping one row)</span>
+      </div>
+      <div class="legend">
+        <div class="swatch">
+          <div class="chip-icon"><svg><use href="#sus-4"/></svg></div>
+          <span class="chip-rel">↗</span>
+          <div class="chip-icon weapon"><svg><use href="#weap-shears"/></svg></div>
+        </div>
+        <span>is to the north-east (above AND to the right, any distance)</span>
+      </div>
+      <div class="legend">
+        <div class="swatch">
+          <div class="chip-icon"><svg><use href="#sus-5"/></svg></div>
+          <span class="chip-rel pos">⇔</span>
+          <div class="chip-icon"><svg><use href="#sus-6"/></svg></div>
+        </div>
+        <span>are in the same row</span>
+      </div>
+      <div class="legend">
+        <div class="swatch">
+          <div class="chip-icon"><svg><use href="#sus-7"/></svg></div>
+          <span class="chip-rel">→</span>
+          <div class="chip-icon"><svg><use href="#sus-8"/></svg></div>
+          <span class="chip-rel">→</span>
+          <div class="chip-icon"><svg><use href="#sus-9"/></svg></div>
+        </div>
+        <span>three in a row, in that left-to-right order</span>
       </div>
       <div class="legend">
         <div class="swatch">
