@@ -1262,6 +1262,7 @@
 
 <div class="actions">
   <button class="btn-secondary" id="btnNew">New Case</button>
+  <button class="btn-secondary" id="btnReset">Reset</button>
   <button class="btn-primary" id="btnAccuse">Accuse</button>
 </div>
 
@@ -1814,6 +1815,56 @@
       refs: { sus: [], wpn: [a, b], room: [] }
     };
   }
+  function clueSusSameCol(truth) {
+    const a = randInt(N), b = randInt(N);
+    if (a === b) return null;
+    const ar = truth.sa.indexOf(a), br = truth.sa.indexOf(b);
+    if (COL(ar) !== COL(br)) return null;
+    return {
+      key: 'SSC' + Math.min(a,b) + ':' + Math.max(a,b),
+      apply: state => applySameLine(state, 'sus', a, b, (r1, r2) => COL(r1) === COL(r2)),
+      render: (S, W, R) => chip(susIc(S[a]), 'pos', '⇕', susIc(S[b])),
+      describe: (S, W, R) => S[a].name + ' and ' + S[b].name + ' are in the same column.',
+      refs: { sus: [a, b], wpn: [], room: [] }
+    };
+  }
+  function clueWpnSameRow(truth) {
+    const a = randInt(N), b = randInt(N);
+    if (a === b) return null;
+    const ar = truth.wa.indexOf(a), br = truth.wa.indexOf(b);
+    if (ROW(ar) !== ROW(br)) return null;
+    return {
+      key: 'WSR' + Math.min(a,b) + ':' + Math.max(a,b),
+      apply: state => applySameLine(state, 'wpn', a, b, (r1, r2) => ROW(r1) === ROW(r2)),
+      render: (S, W, R) => chip(wpnIc(W[a]), 'pos', '⇔', wpnIc(W[b])),
+      describe: (S, W, R) => 'The ' + W[a].name + ' and the ' + W[b].name + ' are in the same row.',
+      refs: { sus: [], wpn: [a, b], room: [] }
+    };
+  }
+  function clueSusWpnSameRow(truth) {
+    const s = randInt(N), w = randInt(N);
+    const sr = truth.sa.indexOf(s), wr = truth.wa.indexOf(w);
+    if (ROW(sr) !== ROW(wr)) return null;
+    return {
+      key: 'SWR' + s + ':' + w,
+      apply: state => applySpatialSW(state, s, w, (a, b) => ROW(a) === ROW(b)),
+      render: (S, W, R) => chip(susIc(S[s]), 'pos', '⇔', wpnIc(W[w])),
+      describe: (S, W, R) => S[s].name + ' is in a room in the same row as the room with the ' + W[w].name + '.',
+      refs: { sus: [s], wpn: [w], room: [] }
+    };
+  }
+  function clueSusWpnSameCol(truth) {
+    const s = randInt(N), w = randInt(N);
+    const sr = truth.sa.indexOf(s), wr = truth.wa.indexOf(w);
+    if (COL(sr) !== COL(wr)) return null;
+    return {
+      key: 'SWC' + s + ':' + w,
+      apply: state => applySpatialSW(state, s, w, (a, b) => COL(a) === COL(b)),
+      render: (S, W, R) => chip(susIc(S[s]), 'pos', '⇕', wpnIc(W[w])),
+      describe: (S, W, R) => S[s].name + ' is in a room in the same column as the room with the ' + W[w].name + '.',
+      refs: { sus: [s], wpn: [w], room: [] }
+    };
+  }
   function clueMurderInRoom(truth) {
     const r = truth.mr;
     return {
@@ -2100,8 +2151,12 @@
     { fn: clueSusSouthWpn,       w: 2 },
     { fn: clueSusWestWpn,        w: 2 },
     { fn: clueSusEastWpn,        w: 2 },
-    { fn: clueSusSameRow,        w: 2 },
-    { fn: clueWpnSameCol,        w: 2 },
+    { fn: clueSusSameRow,        w: 4 },
+    { fn: clueSusSameCol,        w: 4 },
+    { fn: clueWpnSameRow,        w: 4 },
+    { fn: clueWpnSameCol,        w: 4 },
+    { fn: clueSusWpnSameRow,     w: 3 },
+    { fn: clueSusWpnSameCol,     w: 3 },
     { fn: clueMurderInRoom,      w: 1 },
     { fn: clueMurderNotInRoom,   w: 3 },
     { fn: clueMurdererNotSus,    w: 2 },
@@ -2237,6 +2292,20 @@
     };
     state.caseNum++;
     render();
+    Audio.page();
+  }
+
+  // Reset the current case: clear every player-applied X without
+  // touching the truth, clues, or initially-hidden slots. Lets the
+  // player start the same case from scratch.
+  function resetCase() {
+    if (!state.case) return;
+    state.case.marks = Array.from({ length: N }, () => ({
+      sus: new Array(N).fill(false),
+      wpn: new Array(N).fill(false)
+    }));
+    state.case.solved = false;
+    renderGrid();
     Audio.page();
   }
 
@@ -2516,6 +2585,7 @@
     // itself leaves the selection intact so the highlights stay on
     // screen while you're crossing icons off.
     document.getElementById('btnNew').addEventListener('click', () => { Audio.unlock(); closeAccuse(); hideClueTooltip(); newCase(); });
+    document.getElementById('btnReset').addEventListener('click', () => { Audio.unlock(); closeAccuse(); hideClueTooltip(); resetCase(); });
     document.getElementById('btnAccuse').addEventListener('click', openAccuse);
     document.getElementById('btnCancel').addEventListener('click', () => { Audio.tick(); closeAccuse(); });
     const submitBtn = document.getElementById('btnSubmit');
