@@ -42,7 +42,7 @@
   #app {
     max-width: 600px;
     margin: 0 auto;
-    padding: 12px 12px 130px;
+    padding: 12px 12px 210px;
   }
   header {
     text-align: center;
@@ -231,6 +231,16 @@
   .mini-icon svg { width: 100%; height: 100%; display: block; }
   .mini-icon.weapon { color: var(--gold); padding: 2px; background: rgba(0,0,0,0.5); }
   .mini-icon.crossed { opacity: 0.32; }
+  /* Hidden slot — the item is known to not be in this room from the
+     start. Shown as a dark empty cell. Not interactive. */
+  .mini-icon.hidden {
+    background: #0a0408;
+    border-color: rgba(0,0,0,0.6);
+    box-shadow: inset 0 0 6px rgba(0,0,0,0.85);
+    cursor: default;
+  }
+  .mini-icon.hidden svg { display: none; }
+  .mini-icon.hidden:active { transform: none; }
   .mini-icon.crossed::after {
     content: '';
     position: absolute; inset: 2px;
@@ -240,38 +250,24 @@
     pointer-events: none;
   }
   /* Highlight all instances of items referred to by an open clue tooltip.
-     Solid cyan border with a soft neon glow that flickers subtly. */
+     Solid cyan border with a gentle glow that breathes in and out. */
   .mini-icon.highlight {
     border-color: #4ee0ff;
-    animation: neonFlickerMini 2.6s linear infinite;
+    animation: neonPulseMini 2.4s ease-in-out infinite;
     z-index: 5;
   }
   .mini-icon.highlight.crossed { opacity: 0.55; }
   .cell.highlight {
     border-color: #4ee0ff;
-    animation: neonFlickerCell 2.6s linear infinite;
+    animation: neonPulseCell 2.4s ease-in-out infinite;
   }
-  @keyframes neonFlickerMini {
-    0%, 17%, 21%, 38%, 42%, 60%, 100% {
-      box-shadow: 0 0 0 2px #4ee0ff, 0 0 12px 2px rgba(78,224,255,0.85);
-    }
-    19%, 40% {
-      box-shadow: 0 0 0 1px rgba(78,224,255,0.45), 0 0 4px 1px rgba(78,224,255,0.3);
-    }
-    63%, 66% {
-      box-shadow: 0 0 0 2px rgba(78,224,255,0.7), 0 0 8px 1px rgba(78,224,255,0.5);
-    }
+  @keyframes neonPulseMini {
+    0%, 100% { box-shadow: 0 0 0 2px #4ee0ff, 0 0 4px 1px rgba(78,224,255,0.55); }
+    50%      { box-shadow: 0 0 0 2px #4ee0ff, 0 0 14px 4px rgba(78,224,255,1); }
   }
-  @keyframes neonFlickerCell {
-    0%, 17%, 21%, 38%, 42%, 60%, 100% {
-      box-shadow: 0 0 0 2px #4ee0ff, 0 0 20px 4px rgba(78,224,255,0.75);
-    }
-    19%, 40% {
-      box-shadow: 0 0 0 1px rgba(78,224,255,0.45), 0 0 6px 2px rgba(78,224,255,0.3);
-    }
-    63%, 66% {
-      box-shadow: 0 0 0 2px rgba(78,224,255,0.7), 0 0 12px 2px rgba(78,224,255,0.5);
-    }
+  @keyframes neonPulseCell {
+    0%, 100% { box-shadow: 0 0 0 2px #4ee0ff, 0 0 6px 1px rgba(78,224,255,0.45); }
+    50%      { box-shadow: 0 0 0 2px #4ee0ff, 0 0 20px 5px rgba(78,224,255,0.95); }
   }
   .hint {
     font-size: 11px;
@@ -1485,14 +1481,33 @@
   //   wpn[r] = possible weapon  ids for room r
   //   mr     = possible murder rooms
 
-  function newPState() {
+  function newPState(visSus, visWpn) {
     const all = [];
     for (let i = 0; i < N; i++) all.push(i);
     return {
-      sus: Array.from({ length: N }, () => new Set(all)),
-      wpn: Array.from({ length: N }, () => new Set(all)),
+      sus: visSus ? visSus.map(s => new Set(s)) : Array.from({ length: N }, () => new Set(all)),
+      wpn: visWpn ? visWpn.map(w => new Set(w)) : Array.from({ length: N }, () => new Set(all)),
       mr:  new Set(all)
     };
+  }
+  // Each room hides a few suspects and weapons from the start — they're
+  // simply not present in that room. The truth occupant is always shown.
+  function generateVisible(truth) {
+    const visSus = [], visWpn = [];
+    for (let r = 0; r < N; r++) {
+      const ks = 5 + randInt(3); // 5–7 visible suspects per room
+      const kw = 5 + randInt(3); // 5–7 visible weapons per room
+      const otherS = [], otherW = [];
+      for (let i = 0; i < N; i++) {
+        if (i !== truth.sa[r]) otherS.push(i);
+        if (i !== truth.wa[r]) otherW.push(i);
+      }
+      for (let i = otherS.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [otherS[i], otherS[j]] = [otherS[j], otherS[i]]; }
+      for (let i = otherW.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [otherW[i], otherW[j]] = [otherW[j], otherW[i]]; }
+      visSus.push(new Set([truth.sa[r], ...otherS.slice(0, ks - 1)]));
+      visWpn.push(new Set([truth.wa[r], ...otherW.slice(0, kw - 1)]));
+    }
+    return { visSus, visWpn };
   }
   function clonePState(s) {
     return {
@@ -2076,8 +2091,8 @@
     return FACTORIES[0].fn;
   }
 
-  function generateClues(truth) {
-    let state = newPState();
+  function generateClues(truth, visSus, visWpn) {
+    let state = newPState(visSus, visWpn);
     propagate(state);
     const clues = [];
     const seen = new Set();
@@ -2111,17 +2126,23 @@
 
   function newCase() {
     const range = Array.from({ length: N }, (_, i) => i);
-    let clues = null, sa, wa, mr;
+    let clues = null, sa, wa, mr, visSus, visWpn;
     let attempts = 0;
     while (!clues && attempts < 30) {
       sa = shuffle(range);
       wa = shuffle(range);
       mr = randInt(N);
-      clues = generateClues({ sa, wa, mr });
+      const v = generateVisible({ sa, wa, mr });
+      visSus = v.visSus;
+      visWpn = v.visWpn;
+      clues = generateClues({ sa, wa, mr }, visSus, visWpn);
       attempts++;
     }
     if (!clues) {
-      // ultra-safe fallback: directly reveal everything
+      // ultra-safe fallback: directly reveal everything (and show every
+      // candidate so the fallback puzzle is always playable).
+      visSus = Array.from({ length: N }, () => new Set(range));
+      visWpn = Array.from({ length: N }, () => new Set(range));
       clues = [];
       for (let r = 0; r < N; r++) {
         const sr = sa[r], wr = wa[r];
@@ -2171,6 +2192,7 @@
     state.case = {
       suspects, weapons, rooms, victim, scenario,
       sa, wa, mr, clues,
+      visSus, visWpn,
       // Per-room marks: marks[room][category][index] = true if crossed
       marks: Array.from({ length: N }, () => ({
         sus: new Array(N).fill(false),
@@ -2240,13 +2262,16 @@
           '<div class="room-name">' + c.rooms[r].name + '</div>' +
         '</div>';
 
-      // Suspect mini icons
+      // Suspect mini icons — slot is "hidden" if the suspect isn't in
+      // this room's starting candidate set, drawn as a dark empty cell.
       const susRow = ['<div class="mini-row">'];
       for (let i = 0; i < N; i++) {
-        const crossed = c.marks[r].sus[i] ? ' crossed' : '';
+        const visible = c.visSus[r].has(i);
+        const crossed = visible && c.marks[r].sus[i] ? ' crossed' : '';
+        const hidden  = visible ? '' : ' hidden';
         susRow.push(
-          '<div class="mini-icon' + crossed + '" data-cat="sus" data-room="' + r + '" data-idx="' + i + '">' +
-            '<svg><use href="#' + c.suspects[i].icon + '"/></svg>' +
+          '<div class="mini-icon' + hidden + crossed + '" data-cat="sus" data-room="' + r + '" data-idx="' + i + '">' +
+            (visible ? '<svg><use href="#' + c.suspects[i].icon + '"/></svg>' : '') +
           '</div>'
         );
       }
@@ -2255,10 +2280,12 @@
       // Weapon mini icons
       const wpnRow = ['<div class="mini-row">'];
       for (let i = 0; i < N; i++) {
-        const crossed = c.marks[r].wpn[i] ? ' crossed' : '';
+        const visible = c.visWpn[r].has(i);
+        const crossed = visible && c.marks[r].wpn[i] ? ' crossed' : '';
+        const hidden  = visible ? '' : ' hidden';
         wpnRow.push(
-          '<div class="mini-icon weapon' + crossed + '" data-cat="wpn" data-room="' + r + '" data-idx="' + i + '">' +
-            '<svg><use href="#' + c.weapons[i].icon + '"/></svg>' +
+          '<div class="mini-icon weapon' + hidden + crossed + '" data-cat="wpn" data-room="' + r + '" data-idx="' + i + '">' +
+            (visible ? '<svg><use href="#' + c.weapons[i].icon + '"/></svg>' : '') +
           '</div>'
         );
       }
@@ -2273,6 +2300,7 @@
   function onMiniClick(e) {
     Audio.unlock();
     const el = e.currentTarget;
+    if (el.classList.contains('hidden')) return; // empty slot, not interactive
     const r = +el.dataset.room, i = +el.dataset.idx, cat = el.dataset.cat;
     const was = state.case.marks[r][cat][i];
     state.case.marks[r][cat][i] = !was;
@@ -2314,11 +2342,11 @@
     clearHighlights();
     if (!refs) return;
     (refs.sus || []).forEach(idx => {
-      document.querySelectorAll('.mini-icon[data-cat="sus"][data-idx="' + idx + '"]')
+      document.querySelectorAll('.mini-icon[data-cat="sus"][data-idx="' + idx + '"]:not(.hidden)')
         .forEach(el => el.classList.add('highlight'));
     });
     (refs.wpn || []).forEach(idx => {
-      document.querySelectorAll('.mini-icon[data-cat="wpn"][data-idx="' + idx + '"]')
+      document.querySelectorAll('.mini-icon[data-cat="wpn"][data-idx="' + idx + '"]:not(.hidden)')
         .forEach(el => el.classList.add('highlight'));
     });
     (refs.room || []).forEach(idx => {
