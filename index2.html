@@ -127,6 +127,16 @@
     padding-bottom: 6px;
     text-align: center;
   }
+  .panel h2 .panel-hint {
+    display: inline-block;
+    margin-left: 8px;
+    font-size: 10.5px;
+    font-weight: normal;
+    font-style: italic;
+    text-transform: none;
+    letter-spacing: 0.4px;
+    color: var(--gold-dim);
+  }
 
   /* Case briefing */
   .briefing {
@@ -702,22 +712,17 @@
     width: 38px; height: 38px;
     border-radius: 6px;
     display: flex; align-items: center; justify-content: center;
-    font-weight: bold; font-size: 12px;
-    color: white;
+    overflow: hidden;
     border: 1px solid rgba(255,255,255,0.18);
-    text-shadow: 0 1px 2px rgba(0,0,0,0.6);
-    font-family: Georgia, serif;
+    background: linear-gradient(180deg, #2a1f10, #1a1208);
+    color: var(--gold);
   }
-  .tut-ic.s1 { background: linear-gradient(180deg, #6a3a4a, #3a1a24); }
-  .tut-ic.s2 { background: linear-gradient(180deg, #3a4a2a, #1a2a14); }
-  .tut-ic.s3 { background: linear-gradient(180deg, #2a3a4a, #14242a); }
-  .tut-ic.s4 { background: linear-gradient(180deg, #4a2a4a, #2a142a); }
-  .tut-ic.w1 { background: linear-gradient(180deg, #a8741a, #5a3a14); color: #f4e0a0; }
-  .tut-ic.w2 { background: linear-gradient(180deg, #7a7a7a, #3a3a3a); color: #d8d8d8; }
-  .tut-ic.w3 { background: linear-gradient(180deg, #5a7a82, #2a4a52); color: #c8e8f0; }
-  .tut-ic.w4 { background: linear-gradient(180deg, #c04a3a, #7a2818); color: #f8c0a0; }
-  .tut-ic.room { background: rgba(0,0,0,0.5); color: var(--gold); border: 1px solid var(--gold-dim); }
-  .tut-ic.skull { background: rgba(0,0,0,0.5); color: #d8d8d8; border: 1px solid var(--frame-2); font-size: 18px; }
+  .tut-ic > svg { width: 100%; height: 100%; display: block; }
+  .tut-ic.weapon { background: linear-gradient(180deg, #3a2c18, #1f1408); }
+  .tut-ic.room { background: rgba(0,0,0,0.55); color: var(--gold); border: 1px solid var(--gold-dim); }
+  .tut-ic.room > svg { width: 78%; height: 78%; }
+  .tut-ic.skull { background: rgba(0,0,0,0.5); color: #d8d8d8; border: 1px solid var(--frame-2); }
+  .tut-ic.skull > svg { width: 70%; height: 70%; }
   .tut-mini-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -1614,7 +1619,7 @@
   </div>
 
   <div class="panel">
-    <h2>Clues</h2>
+    <h2>Clues <span class="panel-hint">tap any to explain</span></h2>
     <ol id="clues" class="clue-list"></ol>
   </div>
 </div>
@@ -1659,10 +1664,10 @@
       <p>The manor is a grid of rooms (2 × 2 on Easy, 3 × 3 on Hard). <b>Each room holds exactly one suspect and one weapon</b>, and every suspect and weapon is in one and only one room. Find who's where with what.</p>
       <div class="tut-art">
         <div class="tut-mini-grid">
-          <div class="tut-mini-room"><div class="tut-ic s1">S1</div><div class="tut-ic w3">W3</div></div>
-          <div class="tut-mini-room"><div class="tut-ic s2">S2</div><div class="tut-ic w1">W1</div></div>
-          <div class="tut-mini-room"><div class="tut-ic s3">S3</div><div class="tut-ic w4">W4</div></div>
-          <div class="tut-mini-room"><div class="tut-ic s4">S4</div><div class="tut-ic w2">W2</div></div>
+          <div class="tut-mini-room"><div class="tut-ic"><svg><use href="#sus-1"/></svg></div><div class="tut-ic weapon"><svg><use href="#weap-shears"/></svg></div></div>
+          <div class="tut-mini-room"><div class="tut-ic"><svg><use href="#sus-2"/></svg></div><div class="tut-ic weapon"><svg><use href="#weap-revolver"/></svg></div></div>
+          <div class="tut-mini-room"><div class="tut-ic"><svg><use href="#sus-3"/></svg></div><div class="tut-ic weapon"><svg><use href="#weap-candlestick"/></svg></div></div>
+          <div class="tut-mini-room"><div class="tut-ic"><svg><use href="#sus-4"/></svg></div><div class="tut-ic weapon"><svg><use href="#weap-pipe"/></svg></div></div>
         </div>
         <div class="tut-caption">Each cell has <b>one suspect</b> + <b>one weapon</b>. Always.</div>
       </div>
@@ -1674,18 +1679,18 @@
       <div class="tut-art">
         <div class="tut-chip-wrap">
           <div class="tut-chip">
-            <div class="tut-ic s1">S1</div>
+            <div class="tut-ic"><svg><use href="#sus-1"/></svg></div>
             <span class="tut-chip-rel">↓</span>
-            <div class="tut-ic w3">W3</div>
+            <div class="tut-ic weapon"><svg><use href="#weap-shears"/></svg></div>
           </div>
           <div class="tut-tap"></div>
         </div>
-        <div class="tut-tip">S1's room is directly above W3's room.</div>
+        <div class="tut-tip">The suspect's room is directly above the weapon's room.</div>
         <div class="tut-mini-grid tiny">
-          <div class="tut-mini-room highlight"><div class="tut-ic s1">S1</div></div>
+          <div class="tut-mini-room highlight"><div class="tut-ic"><svg><use href="#sus-1"/></svg></div></div>
           <div class="tut-mini-room"></div>
+          <div class="tut-mini-room highlight"><div class="tut-ic weapon"><svg><use href="#weap-shears"/></svg></div></div>
           <div class="tut-mini-room"></div>
-          <div class="tut-mini-room highlight"><div class="tut-ic w3">W3</div></div>
         </div>
         <div class="tut-caption">Tap a chip → tooltip + cyan glow on every matching room.</div>
       </div>
@@ -1697,10 +1702,10 @@
       <div class="tut-art">
         <div class="tut-caption" style="margin-bottom:8px">Inside one room — only one of these can really be there:</div>
         <div class="tut-elim-row">
-          <div class="tut-elim-ic tut-ic s1 cross-1">S1</div>
-          <div class="tut-elim-ic tut-ic s2 cross-2">S2</div>
-          <div class="tut-elim-ic tut-ic s3 keep">S3</div>
-          <div class="tut-elim-ic tut-ic s4 cross-3">S4</div>
+          <div class="tut-elim-ic tut-ic cross-1"><svg><use href="#sus-1"/></svg></div>
+          <div class="tut-elim-ic tut-ic cross-2"><svg><use href="#sus-2"/></svg></div>
+          <div class="tut-elim-ic tut-ic keep"><svg><use href="#sus-3"/></svg></div>
+          <div class="tut-elim-ic tut-ic cross-3"><svg><use href="#sus-4"/></svg></div>
         </div>
         <div class="tut-caption" style="margin-top:10px">Cross out the impossible ones · the one still glowing is the answer.</div>
       </div>
@@ -1731,35 +1736,35 @@
       <p>Read every chip as: <b>from the left item, go (arrow) to reach the right item</b>.</p>
       <div class="tut-legend">
         <div class="tut-leg-row">
-          <div class="tut-leg-chip"><div class="tut-ic s1">S1</div><span class="tut-chip-rel pos">✓</span><div class="tut-ic room">R</div></div>
+          <div class="tut-leg-chip"><div class="tut-ic"><svg><use href="#sus-1"/></svg></div><span class="tut-chip-rel pos">✓</span><div class="tut-ic room"><svg><use href="#room-library"/></svg></div></div>
           <span>is in this room</span>
         </div>
         <div class="tut-leg-row">
-          <div class="tut-leg-chip"><div class="tut-ic s1">S1</div><span class="tut-chip-rel neg">✕</span><div class="tut-ic w1">W1</div></div>
+          <div class="tut-leg-chip"><div class="tut-ic"><svg><use href="#sus-1"/></svg></div><span class="tut-chip-rel neg">✕</span><div class="tut-ic weapon"><svg><use href="#weap-revolver"/></svg></div></div>
           <span>NOT in the same room as</span>
         </div>
         <div class="tut-leg-row">
-          <div class="tut-leg-chip"><div class="tut-ic s1">S1</div><span class="tut-chip-rel">↓</span><div class="tut-ic w1">W1</div></div>
+          <div class="tut-leg-chip"><div class="tut-ic"><svg><use href="#sus-1"/></svg></div><span class="tut-chip-rel">↓</span><div class="tut-ic weapon"><svg><use href="#weap-revolver"/></svg></div></div>
           <span>directly above (one row up, same column)</span>
         </div>
         <div class="tut-leg-row">
-          <div class="tut-leg-chip"><div class="tut-ic s1">S1</div><span class="tut-chip-rel">⇊</span><div class="tut-ic w1">W1</div></div>
+          <div class="tut-leg-chip"><div class="tut-ic"><svg><use href="#sus-1"/></svg></div><span class="tut-chip-rel">⇊</span><div class="tut-ic weapon"><svg><use href="#weap-revolver"/></svg></div></div>
           <span>two rows above (3 × 3 only)</span>
         </div>
         <div class="tut-leg-row">
-          <div class="tut-leg-chip"><div class="tut-ic s1">S1</div><span class="tut-chip-rel">↘</span><div class="tut-ic w1">W1</div></div>
+          <div class="tut-leg-chip"><div class="tut-ic"><svg><use href="#sus-1"/></svg></div><span class="tut-chip-rel">↘</span><div class="tut-ic weapon"><svg><use href="#weap-revolver"/></svg></div></div>
           <span>diagonally adjacent (one row + one column away)</span>
         </div>
         <div class="tut-leg-row">
-          <div class="tut-leg-chip"><div class="tut-ic s1">S1</div><span class="tut-chip-rel pos">⇔</span><div class="tut-ic s2">S2</div></div>
+          <div class="tut-leg-chip"><div class="tut-ic"><svg><use href="#sus-1"/></svg></div><span class="tut-chip-rel pos">⇔</span><div class="tut-ic"><svg><use href="#sus-2"/></svg></div></div>
           <span>in the same row</span>
         </div>
         <div class="tut-leg-row">
-          <div class="tut-leg-chip"><div class="tut-ic s1">S1</div><span class="tut-chip-rel">→</span><div class="tut-ic s2">S2</div><span class="tut-chip-rel">→</span><div class="tut-ic s3">S3</div></div>
+          <div class="tut-leg-chip"><div class="tut-ic"><svg><use href="#sus-1"/></svg></div><span class="tut-chip-rel">→</span><div class="tut-ic"><svg><use href="#sus-2"/></svg></div><span class="tut-chip-rel">→</span><div class="tut-ic"><svg><use href="#sus-3"/></svg></div></div>
           <span>three in a row, in that left-to-right order</span>
         </div>
         <div class="tut-leg-row">
-          <div class="tut-leg-chip"><div class="tut-ic skull">☠</div><span class="tut-chip-rel neg">✕</span><div class="tut-ic room">R</div></div>
+          <div class="tut-leg-chip"><div class="tut-ic skull"><svg><use href="#ic-skull"/></svg></div><span class="tut-chip-rel neg">✕</span><div class="tut-ic room"><svg><use href="#room-library"/></svg></div></div>
           <span>murder did NOT happen in this room</span>
         </div>
       </div>

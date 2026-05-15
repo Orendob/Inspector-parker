@@ -314,27 +314,22 @@
   }
   .tut-caption b { color: var(--gold); font-style: normal; }
 
-  /* Generic icon shapes used inside the tutorial */
+  /* Generic icon shapes used inside the tutorial — now mostly SVG */
   .tut-ic {
     width: 38px; height: 38px;
     border-radius: 6px;
     display: flex; align-items: center; justify-content: center;
-    font-weight: bold; font-size: 12px;
-    color: white;
+    overflow: hidden;
     border: 1px solid rgba(255,255,255,0.18);
-    text-shadow: 0 1px 2px rgba(0,0,0,0.6);
-    font-family: Georgia, serif;
+    background: linear-gradient(180deg, #2a1f10, #1a1208);
+    color: var(--gold);
   }
-  .tut-ic.s1 { background: linear-gradient(180deg, #6a3a4a, #3a1a24); }
-  .tut-ic.s2 { background: linear-gradient(180deg, #3a4a2a, #1a2a14); }
-  .tut-ic.s3 { background: linear-gradient(180deg, #2a3a4a, #14242a); }
-  .tut-ic.s4 { background: linear-gradient(180deg, #4a2a4a, #2a142a); }
-  .tut-ic.w1 { background: linear-gradient(180deg, #a8741a, #5a3a14); color: #f4e0a0; }
-  .tut-ic.w2 { background: linear-gradient(180deg, #7a7a7a, #3a3a3a); color: #d8d8d8; }
-  .tut-ic.w3 { background: linear-gradient(180deg, #5a7a82, #2a4a52); color: #c8e8f0; }
-  .tut-ic.w4 { background: linear-gradient(180deg, #c04a3a, #7a2818); color: #f8c0a0; }
-  .tut-ic.room { background: rgba(0,0,0,0.5); color: var(--gold); border: 1px solid var(--gold-dim); }
-  .tut-ic.skull { background: rgba(0,0,0,0.5); color: #d8d8d8; border: 1px solid var(--frame-2); font-size: 18px; }
+  .tut-ic > svg { width: 100%; height: 100%; display: block; }
+  .tut-ic.weapon { background: linear-gradient(180deg, #3a2c18, #1f1408); }
+  .tut-ic.room { background: rgba(0,0,0,0.55); color: var(--gold); border: 1px solid var(--gold-dim); }
+  .tut-ic.room > svg { width: 78%; height: 78%; }
+  .tut-ic.skull { background: rgba(0,0,0,0.5); color: #d8d8d8; border: 1px solid var(--frame-2); }
+  .tut-ic.skull > svg { width: 70%; height: 70%; }
 
   /* Step 1 — 2x2 mini-grid */
   .tut-mini-grid {
@@ -552,6 +547,222 @@
 </style>
 </head>
 <body>
+<!-- Subset of game sprites for the tutorial. Same artwork as index2.html. -->
+<svg id="tutorial-sprites" width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <radialGradient id="vignette" cx="50%" cy="40%" r="75%">
+      <stop offset="55%" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.55"/>
+    </radialGradient>
+
+    <symbol id="ic-skull" viewBox="0 0 64 64">
+      <path d="M16 30 Q16 12 32 12 Q48 12 48 30 L48 42 L44 44 L44 50 L36 50 L36 46 L32 48 L28 46 L28 50 L20 50 L20 44 L16 42 Z" fill="currentColor"/>
+      <circle cx="24" cy="32" r="4" fill="#1a1408"/>
+      <circle cx="40" cy="32" r="4" fill="#1a1408"/>
+      <path d="M28 40 L30 36 L32 40 L34 36 L36 40" stroke="#1a1408" stroke-width="1.5" fill="none" stroke-linejoin="round"/>
+      <rect x="29" y="44" width="2" height="4" fill="#1a1408"/>
+      <rect x="33" y="44" width="2" height="4" fill="#1a1408"/>
+    </symbol>
+
+    <symbol id="room-library" viewBox="0 0 64 64">
+      <g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round">
+        <rect x="10" y="18" width="6" height="28"/>
+        <rect x="18" y="20" width="6" height="26"/>
+        <rect x="26" y="16" width="6" height="30"/>
+        <rect x="34" y="22" width="6" height="24"/>
+        <path d="M42 24 L50 22 L52 46 L44 48 Z"/>
+        <line x1="6" y1="48" x2="58" y2="48"/>
+        <line x1="6" y1="52" x2="58" y2="52"/>
+      </g>
+    </symbol>
+
+    <symbol id="weap-candlestick" viewBox="0 0 64 64">
+      <path d="M32 4 Q28 10 32 18 Q36 10 32 4 Z" fill="#f4a020"/>
+      <path d="M32 8 Q30 12 32 16 Q34 12 32 8 Z" fill="#f4e040"/>
+      <rect x="31.5" y="18" width="1" height="3" fill="#1a1408"/>
+      <rect x="29" y="21" width="6" height="6" fill="#f4e6c8"/>
+      <rect x="29" y="21" width="6" height="1" fill="#ffffff"/>
+      <rect x="29" y="26" width="6" height="1" fill="#d8c0a0"/>
+      <path d="M27 27 L37 27 L36 30 L28 30 Z" fill="#b8b8b8"/>
+      <path d="M27 27 L37 27 L37 28 L27 28 Z" fill="#e8e8e8"/>
+      <rect x="31" y="30" width="2" height="14" fill="#b8b8b8"/>
+      <rect x="31" y="30" width="0.8" height="14" fill="#ffffff" opacity="0.5"/>
+      <ellipse cx="32" cy="38" rx="3" ry="2" fill="#b8b8b8"/>
+      <ellipse cx="31" cy="37.5" rx="1.2" ry="0.6" fill="#ffffff" opacity="0.6"/>
+      <path d="M22 46 L42 46 L40 56 L24 56 Z" fill="#b8b8b8"/>
+      <path d="M22 46 L42 46 L42 48 L22 48 Z" fill="#e8e8e8"/>
+      <path d="M24 54 L40 54 L40 56 L24 56 Z" fill="#7a7a7a"/>
+    </symbol>
+    <symbol id="weap-revolver" viewBox="0 0 64 64">
+      <rect x="4" y="26" width="34" height="10" fill="#5a6a72"/>
+      <rect x="4" y="26" width="34" height="2" fill="#8a9aa2"/>
+      <rect x="4" y="34" width="34" height="2" fill="#3a4a52"/>
+      <rect x="6" y="24" width="2" height="2" fill="#3a4a52"/>
+      <circle cx="44" cy="34" r="9" fill="#8a7a4a"/>
+      <circle cx="44" cy="34" r="9" fill="none" stroke="#3a2a14" stroke-width="0.8"/>
+      <circle cx="44" cy="34" r="3" fill="#3a2a14"/>
+      <circle cx="44" cy="28" r="1.2" fill="#1a1408"/>
+      <circle cx="49" cy="32" r="1.2" fill="#1a1408"/>
+      <circle cx="48" cy="38" r="1.2" fill="#1a1408"/>
+      <circle cx="40" cy="38" r="1.2" fill="#1a1408"/>
+      <circle cx="39" cy="32" r="1.2" fill="#1a1408"/>
+      <path d="M40 43 L40 58 L24 58 L22 46 L34 46 Z" fill="#5a3a1a"/>
+      <path d="M40 43 L40 58 L36 58 L36 43 Z" fill="#3a2a14"/>
+      <path d="M22 46 L24 58 L26 58 L24 46 Z" fill="#3a2a14"/>
+      <line x1="28" y1="50" x2="36" y2="50" stroke="#4a2a14" stroke-width="0.6"/>
+      <line x1="28" y1="54" x2="36" y2="54" stroke="#4a2a14" stroke-width="0.6"/>
+      <path d="M40 38 L40 45 L33 45 L33 38" fill="none" stroke="#3a4a52" stroke-width="1"/>
+    </symbol>
+    <symbol id="weap-shears" viewBox="0 0 64 64">
+      <path d="M14 14 L18 18 L34 36 L30 40 L18 22 Z" fill="#d8d8d8"/>
+      <path d="M14 14 L18 18 L34 36" stroke="#7a7a7a" stroke-width="0.6" fill="none"/>
+      <path d="M50 14 L46 18 L30 36 L34 40 L46 22 Z" fill="#d8d8d8"/>
+      <path d="M50 14 L46 18 L30 36" stroke="#7a7a7a" stroke-width="0.6" fill="none"/>
+      <circle cx="32" cy="38" r="2.5" fill="#a8741a"/>
+      <circle cx="32" cy="38" r="1" fill="#5a3a14"/>
+      <circle cx="14" cy="14" r="6" fill="#a82828"/>
+      <circle cx="14" cy="14" r="6" fill="none" stroke="#5a1a14" stroke-width="0.8"/>
+      <circle cx="14" cy="14" r="3" fill="#1a1408"/>
+      <path d="M11 10 Q13 11 15 11" stroke="#d04a4a" stroke-width="0.8" fill="none"/>
+      <circle cx="50" cy="14" r="6" fill="#a82828"/>
+      <circle cx="50" cy="14" r="6" fill="none" stroke="#5a1a14" stroke-width="0.8"/>
+      <circle cx="50" cy="14" r="3" fill="#1a1408"/>
+      <path d="M47 10 Q49 11 51 11" stroke="#d04a4a" stroke-width="0.8" fill="none"/>
+    </symbol>
+    <symbol id="weap-pipe" viewBox="0 0 64 64">
+      <rect x="4" y="28" width="56" height="10" fill="#8a8a8a"/>
+      <rect x="4" y="28" width="56" height="2" fill="#c8c8c8"/>
+      <rect x="4" y="36" width="56" height="2" fill="#4a4a4a"/>
+      <ellipse cx="4" cy="33" rx="2.5" ry="5" fill="#4a4a4a"/>
+      <ellipse cx="4" cy="33" rx="1.2" ry="3" fill="#1a1408"/>
+      <ellipse cx="60" cy="33" rx="2.5" ry="5" fill="#4a4a4a"/>
+      <ellipse cx="60" cy="33" rx="1.2" ry="3" fill="#1a1408"/>
+      <rect x="14" y="28" width="3" height="10" fill="#5a5a5a"/>
+      <rect x="14" y="28" width="3" height="1" fill="#8a8a8a"/>
+      <rect x="46" y="28" width="3" height="10" fill="#5a5a5a"/>
+      <rect x="46" y="28" width="3" height="1" fill="#8a8a8a"/>
+      <ellipse cx="32" cy="34" rx="6" ry="2" fill="#a8541a" opacity="0.45"/>
+      <ellipse cx="32" cy="33" rx="3" ry="1" fill="#c87a3a" opacity="0.4"/>
+      <rect x="4" y="33" width="56" height="0.5" fill="#ffffff" opacity="0.3"/>
+    </symbol>
+
+    <symbol id="sus-1" viewBox="0 0 64 64">
+      <rect width="64" height="64" fill="#2a4a4a"/>
+      <rect width="64" height="64" fill="url(#vignette)"/>
+      <path d="M8 64 Q32 50 56 64 Z" fill="#1a2a2a"/>
+      <rect x="29" y="40" width="6" height="8" fill="#f0d8c0"/>
+      <ellipse cx="32" cy="32" rx="11" ry="12" fill="#f0d8c0"/>
+      <path d="M18 26 Q14 6 32 4 Q50 6 46 26 Q46 30 32 26 Q18 30 18 26 Z" fill="#1a0814"/>
+      <ellipse cx="32" cy="4" rx="14" ry="4" fill="#1a0814"/>
+      <path d="M18 24 Q10 14 14 6 Q16 14 22 18" fill="#1a0814"/>
+      <path d="M46 24 Q54 14 50 6 Q48 14 42 18" fill="#1a0814"/>
+      <circle cx="27" cy="31" r="2.5" fill="#f8f0e0"/>
+      <circle cx="37" cy="31" r="2.5" fill="#f8f0e0"/>
+      <circle cx="27" cy="32" r="1.4" fill="#1a0814"/>
+      <circle cx="37" cy="32" r="1.4" fill="#1a0814"/>
+      <circle cx="27.5" cy="31" r="0.4" fill="#ffffff"/>
+      <circle cx="37.5" cy="31" r="0.4" fill="#ffffff"/>
+      <path d="M24 28 Q27 26 30 28" fill="none" stroke="#1a0814" stroke-width="0.8" stroke-linecap="round"/>
+      <path d="M34 28 Q37 26 40 28" fill="none" stroke="#1a0814" stroke-width="0.8" stroke-linecap="round"/>
+      <ellipse cx="32" cy="38" rx="1.6" ry="0.9" fill="#a82a3a"/>
+      <circle cx="24" cy="34" r="2" fill="#e8a0a0" opacity="0.5"/>
+      <circle cx="40" cy="34" r="2" fill="#e8a0a0" opacity="0.5"/>
+      <circle cx="26" cy="50" r="1" fill="#f4e9b0"/>
+      <circle cx="29" cy="52" r="1" fill="#f4e9b0"/>
+      <circle cx="32" cy="53" r="1" fill="#f4e9b0"/>
+      <circle cx="35" cy="52" r="1" fill="#f4e9b0"/>
+      <circle cx="38" cy="50" r="1" fill="#f4e9b0"/>
+      <rect x="1" y="1" width="62" height="62" fill="none" stroke="#d9b65a" stroke-width="1.2"/>
+      <circle cx="1.5" cy="1.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="62.5" cy="1.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="1.5" cy="62.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="62.5" cy="62.5" r="1.8" fill="#d9b65a"/>
+    </symbol>
+    <symbol id="sus-2" viewBox="0 0 64 64">
+      <rect width="64" height="64" fill="#4a4a1a"/>
+      <rect width="64" height="64" fill="url(#vignette)"/>
+      <path d="M8 64 Q32 50 56 64 Z" fill="#2a2a14"/>
+      <rect x="29" y="40" width="6" height="8" fill="#e0c0a0"/>
+      <ellipse cx="32" cy="32" rx="11" ry="12" fill="#e0c0a0"/>
+      <path d="M16 22 L48 22 L42 12 L22 12 Z" fill="#2a3a14"/>
+      <rect x="14" y="20" width="36" height="6" fill="#0a1a08"/>
+      <rect x="28" y="14" width="8" height="4" fill="#a8741a"/>
+      <path d="M14 26 L50 26 L48 28 L16 28 Z" fill="#0a1a08" opacity="0.8"/>
+      <circle cx="27" cy="32" r="1.6" fill="#1a0814"/>
+      <circle cx="37" cy="32" r="1.6" fill="#1a0814"/>
+      <path d="M23 29 Q27 27 31 29" fill="none" stroke="#3a2814" stroke-width="2" stroke-linecap="round"/>
+      <path d="M33 29 Q37 27 41 29" fill="none" stroke="#3a2814" stroke-width="2" stroke-linecap="round"/>
+      <path d="M22 38 Q26 36 30 38 Q32 36 34 38 Q38 36 42 38 Q40 44 32 44 Q24 44 22 38 Z" fill="#3a2814"/>
+      <circle cx="24" cy="36" r="1.8" fill="#c8806a" opacity="0.4"/>
+      <circle cx="40" cy="36" r="1.8" fill="#c8806a" opacity="0.4"/>
+      <rect x="26" y="52" width="3" height="3" fill="#a87a30"/>
+      <rect x="30" y="52" width="3" height="3" fill="#c8a040"/>
+      <rect x="34" y="52" width="3" height="3" fill="#a87a30"/>
+      <rect x="1" y="1" width="62" height="62" fill="none" stroke="#d9b65a" stroke-width="1.2"/>
+      <circle cx="1.5" cy="1.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="62.5" cy="1.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="1.5" cy="62.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="62.5" cy="62.5" r="1.8" fill="#d9b65a"/>
+    </symbol>
+    <symbol id="sus-3" viewBox="0 0 64 64">
+      <rect width="64" height="64" fill="#2a3a5a"/>
+      <rect width="64" height="64" fill="url(#vignette)"/>
+      <path d="M8 64 Q32 50 56 64 Z" fill="#1a1f3a"/>
+      <rect x="29" y="40" width="6" height="8" fill="#e8c8a8"/>
+      <path d="M22 52 L42 52 L40 56 L24 56 Z" fill="#f4e9c8"/>
+      <path d="M28 52 L36 52 L34 58 L30 58 L28 56 L30 54 Z" fill="#7a1a1a"/>
+      <ellipse cx="32" cy="30" rx="13" ry="14" fill="#e8c8a8"/>
+      <path d="M19 24 Q18 18 22 14 Q23 22 25 26" fill="#a8a8a8"/>
+      <path d="M45 24 Q46 18 42 14 Q41 22 39 26" fill="#a8a8a8"/>
+      <ellipse cx="29" cy="20" rx="4" ry="2" fill="#ffffff" opacity="0.3"/>
+      <circle cx="26" cy="32" r="4" fill="none" stroke="#1a1408" stroke-width="1.4"/>
+      <circle cx="38" cy="32" r="4" fill="none" stroke="#1a1408" stroke-width="1.4"/>
+      <line x1="30" y1="32" x2="34" y2="32" stroke="#1a1408" stroke-width="1"/>
+      <circle cx="26" cy="32" r="1.2" fill="#1a0814"/>
+      <circle cx="38" cy="32" r="1.2" fill="#1a0814"/>
+      <path d="M27 39 Q32 38 37 39 Q32 40 27 39 Z" fill="#7a7a7a"/>
+      <path d="M30 41 Q32 42 34 41" fill="none" stroke="#1a0814" stroke-width="0.8" stroke-linecap="round"/>
+      <rect x="1" y="1" width="62" height="62" fill="none" stroke="#d9b65a" stroke-width="1.2"/>
+      <circle cx="1.5" cy="1.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="62.5" cy="1.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="1.5" cy="62.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="62.5" cy="62.5" r="1.8" fill="#d9b65a"/>
+    </symbol>
+    <symbol id="sus-4" viewBox="0 0 64 64">
+      <rect width="64" height="64" fill="#5a3a4a"/>
+      <rect width="64" height="64" fill="url(#vignette)"/>
+      <path d="M8 64 Q32 50 56 64 Z" fill="#2a1820"/>
+      <rect x="29" y="40" width="6" height="8" fill="#f4d8c0"/>
+      <ellipse cx="32" cy="32" rx="11" ry="12" fill="#f4d8c0"/>
+      <path d="M19 32 Q17 18 32 14 Q47 18 45 32 L45 38 L41 32 L41 24 Q39 22 32 22 Q25 22 23 24 L23 32 L19 38 Z" fill="#3a1a14"/>
+      <ellipse cx="32" cy="13" rx="14" ry="4" fill="#7a1a1a"/>
+      <ellipse cx="32" cy="12" rx="13" ry="3.5" fill="#a82828"/>
+      <circle cx="40" cy="9" r="1.5" fill="#a82828"/>
+      <circle cx="27" cy="32" r="2.4" fill="#f8f0e0"/>
+      <circle cx="37" cy="32" r="2.4" fill="#f8f0e0"/>
+      <circle cx="27" cy="33" r="1.3" fill="#1a0814"/>
+      <circle cx="37" cy="33" r="1.3" fill="#1a0814"/>
+      <circle cx="27.5" cy="32" r="0.4" fill="#ffffff"/>
+      <circle cx="37.5" cy="32" r="0.4" fill="#ffffff"/>
+      <path d="M24 28 Q27 27 30 28" fill="none" stroke="#3a1a14" stroke-width="0.8" stroke-linecap="round"/>
+      <path d="M34 28 Q37 27 40 28" fill="none" stroke="#3a1a14" stroke-width="0.8" stroke-linecap="round"/>
+      <circle cx="25" cy="36" r="0.4" fill="#7a4a3a"/>
+      <circle cx="28" cy="37" r="0.4" fill="#7a4a3a"/>
+      <circle cx="36" cy="37" r="0.4" fill="#7a4a3a"/>
+      <circle cx="39" cy="36" r="0.4" fill="#7a4a3a"/>
+      <circle cx="32" cy="35" r="0.4" fill="#7a4a3a"/>
+      <ellipse cx="32" cy="39.5" rx="1.6" ry="0.9" fill="#a82828"/>
+      <circle cx="24" cy="35" r="2" fill="#e8a0a0" opacity="0.5"/>
+      <circle cx="40" cy="35" r="2" fill="#e8a0a0" opacity="0.5"/>
+      <rect x="1" y="1" width="62" height="62" fill="none" stroke="#d9b65a" stroke-width="1.2"/>
+      <circle cx="1.5" cy="1.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="62.5" cy="1.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="1.5" cy="62.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="62.5" cy="62.5" r="1.8" fill="#d9b65a"/>
+    </symbol>
+  </defs>
+</svg>
+
 <div class="wrap">
 
   <header>
@@ -630,10 +841,10 @@
         <p>The manor is a grid of rooms (2 × 2 on Easy, 3 × 3 on Hard). <b>Each room holds exactly one suspect and one weapon</b>, and every suspect and weapon is in one and only one room. Find who's where with what.</p>
         <div class="tut-art">
           <div class="tut-mini-grid">
-            <div class="tut-mini-room"><div class="tut-ic s1">S1</div><div class="tut-ic w3">W3</div></div>
-            <div class="tut-mini-room"><div class="tut-ic s2">S2</div><div class="tut-ic w1">W1</div></div>
-            <div class="tut-mini-room"><div class="tut-ic s3">S3</div><div class="tut-ic w4">W4</div></div>
-            <div class="tut-mini-room"><div class="tut-ic s4">S4</div><div class="tut-ic w2">W2</div></div>
+            <div class="tut-mini-room"><div class="tut-ic"><svg><use href="#sus-1"/></svg></div><div class="tut-ic weapon"><svg><use href="#weap-shears"/></svg></div></div>
+            <div class="tut-mini-room"><div class="tut-ic"><svg><use href="#sus-2"/></svg></div><div class="tut-ic weapon"><svg><use href="#weap-revolver"/></svg></div></div>
+            <div class="tut-mini-room"><div class="tut-ic"><svg><use href="#sus-3"/></svg></div><div class="tut-ic weapon"><svg><use href="#weap-candlestick"/></svg></div></div>
+            <div class="tut-mini-room"><div class="tut-ic"><svg><use href="#sus-4"/></svg></div><div class="tut-ic weapon"><svg><use href="#weap-pipe"/></svg></div></div>
           </div>
           <div class="tut-caption">Each cell has <b>one suspect</b> + <b>one weapon</b>. Always.</div>
         </div>
@@ -645,18 +856,18 @@
         <div class="tut-art">
           <div class="tut-chip-wrap">
             <div class="tut-chip">
-              <div class="tut-ic s1">S1</div>
+              <div class="tut-ic"><svg><use href="#sus-1"/></svg></div>
               <span class="tut-chip-rel">↓</span>
-              <div class="tut-ic w3">W3</div>
+              <div class="tut-ic weapon"><svg><use href="#weap-shears"/></svg></div>
             </div>
             <div class="tut-tap"></div>
           </div>
-          <div class="tut-tip">S1's room is directly above W3's room.</div>
+          <div class="tut-tip">The suspect's room is directly above the weapon's room.</div>
           <div class="tut-mini-grid tiny">
-            <div class="tut-mini-room highlight"><div class="tut-ic s1">S1</div></div>
+            <div class="tut-mini-room highlight"><div class="tut-ic"><svg><use href="#sus-1"/></svg></div></div>
             <div class="tut-mini-room"></div>
+            <div class="tut-mini-room highlight"><div class="tut-ic weapon"><svg><use href="#weap-shears"/></svg></div></div>
             <div class="tut-mini-room"></div>
-            <div class="tut-mini-room highlight"><div class="tut-ic w3">W3</div></div>
           </div>
           <div class="tut-caption">Tap a chip → tooltip + cyan glow on every matching room.</div>
         </div>
@@ -668,10 +879,10 @@
         <div class="tut-art">
           <div class="tut-caption" style="margin-bottom:8px">Inside one room — only one of these can really be there:</div>
           <div class="tut-elim-row">
-            <div class="tut-elim-ic tut-ic s1 cross-1">S1</div>
-            <div class="tut-elim-ic tut-ic s2 cross-2">S2</div>
-            <div class="tut-elim-ic tut-ic s3 keep">S3</div>
-            <div class="tut-elim-ic tut-ic s4 cross-3">S4</div>
+            <div class="tut-elim-ic tut-ic cross-1"><svg><use href="#sus-1"/></svg></div>
+            <div class="tut-elim-ic tut-ic cross-2"><svg><use href="#sus-2"/></svg></div>
+            <div class="tut-elim-ic tut-ic keep"><svg><use href="#sus-3"/></svg></div>
+            <div class="tut-elim-ic tut-ic cross-3"><svg><use href="#sus-4"/></svg></div>
           </div>
           <div class="tut-caption" style="margin-top:10px">Cross out the impossible ones · the one still glowing is the answer.</div>
         </div>
@@ -702,35 +913,35 @@
         <p>Read every chip as: <b>from the left item, go (arrow) to reach the right item</b>.</p>
         <div class="tut-legend">
           <div class="tut-leg-row">
-            <div class="tut-leg-chip"><div class="tut-ic s1">S1</div><span class="tut-chip-rel pos">✓</span><div class="tut-ic room">R</div></div>
+            <div class="tut-leg-chip"><div class="tut-ic"><svg><use href="#sus-1"/></svg></div><span class="tut-chip-rel pos">✓</span><div class="tut-ic room"><svg><use href="#room-library"/></svg></div></div>
             <span>is in this room</span>
           </div>
           <div class="tut-leg-row">
-            <div class="tut-leg-chip"><div class="tut-ic s1">S1</div><span class="tut-chip-rel neg">✕</span><div class="tut-ic w1">W1</div></div>
+            <div class="tut-leg-chip"><div class="tut-ic"><svg><use href="#sus-1"/></svg></div><span class="tut-chip-rel neg">✕</span><div class="tut-ic weapon"><svg><use href="#weap-revolver"/></svg></div></div>
             <span>NOT in the same room as</span>
           </div>
           <div class="tut-leg-row">
-            <div class="tut-leg-chip"><div class="tut-ic s1">S1</div><span class="tut-chip-rel">↓</span><div class="tut-ic w1">W1</div></div>
+            <div class="tut-leg-chip"><div class="tut-ic"><svg><use href="#sus-1"/></svg></div><span class="tut-chip-rel">↓</span><div class="tut-ic weapon"><svg><use href="#weap-revolver"/></svg></div></div>
             <span>directly above (one row up, same column)</span>
           </div>
           <div class="tut-leg-row">
-            <div class="tut-leg-chip"><div class="tut-ic s1">S1</div><span class="tut-chip-rel">⇊</span><div class="tut-ic w1">W1</div></div>
+            <div class="tut-leg-chip"><div class="tut-ic"><svg><use href="#sus-1"/></svg></div><span class="tut-chip-rel">⇊</span><div class="tut-ic weapon"><svg><use href="#weap-revolver"/></svg></div></div>
             <span>two rows above (3 × 3 only)</span>
           </div>
           <div class="tut-leg-row">
-            <div class="tut-leg-chip"><div class="tut-ic s1">S1</div><span class="tut-chip-rel">↘</span><div class="tut-ic w1">W1</div></div>
+            <div class="tut-leg-chip"><div class="tut-ic"><svg><use href="#sus-1"/></svg></div><span class="tut-chip-rel">↘</span><div class="tut-ic weapon"><svg><use href="#weap-revolver"/></svg></div></div>
             <span>diagonally adjacent (one row + one column away)</span>
           </div>
           <div class="tut-leg-row">
-            <div class="tut-leg-chip"><div class="tut-ic s1">S1</div><span class="tut-chip-rel pos">⇔</span><div class="tut-ic s2">S2</div></div>
+            <div class="tut-leg-chip"><div class="tut-ic"><svg><use href="#sus-1"/></svg></div><span class="tut-chip-rel pos">⇔</span><div class="tut-ic"><svg><use href="#sus-2"/></svg></div></div>
             <span>in the same row</span>
           </div>
           <div class="tut-leg-row">
-            <div class="tut-leg-chip"><div class="tut-ic s1">S1</div><span class="tut-chip-rel">→</span><div class="tut-ic s2">S2</div><span class="tut-chip-rel">→</span><div class="tut-ic s3">S3</div></div>
+            <div class="tut-leg-chip"><div class="tut-ic"><svg><use href="#sus-1"/></svg></div><span class="tut-chip-rel">→</span><div class="tut-ic"><svg><use href="#sus-2"/></svg></div><span class="tut-chip-rel">→</span><div class="tut-ic"><svg><use href="#sus-3"/></svg></div></div>
             <span>three in a row, in that left-to-right order</span>
           </div>
           <div class="tut-leg-row">
-            <div class="tut-leg-chip"><div class="tut-ic skull">☠</div><span class="tut-chip-rel neg">✕</span><div class="tut-ic room">R</div></div>
+            <div class="tut-leg-chip"><div class="tut-ic skull"><svg><use href="#ic-skull"/></svg></div><span class="tut-chip-rel neg">✕</span><div class="tut-ic room"><svg><use href="#room-library"/></svg></div></div>
             <span>murder did NOT happen in this room</span>
           </div>
         </div>
