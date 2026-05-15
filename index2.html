@@ -584,6 +584,18 @@
   .verdict-art .pic .label { font-size: 10px; color: var(--ink); }
   .truth { font-size: 12px; color: var(--ink-dim); margin-top: 6px; }
   .truth b { color: var(--ink); }
+  .solve-time {
+    font-size: 13px;
+    color: var(--gold);
+    margin-top: 6px;
+    text-align: center;
+    letter-spacing: 0.3px;
+  }
+  .solve-time b {
+    font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+    font-size: 15px;
+    color: var(--gold);
+  }
   /* Once the player has submitted, collapse the picker section so the
      verdict + the Cancel/Next-Level buttons fit on screen without
      scrolling. (The portraits in the verdict already say who/what/where.) */
@@ -2857,7 +2869,8 @@
           frame(trueWeapon.icon, 'Weapon', false) +
           frame(trueRoom.icon, 'Room', false) +
         '</div>' +
-        '<div class="truth">It was <b>' + trueMurderer.name + '</b> with the <b>' + trueWeapon.name + '</b> in the <b>' + trueRoom.name + '</b>.</div>';
+        '<div class="truth">It was <b>' + trueMurderer.name + '</b> with the <b>' + trueWeapon.name + '</b> in the <b>' + trueRoom.name + '</b>.</div>' +
+        '<div class="solve-time">You solved it in <b>' + fmtTime(solveSeconds) + '</b>.</div>';
       Audio.unlock();
       Audio.win();
       Audio.applause();
