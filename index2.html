@@ -83,6 +83,18 @@
     gap: 8px;
   }
   .topbar .score b { color: var(--gold); }
+  .topbar .timer {
+    color: var(--gold);
+    font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    font-variant-numeric: tabular-nums;
+    background: rgba(0,0,0,0.35);
+    border: 1px solid var(--frame);
+    border-radius: 5px;
+    padding: 3px 7px;
+    white-space: nowrap;
+  }
   .iconbtn {
     background: var(--panel);
     border: 1px solid var(--frame);
@@ -1280,6 +1292,7 @@
     <div class="topbar">
       <button class="iconbtn" id="btnHelp" title="How to play"><svg><use href="#ic-help"/></svg></button>
       <span class="score" id="scoreLine">Case <b id="caseNum">1</b> · Solved <b id="wins">0</b> / Missed <b id="losses">0</b></span>
+      <span class="timer" id="timer" title="Time on this case">⏱ 0:00</span>
       <button class="iconbtn" id="btnSound" title="Sound"><svg id="soundIcon"><use href="#ic-sound"/></svg></button>
     </div>
   </header>
@@ -1532,10 +1545,49 @@
     try { return JSON.parse(localStorage.getItem('parker-completed-' + diff) || '{}') || {}; }
     catch (e) { return {}; }
   }
-  function markLevelCompleted(diff, level) {
+  // Storage format: { "1": 87, "2": 145 } where the value is the
+  // best (lowest) solve time in seconds. Legacy `true` entries are
+  // treated as completed-but-time-unknown.
+  function markLevelCompleted(diff, level, seconds) {
     const store = readCompleted(diff);
-    store[level] = true;
+    const prev = store[level];
+    const t = (typeof seconds === 'number' && seconds >= 0) ? seconds : true;
+    if (typeof prev === 'number' && typeof t === 'number' && prev <= t) return; // keep faster
+    store[level] = t;
     try { localStorage.setItem('parker-completed-' + diff, JSON.stringify(store)); } catch (e) {}
+  }
+  function fmtTime(s) {
+    if (typeof s !== 'number' || s < 0) return '';
+    const m = Math.floor(s / 60), sec = s % 60;
+    return m + ':' + (sec < 10 ? '0' : '') + sec;
+  }
+
+  // ============================================================
+  //  TIMER (per-case stopwatch)
+  // ============================================================
+  let timerStartMs = 0, timerInterval = null, timerFrozen = 0, timerRunning = false;
+  function timerElapsed() {
+    if (timerRunning) return Math.floor((Date.now() - timerStartMs) / 1000);
+    return timerFrozen;
+  }
+  function timerRender() {
+    const el = document.getElementById('timer');
+    if (el) el.textContent = '⏱ ' + fmtTime(timerElapsed());
+  }
+  function timerStart() {
+    if (timerInterval) clearInterval(timerInterval);
+    timerStartMs = Date.now();
+    timerFrozen = 0;
+    timerRunning = true;
+    timerRender();
+    timerInterval = setInterval(timerRender, 1000);
+  }
+  function timerStop() {
+    if (!timerRunning) return;
+    timerFrozen = timerElapsed();
+    timerRunning = false;
+    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+    timerRender();
   }
 
   // ============================================================
@@ -1624,6 +1676,97 @@
           f.Q.value = 0.8;
           src.connect(f).connect(g).connect(c.destination);
           src.start(t0 + offset);
+        }
+      },
+      // Per-suspect "elimination" tone — short musical motif keyed to
+      // the character's vibe. Synthesised, no audio files.
+      susSound: (suspect) => {
+        const c = getCtx(); if (!c || muted || !suspect) return;
+        const id = suspect.icon;
+        const t0 = c.currentTime;
+        switch (id) {
+          case 'sus-1': // Lady Ashcroft — crystal bell
+            tone(880, 0.22, 'sine', 0.09, t0);
+            tone(1320, 0.18, 'sine', 0.04, t0);
+            break;
+          case 'sus-2': // Colonel Vance — short bugle call
+            tone(392, 0.10, 'sawtooth', 0.07, t0);
+            tone(523, 0.16, 'sawtooth', 0.07, t0 + 0.07);
+            break;
+          case 'sus-3': // Dr. Mortimer — low cello
+            tone(220, 0.30, 'sine', 0.08, t0);
+            tone(440, 0.30, 'sine', 0.03, t0);
+            break;
+          case 'sus-4': // Miss Penrose — light glockenspiel
+            tone(1320, 0.14, 'sine', 0.07, t0);
+            break;
+          case 'sus-5': // Reverend Holt — pipe-organ triad
+            tone(220, 0.40, 'sine', 0.05, t0);
+            tone(277.18, 0.40, 'sine', 0.04, t0);
+            tone(329.63, 0.40, 'sine', 0.04, t0);
+            break;
+          case 'sus-6': // Captain Bligh — ship's bell
+            tone(349.23, 0.35, 'square', 0.05, t0);
+            tone(698.46, 0.35, 'sine', 0.03, t0);
+            break;
+          case 'sus-7': // Madame Zara — mystical glissando
+            tone(660, 0.16, 'sine', 0.07, t0);
+            tone(880, 0.18, 'sine', 0.06, t0 + 0.08);
+            break;
+          case 'sus-8': // Mr. Grimsby — gruff bass thud
+            tone(110, 0.30, 'square', 0.08, t0);
+            break;
+          case 'sus-9': // Professor Whittaker — quirky two-note
+            tone(587.33, 0.13, 'sine', 0.07, t0);
+            tone(739.99, 0.16, 'triangle', 0.06, t0 + 0.07);
+            break;
+          default:
+            tone(420, 0.06, 'square', 0.08, t0);
+        }
+      },
+      // Per-weapon "elimination" sound — percussive or noise-based,
+      // matched to what the weapon would actually sound like.
+      wpnSound: (weapon) => {
+        const c = getCtx(); if (!c || muted || !weapon) return;
+        const id = weapon.icon;
+        const t0 = c.currentTime;
+        switch (id) {
+          case 'weap-candlestick': // soft puff
+            noise(0.18, 0.12, 700);
+            break;
+          case 'weap-revolver': // hammer click (NOT a gunshot)
+            noise(0.02, 0.18, 6000);
+            setTimeout(() => noise(0.04, 0.10, 3000), 35);
+            break;
+          case 'weap-shears': // metallic snip-snip
+            tone(2200, 0.04, 'square', 0.08, t0);
+            tone(2400, 0.04, 'square', 0.08, t0 + 0.07);
+            break;
+          case 'weap-decanter': // glass clink
+            tone(1760, 0.20, 'sine', 0.08, t0);
+            tone(2640, 0.18, 'sine', 0.04, t0);
+            break;
+          case 'weap-pipe': // dull metallic thunk
+            tone(220, 0.28, 'square', 0.09, t0);
+            tone(330, 0.20, 'sine', 0.04, t0);
+            break;
+          case 'weap-tea': // gentle pour / gurgle
+            noise(0.30, 0.08, 600);
+            break;
+          case 'weap-opener': // blade ring
+            tone(1175, 0.25, 'triangle', 0.07, t0);
+            tone(1568, 0.20, 'sine', 0.04, t0);
+            break;
+          case 'weap-rope': // rope swish
+            noise(0.22, 0.10, 1400);
+            break;
+          case 'weap-wrench': // metal clang
+            tone(440, 0.22, 'square', 0.08, t0);
+            tone(660, 0.18, 'square', 0.05, t0);
+            tone(880, 0.18, 'sine', 0.03, t0);
+            break;
+          default:
+            tone(420, 0.06, 'square', 0.08, t0);
         }
       },
       isMuted: () => muted,
@@ -2440,6 +2583,7 @@
     state.caseNum++;
     render();
     Audio.page();
+    timerStart();
   }
 
   // Reset the current case: clear every player-applied X without
@@ -2454,6 +2598,7 @@
     state.case.solved = false;
     renderGrid();
     Audio.page();
+    timerStart();
   }
 
   // ============================================================
@@ -2560,8 +2705,18 @@
     const r = +el.dataset.room, i = +el.dataset.idx, cat = el.dataset.cat;
     const was = state.case.marks[r][cat][i];
     state.case.marks[r][cat][i] = !was;
-    if (was) { el.classList.remove('crossed'); Audio.uncross(); }
-    else     { el.classList.add('crossed');    Audio.cross();   }
+    if (was) {
+      el.classList.remove('crossed');
+      Audio.uncross();
+    } else {
+      el.classList.add('crossed');
+      // Play a unique elimination sound for the suspect or weapon being
+      // crossed out — fall back to the generic cross tone if the sound
+      // module isn't available for some reason.
+      if (cat === 'sus') Audio.susSound(state.case.suspects[i]);
+      else if (cat === 'wpn') Audio.wpnSound(state.case.weapons[i]);
+      else Audio.cross();
+    }
   }
 
   function renderClues() {
@@ -2688,9 +2843,12 @@
     const trueRoom     = c.rooms[c.mr];
     const correct = (s === trueMurderer.name && w === trueWeapon.name && r === trueRoom.name);
     const verdict = document.getElementById('verdict');
+    // Capture solve time and stop the running stopwatch.
+    const solveSeconds = timerElapsed();
+    timerStop();
     if (correct) {
       state.wins++; c.solved = true;
-      if (IS_LEVEL) markLevelCompleted(DIFF, LEVEL);
+      if (IS_LEVEL) markLevelCompleted(DIFF, LEVEL, solveSeconds);
       verdict.className = 'verdict win';
       verdict.innerHTML =
         '<b>Case Closed!</b><br>You named the killer.' +

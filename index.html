@@ -182,6 +182,7 @@
   .level-tile {
     aspect-ratio: 1;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     background: linear-gradient(180deg, var(--panel-2), #1f1408);
@@ -189,11 +190,19 @@
     border-radius: 8px;
     color: var(--ink);
     text-decoration: none;
-    font-weight: bold;
-    font-size: 17px;
     position: relative;
     transition: transform 0.06s, border-color 0.15s;
+    line-height: 1.1;
   }
+  .level-tile .num { font-weight: bold; font-size: 17px; }
+  .level-tile .time {
+    font-size: 10px;
+    color: var(--ink-dim);
+    margin-top: 2px;
+    font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+    letter-spacing: 0.3px;
+  }
+  .level-tile.done .time { color: var(--green); }
   .level-tile:active { transform: translateY(1px); }
   .level-tile:hover { border-color: var(--gold-dim); }
   .level-tile.done {
@@ -307,7 +316,12 @@
   function countCompleted(diff) {
     const c = readCompleted(diff);
     let n = 0;
-    for (let i = 1; i <= NUM_LEVELS; i++) if (c[i]) n++;
+    // A solved level may be stored as `true` (legacy) or a number of
+    // seconds (best time). Anything that isn't undefined/null/false counts.
+    for (let i = 1; i <= NUM_LEVELS; i++) {
+      const v = c[i];
+      if (v !== undefined && v !== null && v !== false) n++;
+    }
     return n;
   }
   function refreshDiffProgress() {
@@ -329,6 +343,11 @@
     location.hash = diff;
     renderLevelGrid(diff);
   }
+  function fmtTime(s) {
+    if (typeof s !== 'number' || s < 0) return '';
+    const m = Math.floor(s / 60), sec = s % 60;
+    return m + ':' + (sec < 10 ? '0' : '') + sec;
+  }
   function renderLevelGrid(diff) {
     const completed = readCompleted(diff);
     const grid = document.getElementById('levelGrid');
@@ -336,10 +355,15 @@
     let count = 0;
     for (let i = 1; i <= NUM_LEVELS; i++) {
       const tile = document.createElement('a');
-      const done = !!completed[i];
+      const val = completed[i];
+      const done = val !== undefined && val !== null && val !== false;
       tile.className = 'level-tile' + (done ? ' done' : '');
       tile.href = 'index2.html?d=' + diff + '&n=' + i;
-      tile.textContent = i;
+      // Number on top, best time underneath when known.
+      const time = (typeof val === 'number') ? fmtTime(val) : '';
+      tile.innerHTML =
+        '<span class="num">' + i + '</span>' +
+        (time ? '<span class="time">' + time + '</span>' : '');
       grid.appendChild(tile);
       if (done) count++;
     }
