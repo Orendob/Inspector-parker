@@ -750,6 +750,23 @@
     0%, 100% { box-shadow: 0 0 0 2px #4ee0ff, 0 0 6px rgba(78,224,255,0.45); }
     50%      { box-shadow: 0 0 0 2px #4ee0ff, 0 0 16px rgba(78,224,255,0.95); }
   }
+
+  /* Static cross / keep marks for any .tut-ic (used in step 3) */
+  .tut-ic.x-mark { position: relative; }
+  .tut-ic.x-mark::after {
+    content: '';
+    position: absolute; inset: 3px;
+    background:
+      linear-gradient(45deg, transparent 44%, rgba(208,74,58,0.95) 47%, rgba(208,74,58,0.95) 53%, transparent 56%),
+      linear-gradient(-45deg, transparent 44%, rgba(208,74,58,0.95) 47%, rgba(208,74,58,0.95) 53%, transparent 56%);
+    pointer-events: none;
+    z-index: 1;
+  }
+  .tut-ic.keep-mark {
+    border-color: #4ee0ff;
+    box-shadow: 0 0 0 2px #4ee0ff, 0 0 14px rgba(78,224,255,0.7);
+    animation: tut-cyan-pulse 1.8s ease-in-out infinite;
+  }
   .tut-chip-wrap { position: relative; margin-bottom: 26px; }
   .tut-chip {
     display: inline-flex; align-items: center; gap: 6px;
@@ -1685,29 +1702,28 @@
           </div>
           <div class="tut-tap"></div>
         </div>
-        <div class="tut-tip">The suspect's room is directly above the weapon's room.</div>
+        <div class="tut-tip">Lady Ashcroft's room is directly above (one row up, same column as) the room with the Garden Shears.</div>
         <div class="tut-mini-grid tiny">
           <div class="tut-mini-room highlight"><div class="tut-ic"><svg><use href="#sus-1"/></svg></div></div>
-          <div class="tut-mini-room"></div>
+          <div class="tut-mini-room highlight"><div class="tut-ic"><svg><use href="#sus-1"/></svg></div></div>
           <div class="tut-mini-room highlight"><div class="tut-ic weapon"><svg><use href="#weap-shears"/></svg></div></div>
           <div class="tut-mini-room"></div>
         </div>
-        <div class="tut-caption">Tap a chip → tooltip + cyan glow on every matching room.</div>
+        <div class="tut-caption">Tap a chip → tooltip + cyan glow on every room that holds a referenced item.</div>
       </div>
     </div>
 
     <div class="tut-step" data-step="3">
       <div class="tut-head"><span class="tut-stepnum">3</span><h3>Cross out impossibilities</h3></div>
-      <p>Every room starts with several candidate suspects and weapons shown as mini-icons. <b>Tap a mini-icon to cross it out</b> when a clue rules it out. The remaining (uncrossed) item is the answer for that room.</p>
+      <p>Now use the clue. The Garden Shears is only in the bottom-left room, so Lady Ashcroft can't be in the top-right (no shears below her there). <b>Tap her there to cross her out</b> — the one still glowing is the answer.</p>
       <div class="tut-art">
-        <div class="tut-caption" style="margin-bottom:8px">Inside one room — only one of these can really be there:</div>
-        <div class="tut-elim-row">
-          <div class="tut-elim-ic tut-ic cross-1"><svg><use href="#sus-1"/></svg></div>
-          <div class="tut-elim-ic tut-ic cross-2"><svg><use href="#sus-2"/></svg></div>
-          <div class="tut-elim-ic tut-ic keep"><svg><use href="#sus-3"/></svg></div>
-          <div class="tut-elim-ic tut-ic cross-3"><svg><use href="#sus-4"/></svg></div>
+        <div class="tut-mini-grid tiny">
+          <div class="tut-mini-room"><div class="tut-ic keep-mark"><svg><use href="#sus-1"/></svg></div></div>
+          <div class="tut-mini-room"><div class="tut-ic x-mark"><svg><use href="#sus-1"/></svg></div></div>
+          <div class="tut-mini-room"><div class="tut-ic weapon"><svg><use href="#weap-shears"/></svg></div></div>
+          <div class="tut-mini-room"></div>
         </div>
-        <div class="tut-caption" style="margin-top:10px">Cross out the impossible ones · the one still glowing is the answer.</div>
+        <div class="tut-caption">Cross out the impossible candidates · the one still glowing is the answer for that room.</div>
       </div>
     </div>
 
