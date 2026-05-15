@@ -227,6 +227,328 @@
     line-height: 1.5;
     font-style: italic;
   }
+
+  /* "How to Play" button on the homepage */
+  .howto-link {
+    display: block;
+    margin: 0 auto 18px;
+    background: var(--panel-2);
+    color: var(--ink);
+    border: 1px solid var(--frame);
+    border-radius: 6px;
+    padding: 9px 16px;
+    font-family: inherit;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+  }
+
+  /* ===== Tutorial modal ===== */
+  .tut-bg {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.78);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    padding: 14px;
+  }
+  .tut-bg.show { display: flex; }
+  .tut-modal {
+    background: linear-gradient(180deg, var(--panel) 0%, #1a1408 100%);
+    border: 2px solid var(--gold-dim);
+    border-radius: 12px;
+    padding: 16px 18px;
+    width: 100%;
+    max-width: 480px;
+    max-height: 92vh;
+    overflow-y: auto;
+    box-shadow: 0 0 40px rgba(0,0,0,0.8);
+  }
+  .tut-title {
+    text-align: center;
+    margin: 0 0 14px;
+    color: var(--gold);
+    font-size: 18px;
+    letter-spacing: 1.5px;
+  }
+  .tut-step { display: none; }
+  .tut-step.active { display: block; }
+  .tut-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .tut-stepnum {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: var(--gold);
+    color: #1a1408;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold; font-size: 15px; flex-shrink: 0;
+  }
+  .tut-head h3 { margin: 0; color: var(--gold); font-size: 17px; letter-spacing: 0.5px; }
+  .tut-step > p {
+    margin: 0 0 12px;
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--ink);
+  }
+  .tut-step > p b { color: var(--gold); }
+  .tut-art {
+    background: #1a1208;
+    border: 2px solid var(--frame);
+    border-radius: 8px;
+    padding: 14px;
+    margin: 8px 0 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 140px;
+    position: relative;
+    overflow: hidden;
+  }
+  .tut-caption {
+    font-size: 12px;
+    color: var(--ink-dim);
+    text-align: center;
+    font-style: italic;
+    line-height: 1.4;
+  }
+  .tut-caption b { color: var(--gold); font-style: normal; }
+
+  /* Generic icon shapes used inside the tutorial */
+  .tut-ic {
+    width: 38px; height: 38px;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold; font-size: 12px;
+    color: white;
+    border: 1px solid rgba(255,255,255,0.18);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+    font-family: Georgia, serif;
+  }
+  .tut-ic.s1 { background: linear-gradient(180deg, #6a3a4a, #3a1a24); }
+  .tut-ic.s2 { background: linear-gradient(180deg, #3a4a2a, #1a2a14); }
+  .tut-ic.s3 { background: linear-gradient(180deg, #2a3a4a, #14242a); }
+  .tut-ic.s4 { background: linear-gradient(180deg, #4a2a4a, #2a142a); }
+  .tut-ic.w1 { background: linear-gradient(180deg, #a8741a, #5a3a14); color: #f4e0a0; }
+  .tut-ic.w2 { background: linear-gradient(180deg, #7a7a7a, #3a3a3a); color: #d8d8d8; }
+  .tut-ic.w3 { background: linear-gradient(180deg, #5a7a82, #2a4a52); color: #c8e8f0; }
+  .tut-ic.w4 { background: linear-gradient(180deg, #c04a3a, #7a2818); color: #f8c0a0; }
+  .tut-ic.room { background: rgba(0,0,0,0.5); color: var(--gold); border: 1px solid var(--gold-dim); }
+  .tut-ic.skull { background: rgba(0,0,0,0.5); color: #d8d8d8; border: 1px solid var(--frame-2); font-size: 18px; }
+
+  /* Step 1 — 2x2 mini-grid */
+  .tut-mini-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 100%;
+    max-width: 280px;
+    margin-bottom: 10px;
+  }
+  .tut-mini-room {
+    border: 1.5px solid var(--frame);
+    border-radius: 6px;
+    padding: 6px 8px;
+    background: linear-gradient(180deg, #3a2c18, #1f1408);
+    display: flex; gap: 10px;
+    align-items: center;
+    justify-content: center;
+    min-height: 52px;
+  }
+  .tut-mini-grid.tiny .tut-mini-room { min-height: 44px; }
+  .tut-mini-room.highlight {
+    border-color: #4ee0ff;
+    animation: tut-cyan-pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes tut-cyan-pulse {
+    0%, 100% { box-shadow: 0 0 0 2px #4ee0ff, 0 0 6px rgba(78,224,255,0.45); }
+    50%      { box-shadow: 0 0 0 2px #4ee0ff, 0 0 16px rgba(78,224,255,0.95); }
+  }
+
+  /* Step 2 — chip + tap indicator + tooltip */
+  .tut-chip-wrap { position: relative; margin-bottom: 26px; }
+  .tut-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(90deg, #2e2210, #1f1408);
+    border: 1px solid var(--gold-dim);
+    border-radius: 8px;
+    padding: 5px 9px;
+  }
+  .tut-chip .tut-ic { width: 30px; height: 30px; font-size: 11px; }
+  .tut-chip-rel { color: var(--gold); font-size: 18px; font-weight: bold; min-width: 18px; text-align: center; }
+  .tut-chip-rel.pos { color: var(--green); }
+  .tut-chip-rel.neg { color: var(--red); }
+  .tut-tap {
+    position: absolute;
+    left: 50%; top: 100%;
+    transform: translate(-50%, 6px);
+    width: 24px; height: 24px;
+    pointer-events: none;
+  }
+  .tut-tap::before {
+    content: '';
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    border: 2px solid var(--gold);
+    background: rgba(224,188,98,0.3);
+    animation: tut-tap-ring 1.6s ease-in-out infinite;
+  }
+  .tut-tap::after {
+    content: '';
+    position: absolute; inset: 7px;
+    border-radius: 50%;
+    background: var(--gold);
+  }
+  @keyframes tut-tap-ring {
+    0%, 100% { transform: scale(0.85); opacity: 0.5; }
+    50%      { transform: scale(1.3); opacity: 1; }
+  }
+  .tut-tip {
+    background: linear-gradient(180deg, var(--panel-2), var(--panel));
+    border: 2px solid var(--gold);
+    border-radius: 8px;
+    padding: 6px 12px;
+    color: var(--ink);
+    font-size: 12px;
+    text-align: center;
+    margin: 0 0 12px;
+    max-width: 300px;
+  }
+
+  /* Step 3 — elimination cycle */
+  .tut-elim-row { display: flex; gap: 12px; margin: 6px 0; }
+  .tut-elim-ic {
+    width: 48px; height: 48px;
+    position: relative;
+  }
+  .tut-elim-ic.cross-1, .tut-elim-ic.cross-2, .tut-elim-ic.cross-3 {
+    animation: tut-fade-cycle 4.5s linear infinite;
+  }
+  .tut-elim-ic.cross-1 { animation-delay: 0.3s; }
+  .tut-elim-ic.cross-2 { animation-delay: 1.4s; }
+  .tut-elim-ic.cross-3 { animation-delay: 2.5s; }
+  .tut-elim-ic.cross-1::after, .tut-elim-ic.cross-2::after, .tut-elim-ic.cross-3::after {
+    content: '';
+    position: absolute; inset: 3px;
+    background:
+      linear-gradient(45deg, transparent 44%, rgba(208,74,58,0.95) 47%, rgba(208,74,58,0.95) 53%, transparent 56%),
+      linear-gradient(-45deg, transparent 44%, rgba(208,74,58,0.95) 47%, rgba(208,74,58,0.95) 53%, transparent 56%);
+    opacity: 0;
+    animation: tut-x-cycle 4.5s linear infinite;
+  }
+  .tut-elim-ic.cross-1::after { animation-delay: 0.3s; }
+  .tut-elim-ic.cross-2::after { animation-delay: 1.4s; }
+  .tut-elim-ic.cross-3::after { animation-delay: 2.5s; }
+  @keyframes tut-x-cycle {
+    0%, 1%   { opacity: 0; transform: scale(1.6); }
+    6%       { opacity: 1; transform: scale(1); }
+    90%      { opacity: 1; transform: scale(1); }
+    100%     { opacity: 0; }
+  }
+  @keyframes tut-fade-cycle {
+    0%, 4%   { opacity: 1; }
+    8%, 95%  { opacity: 0.4; }
+    100%     { opacity: 1; }
+  }
+  .tut-elim-ic.keep {
+    border-color: #4ee0ff;
+    box-shadow: 0 0 0 2px #4ee0ff, 0 0 14px rgba(78,224,255,0.7);
+    animation: tut-cyan-pulse 1.8s ease-in-out infinite;
+  }
+
+  /* Step 4 — Accuse + confetti */
+  .tut-accuse-row {
+    position: relative;
+    display: flex; justify-content: center; align-items: center;
+    height: 110px;
+    width: 100%;
+  }
+  .tut-accuse-btn {
+    background: linear-gradient(180deg, #e0bc62, #b88c30);
+    color: #1a1408;
+    font-weight: bold;
+    letter-spacing: 2px;
+    padding: 12px 26px;
+    border-radius: 8px;
+    border: 2px solid var(--gold);
+    font-family: Georgia, serif;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.5);
+    animation: tut-btn-pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes tut-btn-pulse {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.06); }
+  }
+  .tut-confetti { position: absolute; inset: 0; pointer-events: none; }
+  .tut-confetti span {
+    position: absolute;
+    top: 0; left: 50%;
+    width: 8px; height: 12px;
+    background: var(--c);
+    border-radius: 2px;
+    animation: tut-conf-fall 2.5s linear var(--d) infinite;
+  }
+  @keyframes tut-conf-fall {
+    0%   { transform: translate(0, -10px) rotate(0deg); opacity: 0; }
+    10%  { opacity: 1; }
+    100% { transform: translate(var(--x), 110px) rotate(540deg); opacity: 0; }
+  }
+
+  /* Step 5 — Symbol legend */
+  .tut-legend { display: grid; gap: 7px; width: 100%; }
+  .tut-leg-row {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 12.5px; color: var(--ink-dim); line-height: 1.4;
+  }
+  .tut-leg-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: linear-gradient(90deg, #2e2210, #1f1408);
+    border: 1px solid var(--gold-dim);
+    border-radius: 6px;
+    padding: 3px 6px;
+    flex-shrink: 0;
+  }
+  .tut-leg-chip .tut-ic { width: 22px; height: 22px; font-size: 9px; }
+  .tut-leg-chip .tut-chip-rel { font-size: 13px; min-width: 14px; }
+
+  /* Nav */
+  .tut-nav {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 8px;
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--frame);
+  }
+  .tut-btn {
+    min-height: 42px;
+    background: linear-gradient(180deg, #4a3820, #2a2010);
+    color: var(--ink);
+    border: 2px solid var(--frame-2);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    padding: 0 14px;
+    cursor: pointer;
+  }
+  .tut-btn.primary {
+    background: linear-gradient(180deg, #e0bc62, #b88c30);
+    color: #1a1408;
+    border-color: var(--gold);
+  }
+  .tut-btn:disabled { opacity: 0.4; cursor: default; }
+  .tut-dots { display: flex; gap: 6px; }
+  .tut-dots span {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: var(--frame);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .tut-dots span.active { background: var(--gold); }
 </style>
 </head>
 <body>
@@ -252,6 +574,7 @@
   <!-- Difficulty selector -->
   <div id="viewDiff">
     <p class="intro">A guest of the manor has been <span class="victim">murdered</span>. Read the picture clues, cross out the impossibilities, and unmask the killer. Fifty cases per difficulty — every player gets the same level <i>N</i>.</p>
+    <button class="howto-link" id="btnHowTo" type="button">❓ How to Play</button>
     <div class="cards">
       <button class="card" id="btnEasy" type="button">
         <div class="head">
@@ -295,6 +618,136 @@
       <div></div>
     </div>
     <div class="level-grid" id="levelGrid"></div>
+  </div>
+
+  <!-- Tutorial modal: 5 steps + symbol legend, animated illustrations -->
+  <div class="tut-bg" id="modalTutorial">
+    <div class="tut-modal">
+      <div class="tut-title">How to Play</div>
+
+      <div class="tut-step active" data-step="1">
+        <div class="tut-head"><span class="tut-stepnum">1</span><h3>One per room</h3></div>
+        <p>The manor is a grid of rooms (2 × 2 on Easy, 3 × 3 on Hard). <b>Each room holds exactly one suspect and one weapon</b>, and every suspect and weapon is in one and only one room. Find who's where with what.</p>
+        <div class="tut-art">
+          <div class="tut-mini-grid">
+            <div class="tut-mini-room"><div class="tut-ic s1">S1</div><div class="tut-ic w3">W3</div></div>
+            <div class="tut-mini-room"><div class="tut-ic s2">S2</div><div class="tut-ic w1">W1</div></div>
+            <div class="tut-mini-room"><div class="tut-ic s3">S3</div><div class="tut-ic w4">W4</div></div>
+            <div class="tut-mini-room"><div class="tut-ic s4">S4</div><div class="tut-ic w2">W2</div></div>
+          </div>
+          <div class="tut-caption">Each cell has <b>one suspect</b> + <b>one weapon</b>. Always.</div>
+        </div>
+      </div>
+
+      <div class="tut-step" data-step="2">
+        <div class="tut-head"><span class="tut-stepnum">2</span><h3>Tap the picture clues</h3></div>
+        <p>Picture clues live under the manor. <b>Tap a clue chip</b> to read what it means in plain English and to make every place those items appear glow on the map.</p>
+        <div class="tut-art">
+          <div class="tut-chip-wrap">
+            <div class="tut-chip">
+              <div class="tut-ic s1">S1</div>
+              <span class="tut-chip-rel">↓</span>
+              <div class="tut-ic w3">W3</div>
+            </div>
+            <div class="tut-tap"></div>
+          </div>
+          <div class="tut-tip">S1's room is directly above W3's room.</div>
+          <div class="tut-mini-grid tiny">
+            <div class="tut-mini-room highlight"><div class="tut-ic s1">S1</div></div>
+            <div class="tut-mini-room"></div>
+            <div class="tut-mini-room"></div>
+            <div class="tut-mini-room highlight"><div class="tut-ic w3">W3</div></div>
+          </div>
+          <div class="tut-caption">Tap a chip → tooltip + cyan glow on every matching room.</div>
+        </div>
+      </div>
+
+      <div class="tut-step" data-step="3">
+        <div class="tut-head"><span class="tut-stepnum">3</span><h3>Cross out impossibilities</h3></div>
+        <p>Every room starts with several candidate suspects and weapons shown as mini-icons. <b>Tap a mini-icon to cross it out</b> when a clue rules it out. The remaining (uncrossed) item is the answer for that room.</p>
+        <div class="tut-art">
+          <div class="tut-caption" style="margin-bottom:8px">Inside one room — only one of these can really be there:</div>
+          <div class="tut-elim-row">
+            <div class="tut-elim-ic tut-ic s1 cross-1">S1</div>
+            <div class="tut-elim-ic tut-ic s2 cross-2">S2</div>
+            <div class="tut-elim-ic tut-ic s3 keep">S3</div>
+            <div class="tut-elim-ic tut-ic s4 cross-3">S4</div>
+          </div>
+          <div class="tut-caption" style="margin-top:10px">Cross out the impossible ones · the one still glowing is the answer.</div>
+        </div>
+      </div>
+
+      <div class="tut-step" data-step="4">
+        <div class="tut-head"><span class="tut-stepnum">4</span><h3>Accuse the killer</h3></div>
+        <p>When you've narrowed it down, tap <b>Accuse</b>, pick the crime scene, the killer, and the weapon. Get all three right and the manor erupts in confetti and applause — and your solve time is saved as your best.</p>
+        <div class="tut-art">
+          <div class="tut-accuse-row">
+            <div class="tut-accuse-btn">ACCUSE</div>
+            <div class="tut-confetti">
+              <span style="--c:#e0bc62; --x:-40px; --d:0s"></span>
+              <span style="--c:#c04a3a; --x:-15px; --d:0.15s"></span>
+              <span style="--c:#6ba858; --x:15px;  --d:0.3s"></span>
+              <span style="--c:#4a82b8; --x:40px;  --d:0.45s"></span>
+              <span style="--c:#a82a5a; --x:0;     --d:0.6s"></span>
+              <span style="--c:#f4e040; --x:-25px; --d:0.75s"></span>
+              <span style="--c:#f48a30; --x:25px;  --d:0.9s"></span>
+            </div>
+          </div>
+          <div class="tut-caption">Three right answers → confetti + applause + best-time saved.</div>
+        </div>
+      </div>
+
+      <div class="tut-step" data-step="5">
+        <div class="tut-head"><span class="tut-stepnum">5</span><h3>Clue chip cheat-sheet</h3></div>
+        <p>Read every chip as: <b>from the left item, go (arrow) to reach the right item</b>.</p>
+        <div class="tut-legend">
+          <div class="tut-leg-row">
+            <div class="tut-leg-chip"><div class="tut-ic s1">S1</div><span class="tut-chip-rel pos">✓</span><div class="tut-ic room">R</div></div>
+            <span>is in this room</span>
+          </div>
+          <div class="tut-leg-row">
+            <div class="tut-leg-chip"><div class="tut-ic s1">S1</div><span class="tut-chip-rel neg">✕</span><div class="tut-ic w1">W1</div></div>
+            <span>NOT in the same room as</span>
+          </div>
+          <div class="tut-leg-row">
+            <div class="tut-leg-chip"><div class="tut-ic s1">S1</div><span class="tut-chip-rel">↓</span><div class="tut-ic w1">W1</div></div>
+            <span>directly above (one row up, same column)</span>
+          </div>
+          <div class="tut-leg-row">
+            <div class="tut-leg-chip"><div class="tut-ic s1">S1</div><span class="tut-chip-rel">⇊</span><div class="tut-ic w1">W1</div></div>
+            <span>two rows above (3 × 3 only)</span>
+          </div>
+          <div class="tut-leg-row">
+            <div class="tut-leg-chip"><div class="tut-ic s1">S1</div><span class="tut-chip-rel">↘</span><div class="tut-ic w1">W1</div></div>
+            <span>diagonally adjacent (one row + one column away)</span>
+          </div>
+          <div class="tut-leg-row">
+            <div class="tut-leg-chip"><div class="tut-ic s1">S1</div><span class="tut-chip-rel pos">⇔</span><div class="tut-ic s2">S2</div></div>
+            <span>in the same row</span>
+          </div>
+          <div class="tut-leg-row">
+            <div class="tut-leg-chip"><div class="tut-ic s1">S1</div><span class="tut-chip-rel">→</span><div class="tut-ic s2">S2</div><span class="tut-chip-rel">→</span><div class="tut-ic s3">S3</div></div>
+            <span>three in a row, in that left-to-right order</span>
+          </div>
+          <div class="tut-leg-row">
+            <div class="tut-leg-chip"><div class="tut-ic skull">☠</div><span class="tut-chip-rel neg">✕</span><div class="tut-ic room">R</div></div>
+            <span>murder did NOT happen in this room</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tut-nav">
+        <button class="tut-btn" id="tutPrev" type="button">← Back</button>
+        <div class="tut-dots">
+          <span class="active" data-step="1"></span>
+          <span data-step="2"></span>
+          <span data-step="3"></span>
+          <span data-step="4"></span>
+          <span data-step="5"></span>
+        </div>
+        <button class="tut-btn primary" id="tutNext" type="button">Next →</button>
+      </div>
+    </div>
   </div>
 
   <footer>Single-file, plays offline. Progress saved in your browser. <span id="version">v2</span></footer>
@@ -388,6 +841,37 @@
   if (location.hash === '#easy') showLevels('easy');
   else if (location.hash === '#hard') showLevels('hard');
   else refreshDiffProgress();
+
+  // ===== Tutorial wiring =====
+  const NUM_STEPS = 5;
+  let tutStep = 1;
+  function tutSet(n) {
+    tutStep = Math.max(1, Math.min(NUM_STEPS, n));
+    document.querySelectorAll('.tut-step').forEach(s => s.classList.toggle('active', +s.dataset.step === tutStep));
+    document.querySelectorAll('.tut-dots span').forEach(d => d.classList.toggle('active', +d.dataset.step === tutStep));
+    document.getElementById('tutPrev').disabled = tutStep === 1;
+    document.getElementById('tutNext').textContent = tutStep === NUM_STEPS ? "Let's play!" : 'Next →';
+    document.querySelector('.tut-modal').scrollTop = 0;
+  }
+  function tutOpen()  { tutSet(1); document.getElementById('modalTutorial').classList.add('show'); }
+  function tutClose() {
+    document.getElementById('modalTutorial').classList.remove('show');
+    try { localStorage.setItem('parker-tutorial-seen', '1'); } catch (e) {}
+  }
+  document.getElementById('tutPrev').addEventListener('click', () => tutSet(tutStep - 1));
+  document.getElementById('tutNext').addEventListener('click', () => {
+    if (tutStep === NUM_STEPS) tutClose();
+    else tutSet(tutStep + 1);
+  });
+  document.querySelectorAll('.tut-dots span').forEach(d =>
+    d.addEventListener('click', () => tutSet(+d.dataset.step))
+  );
+  document.getElementById('modalTutorial').addEventListener('click', e => {
+    if (e.target.id === 'modalTutorial') tutClose();
+  });
+  document.getElementById('btnHowTo').addEventListener('click', tutOpen);
+  // First-visit auto-open
+  if (!localStorage.getItem('parker-tutorial-seen')) tutOpen();
 })();
 </script>
 </body>
