@@ -369,7 +369,7 @@
   .chip-rel.pos { color: var(--green); }
   .chip-rel.neg { color: var(--red); }
 
-  /* Floating clue tooltip */
+  /* Floating clue tooltip — cyan border matches the on-map highlight */
   .clue-tooltip {
     position: fixed;
     left: 12px; right: 12px;
@@ -377,10 +377,10 @@
     max-width: 560px;
     margin: 0 auto;
     background: linear-gradient(180deg, var(--panel-2) 0%, var(--panel) 100%);
-    border: 2px solid var(--gold);
+    border: 2px solid #4ee0ff;
     border-radius: 10px;
     padding: 12px 14px;
-    box-shadow: 0 6px 24px rgba(0,0,0,0.7);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.7), 0 0 14px rgba(78,224,255,0.45);
     z-index: 50;
     display: none;
     color: var(--ink);
@@ -397,8 +397,8 @@
     transform: translateX(-50%) rotate(45deg);
     width: 12px; height: 12px;
     background: var(--panel);
-    border-right: 2px solid var(--gold);
-    border-bottom: 2px solid var(--gold);
+    border-right: 2px solid #4ee0ff;
+    border-bottom: 2px solid #4ee0ff;
   }
   .clue-tooltip .tip-close {
     font-size: 11px;
@@ -1747,45 +1747,6 @@
       </div>
     </div>
 
-    <div class="tut-step" data-step="5">
-      <div class="tut-head"><span class="tut-stepnum">5</span><h3>Clue chip cheat-sheet</h3></div>
-      <p>Read every chip as: <b>from the left item, go (arrow) to reach the right item</b>.</p>
-      <div class="tut-legend">
-        <div class="tut-leg-row">
-          <div class="tut-leg-chip"><div class="tut-ic"><svg><use href="#sus-1"/></svg></div><span class="tut-chip-rel pos">✓</span><div class="tut-ic room"><svg><use href="#room-library"/></svg></div></div>
-          <span>is in this room</span>
-        </div>
-        <div class="tut-leg-row">
-          <div class="tut-leg-chip"><div class="tut-ic"><svg><use href="#sus-1"/></svg></div><span class="tut-chip-rel neg">✕</span><div class="tut-ic weapon"><svg><use href="#weap-revolver"/></svg></div></div>
-          <span>NOT in the same room as</span>
-        </div>
-        <div class="tut-leg-row">
-          <div class="tut-leg-chip"><div class="tut-ic"><svg><use href="#sus-1"/></svg></div><span class="tut-chip-rel">↓</span><div class="tut-ic weapon"><svg><use href="#weap-revolver"/></svg></div></div>
-          <span>directly above (one row up, same column)</span>
-        </div>
-        <div class="tut-leg-row">
-          <div class="tut-leg-chip"><div class="tut-ic"><svg><use href="#sus-1"/></svg></div><span class="tut-chip-rel">⇊</span><div class="tut-ic weapon"><svg><use href="#weap-revolver"/></svg></div></div>
-          <span>two rows above (3 × 3 only)</span>
-        </div>
-        <div class="tut-leg-row">
-          <div class="tut-leg-chip"><div class="tut-ic"><svg><use href="#sus-1"/></svg></div><span class="tut-chip-rel">↘</span><div class="tut-ic weapon"><svg><use href="#weap-revolver"/></svg></div></div>
-          <span>diagonally adjacent (one row + one column away)</span>
-        </div>
-        <div class="tut-leg-row">
-          <div class="tut-leg-chip"><div class="tut-ic"><svg><use href="#sus-1"/></svg></div><span class="tut-chip-rel pos">⇔</span><div class="tut-ic"><svg><use href="#sus-2"/></svg></div></div>
-          <span>in the same row</span>
-        </div>
-        <div class="tut-leg-row">
-          <div class="tut-leg-chip"><div class="tut-ic"><svg><use href="#sus-1"/></svg></div><span class="tut-chip-rel">→</span><div class="tut-ic"><svg><use href="#sus-2"/></svg></div><span class="tut-chip-rel">→</span><div class="tut-ic"><svg><use href="#sus-3"/></svg></div></div>
-          <span>three in a row, in that left-to-right order</span>
-        </div>
-        <div class="tut-leg-row">
-          <div class="tut-leg-chip"><div class="tut-ic skull"><svg><use href="#ic-skull"/></svg></div><span class="tut-chip-rel neg">✕</span><div class="tut-ic room"><svg><use href="#room-library"/></svg></div></div>
-          <span>murder did NOT happen in this room</span>
-        </div>
-      </div>
-    </div>
-
     <div class="tut-nav">
       <button class="tut-btn" id="tutPrev" type="button">← Back</button>
       <div class="tut-dots">
@@ -1793,7 +1754,6 @@
         <span data-step="2"></span>
         <span data-step="3"></span>
         <span data-step="4"></span>
-        <span data-step="5"></span>
       </div>
       <button class="tut-btn primary" id="tutNext" type="button">Next →</button>
     </div>
@@ -3327,7 +3287,7 @@
     });
 
     // ===== Tutorial wiring =====
-    const NUM_STEPS = 5;
+    const NUM_STEPS = 4;
     let tutStep = 1;
     function tutSet(n) {
       tutStep = Math.max(1, Math.min(NUM_STEPS, n));

@@ -924,45 +924,6 @@
         </div>
       </div>
 
-      <div class="tut-step" data-step="5">
-        <div class="tut-head"><span class="tut-stepnum">5</span><h3>Clue chip cheat-sheet</h3></div>
-        <p>Read every chip as: <b>from the left item, go (arrow) to reach the right item</b>.</p>
-        <div class="tut-legend">
-          <div class="tut-leg-row">
-            <div class="tut-leg-chip"><div class="tut-ic"><svg><use href="#sus-1"/></svg></div><span class="tut-chip-rel pos">✓</span><div class="tut-ic room"><svg><use href="#room-library"/></svg></div></div>
-            <span>is in this room</span>
-          </div>
-          <div class="tut-leg-row">
-            <div class="tut-leg-chip"><div class="tut-ic"><svg><use href="#sus-1"/></svg></div><span class="tut-chip-rel neg">✕</span><div class="tut-ic weapon"><svg><use href="#weap-revolver"/></svg></div></div>
-            <span>NOT in the same room as</span>
-          </div>
-          <div class="tut-leg-row">
-            <div class="tut-leg-chip"><div class="tut-ic"><svg><use href="#sus-1"/></svg></div><span class="tut-chip-rel">↓</span><div class="tut-ic weapon"><svg><use href="#weap-revolver"/></svg></div></div>
-            <span>directly above (one row up, same column)</span>
-          </div>
-          <div class="tut-leg-row">
-            <div class="tut-leg-chip"><div class="tut-ic"><svg><use href="#sus-1"/></svg></div><span class="tut-chip-rel">⇊</span><div class="tut-ic weapon"><svg><use href="#weap-revolver"/></svg></div></div>
-            <span>two rows above (3 × 3 only)</span>
-          </div>
-          <div class="tut-leg-row">
-            <div class="tut-leg-chip"><div class="tut-ic"><svg><use href="#sus-1"/></svg></div><span class="tut-chip-rel">↘</span><div class="tut-ic weapon"><svg><use href="#weap-revolver"/></svg></div></div>
-            <span>diagonally adjacent (one row + one column away)</span>
-          </div>
-          <div class="tut-leg-row">
-            <div class="tut-leg-chip"><div class="tut-ic"><svg><use href="#sus-1"/></svg></div><span class="tut-chip-rel pos">⇔</span><div class="tut-ic"><svg><use href="#sus-2"/></svg></div></div>
-            <span>in the same row</span>
-          </div>
-          <div class="tut-leg-row">
-            <div class="tut-leg-chip"><div class="tut-ic"><svg><use href="#sus-1"/></svg></div><span class="tut-chip-rel">→</span><div class="tut-ic"><svg><use href="#sus-2"/></svg></div><span class="tut-chip-rel">→</span><div class="tut-ic"><svg><use href="#sus-3"/></svg></div></div>
-            <span>three in a row, in that left-to-right order</span>
-          </div>
-          <div class="tut-leg-row">
-            <div class="tut-leg-chip"><div class="tut-ic skull"><svg><use href="#ic-skull"/></svg></div><span class="tut-chip-rel neg">✕</span><div class="tut-ic room"><svg><use href="#room-library"/></svg></div></div>
-            <span>murder did NOT happen in this room</span>
-          </div>
-        </div>
-      </div>
-
       <div class="tut-nav">
         <button class="tut-btn" id="tutPrev" type="button">← Back</button>
         <div class="tut-dots">
@@ -970,7 +931,6 @@
           <span data-step="2"></span>
           <span data-step="3"></span>
           <span data-step="4"></span>
-          <span data-step="5"></span>
         </div>
         <button class="tut-btn primary" id="tutNext" type="button">Next →</button>
       </div>
@@ -1070,7 +1030,7 @@
   else refreshDiffProgress();
 
   // ===== Tutorial wiring =====
-  const NUM_STEPS = 5;
+  const NUM_STEPS = 4;
   let tutStep = 1;
   function tutSet(n) {
     tutStep = Math.max(1, Math.min(NUM_STEPS, n));
