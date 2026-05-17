@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1a1408">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Inspector Parker</title>
+<style>
+  :root {
+    --bg: #1a1408;
+    --panel: #2a2010;
+    --panel-2: #3a2c18;
+    --frame: #6b4a22;
+    --frame-2: #8a6532;
+    --gold: #e0bc62;
+    --gold-dim: #a6863a;
+    --ink: #f1e6c8;
+    --ink-dim: #b8a880;
+    --red: #c04a3a;
+    --green: #6ba858;
+    --shadow: 0 6px 22px rgba(0,0,0,0.6);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0;
+    background: radial-gradient(ellipse at top, #2c2010 0%, #1a1408 60%), var(--bg);
+    color: var(--ink);
+    font-family: Georgia, 'Times New Roman', serif;
+    min-height: 100vh;
+  }
+  body { padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+  .wrap { max-width: 600px; margin: 0 auto; padding: 24px 16px 40px; }
+  header {
+    text-align: center;
+    padding-bottom: 14px;
+    border-bottom: 2px solid var(--frame);
+    margin-bottom: 18px;
+  }
+  .banner {
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--frame-2);
+    margin-bottom: 6px;
+  }
+  .banner svg { height: 60px; width: 100%; max-width: 340px; }
+  h1 {
+    margin: 0;
+    font-size: 28px;
+    letter-spacing: 3px;
+    color: var(--gold);
+    text-shadow: 0 1px 0 #000, 0 0 14px rgba(224,188,98,0.35);
+  }
+  .sub {
+    font-size: 11px;
+    letter-spacing: 5px;
+    color: var(--ink-dim);
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+  .intro { font-size: 14px; line-height: 1.55; margin: 0 4px 20px; }
+  .intro .victim { color: var(--red); font-weight: bold; }
+  [hidden] { display: none !important; }
+
+  /* Difficulty cards */
+  .cards { display: grid; gap: 14px; }
+  .card {
+    background: linear-gradient(180deg, var(--panel) 0%, #1f1408 100%);
+    border: 2px solid var(--frame);
+    border-radius: 10px;
+    padding: 16px;
+    box-shadow: var(--shadow), inset 0 0 0 1px rgba(224,188,98,0.06);
+    color: var(--ink);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.06s, border-color 0.15s;
+    text-decoration: none;
+    font-family: inherit;
+    text-align: left;
+    width: 100%;
+  }
+  .card:active { transform: translateY(1px); }
+  .card:hover { border-color: var(--gold-dim); }
+  .card .head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    border-bottom: 1px dashed var(--gold-dim);
+    padding-bottom: 6px;
+    margin-bottom: 8px;
+  }
+  .card h2 { margin: 0; font-size: 20px; letter-spacing: 1px; color: var(--gold); }
+  .card .tag {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gold);
+    background: rgba(224,188,98,0.12);
+    border: 1px solid var(--frame-2);
+    border-radius: 4px;
+    padding: 2px 7px;
+  }
+  .card p { margin: 0 0 8px; font-size: 13px; line-height: 1.5; color: var(--ink-dim); }
+  .card ul { margin: 0 0 10px; padding-left: 20px; font-size: 12.5px; line-height: 1.55; color: var(--ink-dim); }
+  .card .play {
+    align-self: flex-end;
+    background: linear-gradient(180deg, #e0bc62, #b88c30);
+    color: #1a1408;
+    font-weight: bold;
+    font-size: 13px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    border: 2px solid var(--gold);
+    border-radius: 8px;
+    padding: 10px 18px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.5);
+  }
+  .card .progress {
+    font-size: 11px;
+    color: var(--ink-dim);
+    margin-top: 2px;
+    letter-spacing: 0.5px;
+  }
+  .card .progress b { color: var(--gold); }
+
+  /* Levels view */
+  .levels-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  .back-btn {
+    background: var(--panel-2);
+    color: var(--ink);
+    border: 1px solid var(--frame);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-family: inherit;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .levels-title {
+    color: var(--gold);
+    font-size: 15px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    flex: 1;
+    text-align: center;
+  }
+  .levels-progress {
+    font-size: 12px;
+    color: var(--ink-dim);
+    letter-spacing: 0.5px;
+  }
+  .levels-progress b { color: var(--gold); }
+  .reset-btn {
+    background: transparent;
+    color: var(--ink-dim);
+    border: 1px solid var(--frame);
+    border-radius: 5px;
+    padding: 5px 9px;
+    font-size: 11px;
+    cursor: pointer;
+    font-family: inherit;
+    letter-spacing: 0.5px;
+  }
+  .level-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    max-width: 460px;
+    margin: 0 auto;
+  }
+  .level-tile {
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(180deg, var(--panel-2), #1f1408);
+    border: 2px solid var(--frame);
+    border-radius: 8px;
+    color: var(--ink);
+    text-decoration: none;
+    position: relative;
+    transition: transform 0.06s, border-color 0.15s;
+    line-height: 1.1;
+  }
+  .level-tile .num { font-weight: bold; font-size: 17px; }
+  .level-tile .time {
+    font-size: 11px;
+    color: var(--ink-dim);
+    margin-top: 2px;
+    font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+    letter-spacing: 0.3px;
+    font-weight: bold;
+  }
+  .level-tile.done .time { color: var(--green); }
+  .level-tile:active { transform: translateY(1px); }
+  .level-tile:hover { border-color: var(--gold-dim); }
+  .level-tile.done {
+    background: linear-gradient(180deg, #3a5a2a, #1f3a14);
+    border-color: var(--green);
+    color: var(--ink);
+  }
+  .level-tile.done::after {
+    content: '✓';
+    position: absolute;
+    top: 2px; right: 5px;
+    font-size: 11px;
+    color: var(--green);
+    font-weight: bold;
+  }
+  footer {
+    margin-top: 22px;
+    text-align: center;
+    color: var(--ink-dim);
+    font-size: 11px;
+    line-height: 1.5;
+    font-style: italic;
+  }
+
+  /* "How to Play" button on the homepage */
+  .howto-link {
+    display: block;
+    margin: 0 auto 18px;
+    background: var(--panel-2);
+    color: var(--ink);
+    border: 1px solid var(--frame);
+    border-radius: 6px;
+    padding: 9px 16px;
+    font-family: inherit;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+  }
+
+  /* ===== Tutorial modal ===== */
+  .tut-bg {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.78);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    padding: 14px;
+  }
+  .tut-bg.show { display: flex; }
+  .tut-modal {
+    background: linear-gradient(180deg, var(--panel) 0%, #1a1408 100%);
+    border: 2px solid var(--gold-dim);
+    border-radius: 12px;
+    padding: 16px 18px;
+    width: 100%;
+    max-width: 480px;
+    max-height: 92vh;
+    overflow-y: auto;
+    box-shadow: 0 0 40px rgba(0,0,0,0.8);
+  }
+  .tut-title {
+    text-align: center;
+    margin: 0 0 14px;
+    color: var(--gold);
+    font-size: 18px;
+    letter-spacing: 1.5px;
+  }
+  .tut-step { display: none; }
+  .tut-step.active { display: block; }
+  .tut-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .tut-stepnum {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: var(--gold);
+    color: #1a1408;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold; font-size: 15px; flex-shrink: 0;
+  }
+  .tut-head h3 { margin: 0; color: var(--gold); font-size: 17px; letter-spacing: 0.5px; }
+  .tut-step > p {
+    margin: 0 0 12px;
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--ink);
+  }
+  .tut-step > p b { color: var(--gold); }
+  .tut-art {
+    background: #1a1208;
+    border: 2px solid var(--frame);
+    border-radius: 8px;
+    padding: 14px;
+    margin: 8px 0 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 140px;
+    position: relative;
+    overflow: hidden;
+  }
+  .tut-caption {
+    font-size: 12px;
+    color: var(--ink-dim);
+    text-align: center;
+    font-style: italic;
+    line-height: 1.4;
+  }
+  .tut-caption b { color: var(--gold); font-style: normal; }
+
+  /* Generic icon shapes used inside the tutorial — now mostly SVG */
+  .tut-ic {
+    width: 38px; height: 38px;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.18);
+    background: linear-gradient(180deg, #2a1f10, #1a1208);
+    color: var(--gold);
+  }
+  .tut-ic > svg { width: 100%; height: 100%; display: block; }
+  .tut-ic.weapon { background: linear-gradient(180deg, #3a2c18, #1f1408); }
+  .tut-ic.room { background: rgba(0,0,0,0.55); color: var(--gold); border: 1px solid var(--gold-dim); }
+  .tut-ic.room > svg { width: 78%; height: 78%; }
+  .tut-ic.skull { background: rgba(0,0,0,0.5); color: #d8d8d8; border: 1px solid var(--frame-2); }
+  .tut-ic.skull > svg { width: 70%; height: 70%; }
+
+  /* Step 1 — 2x2 mini-grid */
+  .tut-mini-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 100%;
+    max-width: 280px;
+    margin-bottom: 10px;
+  }
+  .tut-mini-room {
+    border: 1.5px solid var(--frame);
+    border-radius: 6px;
+    padding: 6px 8px;
+    background: linear-gradient(180deg, #3a2c18, #1f1408);
+    display: flex; gap: 10px;
+    align-items: center;
+    justify-content: center;
+    min-height: 52px;
+  }
+  .tut-mini-grid.tiny .tut-mini-room { min-height: 44px; }
+  .tut-mini-room.highlight {
+    border-color: #4ee0ff;
+    animation: tut-cyan-pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes tut-cyan-pulse {
+    0%, 100% { box-shadow: 0 0 0 2px #4ee0ff, 0 0 6px rgba(78,224,255,0.45); }
+    50%      { box-shadow: 0 0 0 2px #4ee0ff, 0 0 16px rgba(78,224,255,0.95); }
+  }
+
+  /* Static cross / keep marks for any .tut-ic (used in step 3) */
+  .tut-ic.x-mark { position: relative; }
+  .tut-ic.x-mark::after {
+    content: '';
+    position: absolute; inset: 3px;
+    background:
+      linear-gradient(45deg, transparent 44%, rgba(208,74,58,0.95) 47%, rgba(208,74,58,0.95) 53%, transparent 56%),
+      linear-gradient(-45deg, transparent 44%, rgba(208,74,58,0.95) 47%, rgba(208,74,58,0.95) 53%, transparent 56%);
+    pointer-events: none;
+    z-index: 1;
+  }
+  .tut-ic.keep-mark {
+    border-color: #4ee0ff;
+    box-shadow: 0 0 0 2px #4ee0ff, 0 0 14px rgba(78,224,255,0.7);
+    animation: tut-cyan-pulse 1.8s ease-in-out infinite;
+  }
+
+  /* Step 2 — chip + tap indicator + tooltip */
+  .tut-chip-wrap { position: relative; margin-bottom: 26px; }
+  .tut-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(90deg, #2e2210, #1f1408);
+    border: 1px solid var(--gold-dim);
+    border-radius: 8px;
+    padding: 5px 9px;
+  }
+  .tut-chip .tut-ic { width: 30px; height: 30px; font-size: 11px; }
+  .tut-chip-rel { color: var(--gold); font-size: 18px; font-weight: bold; min-width: 18px; text-align: center; }
+  .tut-chip-rel.pos { color: var(--green); }
+  .tut-chip-rel.neg { color: var(--red); }
+  .tut-tap {
+    position: absolute;
+    left: 50%; top: 100%;
+    transform: translate(-50%, 6px);
+    width: 24px; height: 24px;
+    pointer-events: none;
+  }
+  .tut-tap::before {
+    content: '';
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    border: 2px solid var(--gold);
+    background: rgba(224,188,98,0.3);
+    animation: tut-tap-ring 1.6s ease-in-out infinite;
+  }
+  .tut-tap::after {
+    content: '';
+    position: absolute; inset: 7px;
+    border-radius: 50%;
+    background: var(--gold);
+  }
+  @keyframes tut-tap-ring {
+    0%, 100% { transform: scale(0.85); opacity: 0.5; }
+    50%      { transform: scale(1.3); opacity: 1; }
+  }
+  .tut-tip {
+    background: linear-gradient(180deg, var(--panel-2), var(--panel));
+    border: 2px solid var(--gold);
+    border-radius: 8px;
+    padding: 6px 12px;
+    color: var(--ink);
+    font-size: 12px;
+    text-align: center;
+    margin: 0 0 12px;
+    max-width: 300px;
+  }
+
+  /* Step 3 — elimination cycle */
+  .tut-elim-row { display: flex; gap: 12px; margin: 6px 0; }
+  .tut-elim-ic {
+    width: 48px; height: 48px;
+    position: relative;
+  }
+  .tut-elim-ic.cross-1, .tut-elim-ic.cross-2, .tut-elim-ic.cross-3 {
+    animation: tut-fade-cycle 4.5s linear infinite;
+  }
+  .tut-elim-ic.cross-1 { animation-delay: 0.3s; }
+  .tut-elim-ic.cross-2 { animation-delay: 1.4s; }
+  .tut-elim-ic.cross-3 { animation-delay: 2.5s; }
+  .tut-elim-ic.cross-1::after, .tut-elim-ic.cross-2::after, .tut-elim-ic.cross-3::after {
+    content: '';
+    position: absolute; inset: 3px;
+    background:
+      linear-gradient(45deg, transparent 44%, rgba(208,74,58,0.95) 47%, rgba(208,74,58,0.95) 53%, transparent 56%),
+      linear-gradient(-45deg, transparent 44%, rgba(208,74,58,0.95) 47%, rgba(208,74,58,0.95) 53%, transparent 56%);
+    opacity: 0;
+    animation: tut-x-cycle 4.5s linear infinite;
+  }
+  .tut-elim-ic.cross-1::after { animation-delay: 0.3s; }
+  .tut-elim-ic.cross-2::after { animation-delay: 1.4s; }
+  .tut-elim-ic.cross-3::after { animation-delay: 2.5s; }
+  @keyframes tut-x-cycle {
+    0%, 1%   { opacity: 0; transform: scale(1.6); }
+    6%       { opacity: 1; transform: scale(1); }
+    90%      { opacity: 1; transform: scale(1); }
+    100%     { opacity: 0; }
+  }
+  @keyframes tut-fade-cycle {
+    0%, 4%   { opacity: 1; }
+    8%, 95%  { opacity: 0.4; }
+    100%     { opacity: 1; }
+  }
+  .tut-elim-ic.keep {
+    border-color: #4ee0ff;
+    box-shadow: 0 0 0 2px #4ee0ff, 0 0 14px rgba(78,224,255,0.7);
+    animation: tut-cyan-pulse 1.8s ease-in-out infinite;
+  }
+
+  /* Step 4 — Accuse + confetti */
+  .tut-accuse-row {
+    position: relative;
+    display: flex; justify-content: center; align-items: center;
+    height: 110px;
+    width: 100%;
+  }
+  .tut-accuse-btn {
+    background: linear-gradient(180deg, #e0bc62, #b88c30);
+    color: #1a1408;
+    font-weight: bold;
+    letter-spacing: 2px;
+    padding: 12px 26px;
+    border-radius: 8px;
+    border: 2px solid var(--gold);
+    font-family: Georgia, serif;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.5);
+    animation: tut-btn-pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes tut-btn-pulse {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.06); }
+  }
+  .tut-confetti { position: absolute; inset: 0; pointer-events: none; }
+  .tut-confetti span {
+    position: absolute;
+    top: 0; left: 50%;
+    width: 8px; height: 12px;
+    background: var(--c);
+    border-radius: 2px;
+    animation: tut-conf-fall 2.5s linear var(--d) infinite;
+  }
+  @keyframes tut-conf-fall {
+    0%   { transform: translate(0, -10px) rotate(0deg); opacity: 0; }
+    10%  { opacity: 1; }
+    100% { transform: translate(var(--x), 110px) rotate(540deg); opacity: 0; }
+  }
+
+  /* Step 5 — Symbol legend */
+  .tut-legend { display: grid; gap: 7px; width: 100%; }
+  .tut-leg-row {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 12.5px; color: var(--ink-dim); line-height: 1.4;
+  }
+  .tut-leg-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: linear-gradient(90deg, #2e2210, #1f1408);
+    border: 1px solid var(--gold-dim);
+    border-radius: 6px;
+    padding: 3px 6px;
+    flex-shrink: 0;
+  }
+  .tut-leg-chip .tut-ic { width: 22px; height: 22px; font-size: 9px; }
+  .tut-leg-chip .tut-chip-rel { font-size: 13px; min-width: 14px; }
+
+  /* Nav */
+  .tut-nav {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 8px;
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--frame);
+  }
+  .tut-btn {
+    min-height: 42px;
+    background: linear-gradient(180deg, #4a3820, #2a2010);
+    color: var(--ink);
+    border: 2px solid var(--frame-2);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    padding: 0 14px;
+    cursor: pointer;
+  }
+  .tut-btn.primary {
+    background: linear-gradient(180deg, #e0bc62, #b88c30);
+    color: #1a1408;
+    border-color: var(--gold);
+  }
+  .tut-btn:disabled { opacity: 0.4; cursor: default; }
+  .tut-dots { display: flex; gap: 6px; }
+  .tut-dots span {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: var(--frame);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .tut-dots span.active { background: var(--gold); }
+</style>
+</head>
+<body>
+<!-- Subset of game sprites for the tutorial. Same artwork as index2.html. -->
+<svg id="tutorial-sprites" width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <radialGradient id="vignette" cx="50%" cy="40%" r="75%">
+      <stop offset="55%" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.55"/>
+    </radialGradient>
+
+    <symbol id="ic-skull" viewBox="0 0 64 64">
+      <path d="M16 30 Q16 12 32 12 Q48 12 48 30 L48 42 L44 44 L44 50 L36 50 L36 46 L32 48 L28 46 L28 50 L20 50 L20 44 L16 42 Z" fill="currentColor"/>
+      <circle cx="24" cy="32" r="4" fill="#1a1408"/>
+      <circle cx="40" cy="32" r="4" fill="#1a1408"/>
+      <path d="M28 40 L30 36 L32 40 L34 36 L36 40" stroke="#1a1408" stroke-width="1.5" fill="none" stroke-linejoin="round"/>
+      <rect x="29" y="44" width="2" height="4" fill="#1a1408"/>
+      <rect x="33" y="44" width="2" height="4" fill="#1a1408"/>
+    </symbol>
+
+    <symbol id="room-library" viewBox="0 0 64 64">
+      <g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round">
+        <rect x="10" y="18" width="6" height="28"/>
+        <rect x="18" y="20" width="6" height="26"/>
+        <rect x="26" y="16" width="6" height="30"/>
+        <rect x="34" y="22" width="6" height="24"/>
+        <path d="M42 24 L50 22 L52 46 L44 48 Z"/>
+        <line x1="6" y1="48" x2="58" y2="48"/>
+        <line x1="6" y1="52" x2="58" y2="52"/>
+      </g>
+    </symbol>
+
+    <symbol id="weap-candlestick" viewBox="0 0 64 64">
+      <path d="M32 4 Q28 10 32 18 Q36 10 32 4 Z" fill="#f4a020"/>
+      <path d="M32 8 Q30 12 32 16 Q34 12 32 8 Z" fill="#f4e040"/>
+      <rect x="31.5" y="18" width="1" height="3" fill="#1a1408"/>
+      <rect x="29" y="21" width="6" height="6" fill="#f4e6c8"/>
+      <rect x="29" y="21" width="6" height="1" fill="#ffffff"/>
+      <rect x="29" y="26" width="6" height="1" fill="#d8c0a0"/>
+      <path d="M27 27 L37 27 L36 30 L28 30 Z" fill="#b8b8b8"/>
+      <path d="M27 27 L37 27 L37 28 L27 28 Z" fill="#e8e8e8"/>
+      <rect x="31" y="30" width="2" height="14" fill="#b8b8b8"/>
+      <rect x="31" y="30" width="0.8" height="14" fill="#ffffff" opacity="0.5"/>
+      <ellipse cx="32" cy="38" rx="3" ry="2" fill="#b8b8b8"/>
+      <ellipse cx="31" cy="37.5" rx="1.2" ry="0.6" fill="#ffffff" opacity="0.6"/>
+      <path d="M22 46 L42 46 L40 56 L24 56 Z" fill="#b8b8b8"/>
+      <path d="M22 46 L42 46 L42 48 L22 48 Z" fill="#e8e8e8"/>
+      <path d="M24 54 L40 54 L40 56 L24 56 Z" fill="#7a7a7a"/>
+    </symbol>
+    <symbol id="weap-revolver" viewBox="0 0 64 64">
+      <rect x="4" y="26" width="34" height="10" fill="#5a6a72"/>
+      <rect x="4" y="26" width="34" height="2" fill="#8a9aa2"/>
+      <rect x="4" y="34" width="34" height="2" fill="#3a4a52"/>
+      <rect x="6" y="24" width="2" height="2" fill="#3a4a52"/>
+      <circle cx="44" cy="34" r="9" fill="#8a7a4a"/>
+      <circle cx="44" cy="34" r="9" fill="none" stroke="#3a2a14" stroke-width="0.8"/>
+      <circle cx="44" cy="34" r="3" fill="#3a2a14"/>
+      <circle cx="44" cy="28" r="1.2" fill="#1a1408"/>
+      <circle cx="49" cy="32" r="1.2" fill="#1a1408"/>
+      <circle cx="48" cy="38" r="1.2" fill="#1a1408"/>
+      <circle cx="40" cy="38" r="1.2" fill="#1a1408"/>
+      <circle cx="39" cy="32" r="1.2" fill="#1a1408"/>
+      <path d="M40 43 L40 58 L24 58 L22 46 L34 46 Z" fill="#5a3a1a"/>
+      <path d="M40 43 L40 58 L36 58 L36 43 Z" fill="#3a2a14"/>
+      <path d="M22 46 L24 58 L26 58 L24 46 Z" fill="#3a2a14"/>
+      <line x1="28" y1="50" x2="36" y2="50" stroke="#4a2a14" stroke-width="0.6"/>
+      <line x1="28" y1="54" x2="36" y2="54" stroke="#4a2a14" stroke-width="0.6"/>
+      <path d="M40 38 L40 45 L33 45 L33 38" fill="none" stroke="#3a4a52" stroke-width="1"/>
+    </symbol>
+    <symbol id="weap-shears" viewBox="0 0 64 64">
+      <path d="M14 14 L18 18 L34 36 L30 40 L18 22 Z" fill="#d8d8d8"/>
+      <path d="M14 14 L18 18 L34 36" stroke="#7a7a7a" stroke-width="0.6" fill="none"/>
+      <path d="M50 14 L46 18 L30 36 L34 40 L46 22 Z" fill="#d8d8d8"/>
+      <path d="M50 14 L46 18 L30 36" stroke="#7a7a7a" stroke-width="0.6" fill="none"/>
+      <circle cx="32" cy="38" r="2.5" fill="#a8741a"/>
+      <circle cx="32" cy="38" r="1" fill="#5a3a14"/>
+      <circle cx="14" cy="14" r="6" fill="#a82828"/>
+      <circle cx="14" cy="14" r="6" fill="none" stroke="#5a1a14" stroke-width="0.8"/>
+      <circle cx="14" cy="14" r="3" fill="#1a1408"/>
+      <path d="M11 10 Q13 11 15 11" stroke="#d04a4a" stroke-width="0.8" fill="none"/>
+      <circle cx="50" cy="14" r="6" fill="#a82828"/>
+      <circle cx="50" cy="14" r="6" fill="none" stroke="#5a1a14" stroke-width="0.8"/>
+      <circle cx="50" cy="14" r="3" fill="#1a1408"/>
+      <path d="M47 10 Q49 11 51 11" stroke="#d04a4a" stroke-width="0.8" fill="none"/>
+    </symbol>
+    <symbol id="weap-pipe" viewBox="0 0 64 64">
+      <rect x="4" y="28" width="56" height="10" fill="#8a8a8a"/>
+      <rect x="4" y="28" width="56" height="2" fill="#c8c8c8"/>
+      <rect x="4" y="36" width="56" height="2" fill="#4a4a4a"/>
+      <ellipse cx="4" cy="33" rx="2.5" ry="5" fill="#4a4a4a"/>
+      <ellipse cx="4" cy="33" rx="1.2" ry="3" fill="#1a1408"/>
+      <ellipse cx="60" cy="33" rx="2.5" ry="5" fill="#4a4a4a"/>
+      <ellipse cx="60" cy="33" rx="1.2" ry="3" fill="#1a1408"/>
+      <rect x="14" y="28" width="3" height="10" fill="#5a5a5a"/>
+      <rect x="14" y="28" width="3" height="1" fill="#8a8a8a"/>
+      <rect x="46" y="28" width="3" height="10" fill="#5a5a5a"/>
+      <rect x="46" y="28" width="3" height="1" fill="#8a8a8a"/>
+      <ellipse cx="32" cy="34" rx="6" ry="2" fill="#a8541a" opacity="0.45"/>
+      <ellipse cx="32" cy="33" rx="3" ry="1" fill="#c87a3a" opacity="0.4"/>
+      <rect x="4" y="33" width="56" height="0.5" fill="#ffffff" opacity="0.3"/>
+    </symbol>
+
+    <symbol id="sus-1" viewBox="0 0 64 64">
+      <rect width="64" height="64" fill="#2a4a4a"/>
+      <rect width="64" height="64" fill="url(#vignette)"/>
+      <path d="M8 64 Q32 50 56 64 Z" fill="#1a2a2a"/>
+      <rect x="29" y="40" width="6" height="8" fill="#f0d8c0"/>
+      <ellipse cx="32" cy="32" rx="11" ry="12" fill="#f0d8c0"/>
+      <path d="M18 26 Q14 6 32 4 Q50 6 46 26 Q46 30 32 26 Q18 30 18 26 Z" fill="#1a0814"/>
+      <ellipse cx="32" cy="4" rx="14" ry="4" fill="#1a0814"/>
+      <path d="M18 24 Q10 14 14 6 Q16 14 22 18" fill="#1a0814"/>
+      <path d="M46 24 Q54 14 50 6 Q48 14 42 18" fill="#1a0814"/>
+      <circle cx="27" cy="31" r="2.5" fill="#f8f0e0"/>
+      <circle cx="37" cy="31" r="2.5" fill="#f8f0e0"/>
+      <circle cx="27" cy="32" r="1.4" fill="#1a0814"/>
+      <circle cx="37" cy="32" r="1.4" fill="#1a0814"/>
+      <circle cx="27.5" cy="31" r="0.4" fill="#ffffff"/>
+      <circle cx="37.5" cy="31" r="0.4" fill="#ffffff"/>
+      <path d="M24 28 Q27 26 30 28" fill="none" stroke="#1a0814" stroke-width="0.8" stroke-linecap="round"/>
+      <path d="M34 28 Q37 26 40 28" fill="none" stroke="#1a0814" stroke-width="0.8" stroke-linecap="round"/>
+      <ellipse cx="32" cy="38" rx="1.6" ry="0.9" fill="#a82a3a"/>
+      <circle cx="24" cy="34" r="2" fill="#e8a0a0" opacity="0.5"/>
+      <circle cx="40" cy="34" r="2" fill="#e8a0a0" opacity="0.5"/>
+      <circle cx="26" cy="50" r="1" fill="#f4e9b0"/>
+      <circle cx="29" cy="52" r="1" fill="#f4e9b0"/>
+      <circle cx="32" cy="53" r="1" fill="#f4e9b0"/>
+      <circle cx="35" cy="52" r="1" fill="#f4e9b0"/>
+      <circle cx="38" cy="50" r="1" fill="#f4e9b0"/>
+      <rect x="1" y="1" width="62" height="62" fill="none" stroke="#d9b65a" stroke-width="1.2"/>
+      <circle cx="1.5" cy="1.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="62.5" cy="1.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="1.5" cy="62.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="62.5" cy="62.5" r="1.8" fill="#d9b65a"/>
+    </symbol>
+    <symbol id="sus-2" viewBox="0 0 64 64">
+      <rect width="64" height="64" fill="#4a4a1a"/>
+      <rect width="64" height="64" fill="url(#vignette)"/>
+      <path d="M8 64 Q32 50 56 64 Z" fill="#2a2a14"/>
+      <rect x="29" y="40" width="6" height="8" fill="#e0c0a0"/>
+      <ellipse cx="32" cy="32" rx="11" ry="12" fill="#e0c0a0"/>
+      <path d="M16 22 L48 22 L42 12 L22 12 Z" fill="#2a3a14"/>
+      <rect x="14" y="20" width="36" height="6" fill="#0a1a08"/>
+      <rect x="28" y="14" width="8" height="4" fill="#a8741a"/>
+      <path d="M14 26 L50 26 L48 28 L16 28 Z" fill="#0a1a08" opacity="0.8"/>
+      <circle cx="27" cy="32" r="1.6" fill="#1a0814"/>
+      <circle cx="37" cy="32" r="1.6" fill="#1a0814"/>
+      <path d="M23 29 Q27 27 31 29" fill="none" stroke="#3a2814" stroke-width="2" stroke-linecap="round"/>
+      <path d="M33 29 Q37 27 41 29" fill="none" stroke="#3a2814" stroke-width="2" stroke-linecap="round"/>
+      <path d="M22 38 Q26 36 30 38 Q32 36 34 38 Q38 36 42 38 Q40 44 32 44 Q24 44 22 38 Z" fill="#3a2814"/>
+      <circle cx="24" cy="36" r="1.8" fill="#c8806a" opacity="0.4"/>
+      <circle cx="40" cy="36" r="1.8" fill="#c8806a" opacity="0.4"/>
+      <rect x="26" y="52" width="3" height="3" fill="#a87a30"/>
+      <rect x="30" y="52" width="3" height="3" fill="#c8a040"/>
+      <rect x="34" y="52" width="3" height="3" fill="#a87a30"/>
+      <rect x="1" y="1" width="62" height="62" fill="none" stroke="#d9b65a" stroke-width="1.2"/>
+      <circle cx="1.5" cy="1.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="62.5" cy="1.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="1.5" cy="62.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="62.5" cy="62.5" r="1.8" fill="#d9b65a"/>
+    </symbol>
+    <symbol id="sus-3" viewBox="0 0 64 64">
+      <rect width="64" height="64" fill="#2a3a5a"/>
+      <rect width="64" height="64" fill="url(#vignette)"/>
+      <path d="M8 64 Q32 50 56 64 Z" fill="#1a1f3a"/>
+      <rect x="29" y="40" width="6" height="8" fill="#e8c8a8"/>
+      <path d="M22 52 L42 52 L40 56 L24 56 Z" fill="#f4e9c8"/>
+      <path d="M28 52 L36 52 L34 58 L30 58 L28 56 L30 54 Z" fill="#7a1a1a"/>
+      <ellipse cx="32" cy="30" rx="13" ry="14" fill="#e8c8a8"/>
+      <path d="M19 24 Q18 18 22 14 Q23 22 25 26" fill="#a8a8a8"/>
+      <path d="M45 24 Q46 18 42 14 Q41 22 39 26" fill="#a8a8a8"/>
+      <ellipse cx="29" cy="20" rx="4" ry="2" fill="#ffffff" opacity="0.3"/>
+      <circle cx="26" cy="32" r="4" fill="none" stroke="#1a1408" stroke-width="1.4"/>
+      <circle cx="38" cy="32" r="4" fill="none" stroke="#1a1408" stroke-width="1.4"/>
+      <line x1="30" y1="32" x2="34" y2="32" stroke="#1a1408" stroke-width="1"/>
+      <circle cx="26" cy="32" r="1.2" fill="#1a0814"/>
+      <circle cx="38" cy="32" r="1.2" fill="#1a0814"/>
+      <path d="M27 39 Q32 38 37 39 Q32 40 27 39 Z" fill="#7a7a7a"/>
+      <path d="M30 41 Q32 42 34 41" fill="none" stroke="#1a0814" stroke-width="0.8" stroke-linecap="round"/>
+      <rect x="1" y="1" width="62" height="62" fill="none" stroke="#d9b65a" stroke-width="1.2"/>
+      <circle cx="1.5" cy="1.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="62.5" cy="1.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="1.5" cy="62.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="62.5" cy="62.5" r="1.8" fill="#d9b65a"/>
+    </symbol>
+    <symbol id="sus-4" viewBox="0 0 64 64">
+      <rect width="64" height="64" fill="#5a3a4a"/>
+      <rect width="64" height="64" fill="url(#vignette)"/>
+      <path d="M8 64 Q32 50 56 64 Z" fill="#2a1820"/>
+      <rect x="29" y="40" width="6" height="8" fill="#f4d8c0"/>
+      <ellipse cx="32" cy="32" rx="11" ry="12" fill="#f4d8c0"/>
+      <path d="M19 32 Q17 18 32 14 Q47 18 45 32 L45 38 L41 32 L41 24 Q39 22 32 22 Q25 22 23 24 L23 32 L19 38 Z" fill="#3a1a14"/>
+      <ellipse cx="32" cy="13" rx="14" ry="4" fill="#7a1a1a"/>
+      <ellipse cx="32" cy="12" rx="13" ry="3.5" fill="#a82828"/>
+      <circle cx="40" cy="9" r="1.5" fill="#a82828"/>
+      <circle cx="27" cy="32" r="2.4" fill="#f8f0e0"/>
+      <circle cx="37" cy="32" r="2.4" fill="#f8f0e0"/>
+      <circle cx="27" cy="33" r="1.3" fill="#1a0814"/>
+      <circle cx="37" cy="33" r="1.3" fill="#1a0814"/>
+      <circle cx="27.5" cy="32" r="0.4" fill="#ffffff"/>
+      <circle cx="37.5" cy="32" r="0.4" fill="#ffffff"/>
+      <path d="M24 28 Q27 27 30 28" fill="none" stroke="#3a1a14" stroke-width="0.8" stroke-linecap="round"/>
+      <path d="M34 28 Q37 27 40 28" fill="none" stroke="#3a1a14" stroke-width="0.8" stroke-linecap="round"/>
+      <circle cx="25" cy="36" r="0.4" fill="#7a4a3a"/>
+      <circle cx="28" cy="37" r="0.4" fill="#7a4a3a"/>
+      <circle cx="36" cy="37" r="0.4" fill="#7a4a3a"/>
+      <circle cx="39" cy="36" r="0.4" fill="#7a4a3a"/>
+      <circle cx="32" cy="35" r="0.4" fill="#7a4a3a"/>
+      <ellipse cx="32" cy="39.5" rx="1.6" ry="0.9" fill="#a82828"/>
+      <circle cx="24" cy="35" r="2" fill="#e8a0a0" opacity="0.5"/>
+      <circle cx="40" cy="35" r="2" fill="#e8a0a0" opacity="0.5"/>
+      <rect x="1" y="1" width="62" height="62" fill="none" stroke="#d9b65a" stroke-width="1.2"/>
+      <circle cx="1.5" cy="1.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="62.5" cy="1.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="1.5" cy="62.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="62.5" cy="62.5" r="1.8" fill="#d9b65a"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="wrap">
+
+  <header>
+    <div class="banner">
+      <svg viewBox="0 0 360 64" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="305" cy="20" r="11" fill="currentColor" opacity="0.7"/>
+        <circle cx="300" cy="16" r="9" fill="#1a1408"/>
+        <path d="M22 56 L22 34 L44 34 L44 22 L66 22 L66 8 L110 8 L110 22 L142 22 L142 16 L186 16 L186 22 L222 22 L222 8 L268 8 L268 22 L290 22 L290 34 L312 34 L312 56 Z" fill="currentColor"/>
+        <rect x="76" y="24" width="6" height="10" fill="#e0bc62" opacity="0.6"/>
+        <rect x="94" y="24" width="6" height="10" fill="#e0bc62" opacity="0.6"/>
+        <rect x="160" y="24" width="6" height="8" fill="#e0bc62" opacity="0.4"/>
+        <rect x="232" y="24" width="6" height="10" fill="#e0bc62" opacity="0.6"/>
+        <rect x="246" y="24" width="6" height="10" fill="#e0bc62" opacity="0.6"/>
+      </svg>
+    </div>
+    <h1>INSPECTOR PARKER</h1>
+    <div class="sub">— Logic Mysteries —</div>
+  </header>
+
+  <!-- Difficulty selector -->
+  <div id="viewDiff">
+    <p class="intro">A guest of the manor has been <span class="victim">murdered</span>. Read the picture clues, cross out the impossibilities, and unmask the killer. Fifty cases per difficulty — every player gets the same level <i>N</i>.</p>
+    <button class="howto-link" id="btnHowTo" type="button">❓ How to Play</button>
+    <div class="cards">
+      <button class="card" id="btnEasy" type="button">
+        <div class="head">
+          <h2>Easy</h2>
+          <span class="tag">2 × 2 manor</span>
+        </div>
+        <p>4 rooms, 4 suspects, 4 weapons. Every candidate visible in every room from the start. A handful of clues per case.</p>
+        <ul>
+          <li>Quick to solve</li>
+          <li>~8 clues per case</li>
+        </ul>
+        <div class="progress" id="progEasy"></div>
+        <span class="play">Play Easy</span>
+      </button>
+      <button class="card" id="btnHard" type="button">
+        <div class="head">
+          <h2>Hard</h2>
+          <span class="tag">3 × 3 manor</span>
+        </div>
+        <p>9 rooms, 9 suspects, 9 weapons. Some candidates are pre-eliminated per room (shown as dark slots). More clues, deeper chains.</p>
+        <ul>
+          <li>Roomier puzzle space</li>
+          <li>~14 clues per case</li>
+        </ul>
+        <div class="progress" id="progHard"></div>
+        <span class="play">Play Hard</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Level grid (50 tiles) -->
+  <div id="viewLevels" hidden>
+    <div class="levels-bar">
+      <button class="back-btn" id="btnBack" type="button">← Difficulty</button>
+      <div class="levels-title" id="lvlTitle">Easy</div>
+      <button class="reset-btn" id="btnResetProgress" type="button" title="Clear all completion marks for this difficulty">Reset progress</button>
+    </div>
+    <div class="levels-bar" style="margin-top:-6px;">
+      <div></div>
+      <div class="levels-progress" id="lvlProgress"></div>
+      <div></div>
+    </div>
+    <div class="level-grid" id="levelGrid"></div>
+  </div>
+
+  <!-- Tutorial modal: 5 steps + symbol legend, animated illustrations -->
+  <div class="tut-bg" id="modalTutorial">
+    <div class="tut-modal">
+      <div class="tut-title">How to Play</div>
+
+      <div class="tut-step active" data-step="1">
+        <div class="tut-head"><span class="tut-stepnum">1</span><h3>One per room</h3></div>
+        <p>The manor is a grid of rooms (2 × 2 on Easy, 3 × 3 on Hard). <b>Each room holds exactly one suspect and one weapon</b>, and every suspect and weapon is in one and only one room. Find who's where with what.</p>
+        <div class="tut-art">
+          <div class="tut-mini-grid">
+            <div class="tut-mini-room"><div class="tut-ic"><svg><use href="#sus-1"/></svg></div><div class="tut-ic weapon"><svg><use href="#weap-shears"/></svg></div></div>
+            <div class="tut-mini-room"><div class="tut-ic"><svg><use href="#sus-2"/></svg></div><div class="tut-ic weapon"><svg><use href="#weap-revolver"/></svg></div></div>
+            <div class="tut-mini-room"><div class="tut-ic"><svg><use href="#sus-3"/></svg></div><div class="tut-ic weapon"><svg><use href="#weap-candlestick"/></svg></div></div>
+            <div class="tut-mini-room"><div class="tut-ic"><svg><use href="#sus-4"/></svg></div><div class="tut-ic weapon"><svg><use href="#weap-pipe"/></svg></div></div>
+          </div>
+          <div class="tut-caption">Each cell has <b>one suspect</b> + <b>one weapon</b>. Always.</div>
+        </div>
+      </div>
+
+      <div class="tut-step" data-step="2">
+        <div class="tut-head"><span class="tut-stepnum">2</span><h3>Tap the picture clues</h3></div>
+        <p>Picture clues live under the manor. <b>Tap a clue chip</b> to read what it means in plain English and to make every place those items appear glow on the map.</p>
+        <div class="tut-art">
+          <div class="tut-chip-wrap">
+            <div class="tut-chip">
+              <div class="tut-ic"><svg><use href="#sus-1"/></svg></div>
+              <span class="tut-chip-rel">↓</span>
+              <div class="tut-ic weapon"><svg><use href="#weap-shears"/></svg></div>
+            </div>
+            <div class="tut-tap"></div>
+          </div>
+          <div class="tut-tip">Lady Ashcroft's room is directly above (one row up, same column as) the room with the Garden Shears.</div>
+          <div class="tut-mini-grid tiny">
+            <div class="tut-mini-room highlight"><div class="tut-ic"><svg><use href="#sus-1"/></svg></div></div>
+            <div class="tut-mini-room highlight"><div class="tut-ic"><svg><use href="#sus-1"/></svg></div></div>
+            <div class="tut-mini-room highlight"><div class="tut-ic weapon"><svg><use href="#weap-shears"/></svg></div></div>
+            <div class="tut-mini-room"></div>
+          </div>
+          <div class="tut-caption">Tap a chip → tooltip + cyan glow on every room that holds a referenced item.</div>
+        </div>
+      </div>
+
+      <div class="tut-step" data-step="3">
+        <div class="tut-head"><span class="tut-stepnum">3</span><h3>Cross out impossibilities</h3></div>
+        <p>Now use the clue. The Garden Shears is only in the bottom-left room, so Lady Ashcroft can't be in the top-right (no shears below her there). <b>Tap her there to cross her out</b> — the one still glowing is the answer.</p>
+        <div class="tut-art">
+          <div class="tut-mini-grid tiny">
+            <div class="tut-mini-room"><div class="tut-ic keep-mark"><svg><use href="#sus-1"/></svg></div></div>
+            <div class="tut-mini-room"><div class="tut-ic x-mark"><svg><use href="#sus-1"/></svg></div></div>
+            <div class="tut-mini-room"><div class="tut-ic weapon"><svg><use href="#weap-shears"/></svg></div></div>
+            <div class="tut-mini-room"></div>
+          </div>
+          <div class="tut-caption">Cross out the impossible candidates · the one still glowing is the answer for that room.</div>
+        </div>
+      </div>
+
+      <div class="tut-step" data-step="4">
+        <div class="tut-head"><span class="tut-stepnum">4</span><h3>Accuse the killer</h3></div>
+        <p>When you've narrowed it down, tap <b>Accuse</b>, pick the crime scene, the killer, and the weapon. Get all three right and the manor erupts in confetti and applause — and your solve time is saved as your best.</p>
+        <div class="tut-art">
+          <div class="tut-accuse-row">
+            <div class="tut-accuse-btn">ACCUSE</div>
+            <div class="tut-confetti">
+              <span style="--c:#e0bc62; --x:-40px; --d:0s"></span>
+              <span style="--c:#c04a3a; --x:-15px; --d:0.15s"></span>
+              <span style="--c:#6ba858; --x:15px;  --d:0.3s"></span>
+              <span style="--c:#4a82b8; --x:40px;  --d:0.45s"></span>
+              <span style="--c:#a82a5a; --x:0;     --d:0.6s"></span>
+              <span style="--c:#f4e040; --x:-25px; --d:0.75s"></span>
+              <span style="--c:#f48a30; --x:25px;  --d:0.9s"></span>
+            </div>
+          </div>
+          <div class="tut-caption">Three right answers → confetti + applause + best-time saved.</div>
+        </div>
+      </div>
+
+      <div class="tut-nav">
+        <button class="tut-btn" id="tutPrev" type="button">← Back</button>
+        <div class="tut-dots">
+          <span class="active" data-step="1"></span>
+          <span data-step="2"></span>
+          <span data-step="3"></span>
+          <span data-step="4"></span>
+        </div>
+        <button class="tut-btn primary" id="tutNext" type="button">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>Single-file, plays offline. Progress saved in your browser. <span id="version">v2</span></footer>
+
+</div>
+
+<script>
+(function () {
+  'use strict';
+  const NUM_LEVELS = 50;
+  const KEY = diff => 'parker-completed-' + diff;
+
+  function readCompleted(diff) {
+    try { return JSON.parse(localStorage.getItem(KEY(diff)) || '{}') || {}; }
+    catch (e) { return {}; }
+  }
+  function writeCompleted(diff, obj) {
+    try { localStorage.setItem(KEY(diff), JSON.stringify(obj)); } catch (e) {}
+  }
+  function countCompleted(diff) {
+    const c = readCompleted(diff);
+    let n = 0;
+    // A solved level may be stored as `true` (legacy) or a number of
+    // seconds (best time). Anything that isn't undefined/null/false counts.
+    for (let i = 1; i <= NUM_LEVELS; i++) {
+      const v = c[i];
+      if (v !== undefined && v !== null && v !== false) n++;
+    }
+    return n;
+  }
+  function refreshDiffProgress() {
+    const e = countCompleted('easy'), h = countCompleted('hard');
+    document.getElementById('progEasy').innerHTML = 'Progress: <b>' + e + '</b> / ' + NUM_LEVELS + ' solved';
+    document.getElementById('progHard').innerHTML = 'Progress: <b>' + h + '</b> / ' + NUM_LEVELS + ' solved';
+  }
+
+  function showDiff() {
+    document.getElementById('viewDiff').hidden = false;
+    document.getElementById('viewLevels').hidden = true;
+    if (location.hash) location.hash = '';
+    refreshDiffProgress();
+  }
+  function showLevels(diff) {
+    document.getElementById('viewDiff').hidden = true;
+    document.getElementById('viewLevels').hidden = false;
+    document.getElementById('lvlTitle').textContent = (diff === 'easy' ? 'Easy — 2 × 2 manor' : 'Hard — 3 × 3 manor');
+    location.hash = diff;
+    renderLevelGrid(diff);
+  }
+  function fmtTime(s) {
+    if (typeof s !== 'number' || s < 0) return '';
+    const m = Math.floor(s / 60), sec = s % 60;
+    return m + ':' + (sec < 10 ? '0' : '') + sec;
+  }
+  function renderLevelGrid(diff) {
+    const completed = readCompleted(diff);
+    const grid = document.getElementById('levelGrid');
+    grid.innerHTML = '';
+    let count = 0;
+    for (let i = 1; i <= NUM_LEVELS; i++) {
+      const tile = document.createElement('a');
+      const val = completed[i];
+      const done = val !== undefined && val !== null && val !== false;
+      tile.className = 'level-tile' + (done ? ' done' : '');
+      tile.href = 'index2.html?d=' + diff + '&n=' + i;
+      // Number on top, best time underneath when known.
+      const time = (typeof val === 'number') ? fmtTime(val) : '';
+      tile.innerHTML =
+        '<span class="num">' + i + '</span>' +
+        (time ? '<span class="time">' + time + '</span>' : '');
+      grid.appendChild(tile);
+      if (done) count++;
+    }
+    document.getElementById('lvlProgress').innerHTML = '<b>' + count + '</b> / ' + NUM_LEVELS + ' solved';
+    document.getElementById('btnResetProgress').dataset.diff = diff;
+  }
+
+  document.getElementById('btnEasy').addEventListener('click', () => showLevels('easy'));
+  document.getElementById('btnHard').addEventListener('click', () => showLevels('hard'));
+  document.getElementById('btnBack').addEventListener('click', showDiff);
+  document.getElementById('btnResetProgress').addEventListener('click', (e) => {
+    const diff = e.currentTarget.dataset.diff;
+    if (!diff) return;
+    if (confirm('Reset all completion marks for ' + (diff === 'easy' ? 'Easy' : 'Hard') + '?')) {
+      writeCompleted(diff, {});
+      renderLevelGrid(diff);
+    }
+  });
+
+  // Honour hash on load (e.g. returning from a level via "Back to levels")
+  if (location.hash === '#easy') showLevels('easy');
+  else if (location.hash === '#hard') showLevels('hard');
+  else refreshDiffProgress();
+
+  // ===== Tutorial wiring =====
+  const NUM_STEPS = 4;
+  let tutStep = 1;
+  function tutSet(n) {
+    tutStep = Math.max(1, Math.min(NUM_STEPS, n));
+    document.querySelectorAll('.tut-step').forEach(s => s.classList.toggle('active', +s.dataset.step === tutStep));
+    document.querySelectorAll('.tut-dots span').forEach(d => d.classList.toggle('active', +d.dataset.step === tutStep));
+    document.getElementById('tutPrev').disabled = tutStep === 1;
+    document.getElementById('tutNext').textContent = tutStep === NUM_STEPS ? "Let's play!" : 'Next →';
+    document.querySelector('.tut-modal').scrollTop = 0;
+  }
+  function tutOpen()  { tutSet(1); document.getElementById('modalTutorial').classList.add('show'); }
+  function tutClose() {
+    document.getElementById('modalTutorial').classList.remove('show');
+    try { localStorage.setItem('parker-tutorial-seen', '1'); } catch (e) {}
+  }
+  document.getElementById('tutPrev').addEventListener('click', () => tutSet(tutStep - 1));
+  document.getElementById('tutNext').addEventListener('click', () => {
+    if (tutStep === NUM_STEPS) tutClose();
+    else tutSet(tutStep + 1);
+  });
+  document.querySelectorAll('.tut-dots span').forEach(d =>
+    d.addEventListener('click', () => tutSet(+d.dataset.step))
+  );
+  document.getElementById('modalTutorial').addEventListener('click', e => {
+    if (e.target.id === 'modalTutorial') tutClose();
+  });
+  document.getElementById('btnHowTo').addEventListener('click', tutOpen);
+  // First-visit auto-open
+  if (!localStorage.getItem('parker-tutorial-seen')) tutOpen();
+})();
+</script>
+</body>
+</html>

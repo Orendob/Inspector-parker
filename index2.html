@@ -1,0 +1,3335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#1a1408">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Inspector Parker — MVP</title>
+<style>
+  :root {
+    --bg: #1a1408;
+    --bg-2: #241a0c;
+    --panel: #2a2010;
+    --panel-2: #3a2c18;
+    --frame: #6b4a22;
+    --frame-2: #8a6532;
+    --ink: #f1e6c8;
+    --ink-dim: #b8a880;
+    --gold: #e0bc62;
+    --gold-dim: #a6863a;
+    --red: #d04a3a;
+    --green: #6ba858;
+    --blue: #4a82b8;
+    --shadow: 0 6px 22px rgba(0,0,0,0.6);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Georgia', 'Times New Roman', serif;
+    min-height: 100vh;
+    overscroll-behavior: none;
+  }
+  body {
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    background:
+      radial-gradient(ellipse at top, #2c2010 0%, #1a1408 60%),
+      var(--bg);
+  }
+  #app {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 12px 12px 210px;
+  }
+  header {
+    text-align: center;
+    padding: 6px 0 12px;
+    border-bottom: 2px solid var(--frame);
+    margin-bottom: 12px;
+    position: relative;
+  }
+  header .banner {
+    height: 56px;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  header .banner svg { height: 56px; width: 100%; max-width: 320px; color: var(--frame-2); }
+  header h1 {
+    margin: 0;
+    font-size: 24px;
+    letter-spacing: 2px;
+    color: var(--gold);
+    text-shadow: 0 1px 0 #000, 0 0 12px rgba(224,188,98,0.3);
+  }
+  header .sub {
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--ink-dim);
+    text-transform: uppercase;
+    margin-top: 3px;
+  }
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: var(--ink-dim);
+    margin-top: 8px;
+    gap: 8px;
+  }
+  .topbar .score b { color: var(--gold); }
+  .topbar .timer {
+    color: var(--gold);
+    font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    font-variant-numeric: tabular-nums;
+    background: rgba(0,0,0,0.35);
+    border: 1px solid var(--frame);
+    border-radius: 5px;
+    padding: 3px 7px;
+    white-space: nowrap;
+  }
+  .iconbtn {
+    background: var(--panel);
+    border: 1px solid var(--frame);
+    color: var(--ink);
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+  }
+  .iconbtn svg { width: 18px; height: 18px; }
+
+  .panel {
+    background: linear-gradient(180deg, var(--panel) 0%, var(--bg-2) 100%);
+    border: 2px solid var(--frame);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 12px;
+    box-shadow: var(--shadow), inset 0 0 0 1px rgba(224,188,98,0.08);
+  }
+  .panel h2 {
+    margin: 0 0 10px;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 2.5px;
+    color: var(--gold);
+    border-bottom: 1px dashed var(--gold-dim);
+    padding-bottom: 6px;
+    text-align: center;
+  }
+  .panel h2 .panel-hint {
+    display: inline-block;
+    margin-left: 8px;
+    font-size: 10.5px;
+    font-weight: normal;
+    font-style: italic;
+    text-transform: none;
+    letter-spacing: 0.4px;
+    color: var(--gold-dim);
+  }
+
+  /* Case briefing */
+  .briefing {
+    display: grid;
+    grid-template-columns: 72px 1fr;
+    gap: 12px;
+    align-items: center;
+  }
+  .briefing .victim-frame {
+    width: 72px; height: 72px;
+    border: 3px solid var(--frame-2);
+    border-radius: 50%;
+    background: var(--bg);
+    box-shadow: inset 0 0 0 2px rgba(0,0,0,0.4), 0 0 12px rgba(0,0,0,0.5);
+    overflow: hidden;
+    position: relative;
+  }
+  .briefing .victim-frame svg { width: 100%; height: 100%; display: block; }
+  .briefing .text { font-size: 13px; line-height: 1.45; }
+  .briefing .text .victim { color: var(--red); font-weight: bold; }
+
+  /* 2x2 Manor Grid with multi-option cells (horizontally scrollable on phones) */
+  .manor {
+    border: 3px solid var(--frame-2);
+    border-radius: 6px;
+    background: #1a1208;
+    padding: 6px;
+    box-shadow: inset 0 0 16px rgba(0,0,0,0.6);
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+    position: relative;
+  }
+  /* Right-edge fade hints at scrollable content off-screen */
+  .manor-wrap { position: relative; }
+  .manor-wrap::after {
+    content: '';
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    width: 28px;
+    background: linear-gradient(to left, var(--bg-2) 0%, transparent 100%);
+    pointer-events: none;
+    border-radius: 0 6px 6px 0;
+  }
+  /* Cell layout depends on difficulty (body class). Hard = 3x3 dense,
+     Easy = 2x2 roomy. Mini-icon inner grid size and header sizes
+     scale to match. */
+  .grid {
+    display: grid;
+    gap: 6px;
+    width: max-content;
+  }
+  body.mode-hard .grid { grid-template-columns: repeat(3, 122px); }
+  body.mode-easy .grid { grid-template-columns: repeat(2, 240px); gap: 8px; }
+  .cell {
+    position: relative;
+    background: linear-gradient(180deg, #3a2c18 0%, #1f1408 100%);
+    border: 2px solid var(--frame);
+    border-radius: 6px;
+    padding: 6px;
+  }
+  body.mode-hard .cell { width: 122px; min-height: 240px; }
+  body.mode-easy .cell { width: 240px; min-height: 220px; padding: 8px; }
+  .cell .room-header {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 5px;
+    border-bottom: 1px dashed rgba(224,188,98,0.3);
+    padding-bottom: 4px;
+  }
+  body.mode-easy .cell .room-header { gap: 8px; margin-bottom: 8px; padding-bottom: 6px; }
+  .cell .room-header .room-thumb {
+    color: var(--gold);
+    background: rgba(0,0,0,0.5);
+    border: 1px solid var(--gold-dim);
+    border-radius: 4px;
+    padding: 2px;
+    flex-shrink: 0;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.3);
+  }
+  body.mode-hard .cell .room-header .room-thumb { width: 30px; height: 30px; }
+  body.mode-easy .cell .room-header .room-thumb { width: 48px; height: 48px; padding: 3px; border-radius: 5px; }
+  .cell .room-header .room-thumb svg { width: 100%; height: 100%; display: block; }
+  .cell .room-header .room-name {
+    letter-spacing: 0.2px;
+    color: var(--gold);
+    font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  body.mode-hard .cell .room-header .room-name { font-size: 11px; }
+  body.mode-easy .cell .room-header .room-name { font-size: 17px; letter-spacing: 0.3px; }
+  .mini-row {
+    display: grid;
+    gap: 3px;
+    margin-bottom: 4px;
+    position: relative;
+  }
+  body.mode-hard .mini-row { grid-template-columns: repeat(3, 1fr); }
+  body.mode-easy .mini-row { grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 6px; }
+  .mini-row .row-tag {
+    grid-column: 1 / -1;
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-bottom: 2px;
+  }
+  .mini-icon {
+    aspect-ratio: 1 / 1;
+    border: 1.5px solid var(--frame);
+    border-radius: 5px;
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+    background: var(--bg);
+    transition: transform 0.06s;
+  }
+  .mini-icon:active { transform: scale(0.92); }
+  .mini-icon svg { width: 100%; height: 100%; display: block; }
+  .mini-icon.weapon { color: var(--gold); padding: 2px; background: rgba(0,0,0,0.5); }
+  .mini-icon.crossed { opacity: 0.32; }
+  /* Hidden slot — the item is known to not be in this room from the
+     start. Shown as a dark empty cell. Not interactive. */
+  .mini-icon.hidden {
+    background: #0a0408;
+    border-color: rgba(0,0,0,0.6);
+    box-shadow: inset 0 0 6px rgba(0,0,0,0.85);
+    cursor: default;
+  }
+  .mini-icon.hidden svg { display: none; }
+  .mini-icon.hidden:active { transform: none; }
+  .mini-icon.crossed::after {
+    content: '';
+    position: absolute; inset: 2px;
+    background:
+      linear-gradient(45deg, transparent 44%, rgba(208,74,58,0.95) 47%, rgba(208,74,58,0.95) 53%, transparent 56%),
+      linear-gradient(-45deg, transparent 44%, rgba(208,74,58,0.95) 47%, rgba(208,74,58,0.95) 53%, transparent 56%);
+    pointer-events: none;
+  }
+  /* Highlight all instances of items referred to by an open clue tooltip.
+     Solid cyan border with a gentle glow that breathes in and out. */
+  .mini-icon.highlight {
+    border-color: #4ee0ff;
+    animation: neonPulseMini 2.4s ease-in-out infinite;
+    z-index: 5;
+  }
+  .mini-icon.highlight.crossed { opacity: 0.55; }
+  .cell.highlight {
+    border-color: #4ee0ff;
+    animation: neonPulseCell 2.4s ease-in-out infinite;
+  }
+  @keyframes neonPulseMini {
+    0%, 100% { box-shadow: 0 0 0 2px #4ee0ff, 0 0 4px 1px rgba(78,224,255,0.55); }
+    50%      { box-shadow: 0 0 0 2px #4ee0ff, 0 0 14px 4px rgba(78,224,255,1); }
+  }
+  @keyframes neonPulseCell {
+    0%, 100% { box-shadow: 0 0 0 2px #4ee0ff, 0 0 6px 1px rgba(78,224,255,0.45); }
+    50%      { box-shadow: 0 0 0 2px #4ee0ff, 0 0 20px 5px rgba(78,224,255,0.95); }
+  }
+  .hint {
+    font-size: 11px;
+    color: var(--ink-dim);
+    text-align: center;
+    margin-top: 8px;
+    font-style: italic;
+  }
+
+  /* Pictographic clue chips */
+  .clue-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    list-style: none;
+    padding: 0; margin: 0;
+    counter-reset: clue;
+  }
+  .clue-list li {
+    counter-increment: clue;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: linear-gradient(90deg, #2e2210, #1f1408);
+    border: 1px solid var(--gold-dim);
+    border-radius: 8px;
+    padding: 4px 8px 4px 4px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+    position: relative;
+  }
+  .clue-list li::before {
+    content: counter(clue);
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--gold);
+    color: #1a1408;
+    font-size: 11px;
+    font-weight: bold;
+    font-family: sans-serif;
+    text-align: center;
+    line-height: 18px;
+    margin-right: 2px;
+    flex-shrink: 0;
+  }
+  .chip-icon {
+    width: 34px; height: 34px;
+    border-radius: 5px;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 1px solid var(--frame);
+    background: var(--bg);
+  }
+  .chip-icon svg { width: 100%; height: 100%; display: block; }
+  .chip-icon.room, .chip-icon.weapon, .chip-icon.skull {
+    color: var(--gold);
+    padding: 2px;
+    background: rgba(0,0,0,0.4);
+  }
+  .chip-icon.skull { color: #d8d8d8; }
+  .chip-rel {
+    font-size: 18px;
+    font-weight: bold;
+    color: var(--gold);
+    min-width: 18px;
+    text-align: center;
+    font-family: sans-serif;
+    line-height: 1;
+  }
+  .chip-rel.pos { color: var(--green); }
+  .chip-rel.neg { color: var(--red); }
+
+  /* Floating clue tooltip — cyan border matches the on-map highlight */
+  .clue-tooltip {
+    position: fixed;
+    left: 12px; right: 12px;
+    bottom: calc(80px + env(safe-area-inset-bottom));
+    max-width: 560px;
+    margin: 0 auto;
+    background: linear-gradient(180deg, var(--panel-2) 0%, var(--panel) 100%);
+    border: 2px solid #4ee0ff;
+    border-radius: 10px;
+    padding: 12px 14px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.7), 0 0 14px rgba(78,224,255,0.45);
+    z-index: 50;
+    display: none;
+    color: var(--ink);
+    font-size: 14px;
+    line-height: 1.45;
+    text-align: center;
+  }
+  .clue-tooltip.show { display: block; animation: tipIn 0.16s ease-out; }
+  .clue-tooltip::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%) rotate(45deg);
+    width: 12px; height: 12px;
+    background: var(--panel);
+    border-right: 2px solid #4ee0ff;
+    border-bottom: 2px solid #4ee0ff;
+  }
+  .clue-tooltip .tip-close {
+    font-size: 11px;
+    color: var(--ink-dim);
+    margin-top: 4px;
+    font-style: italic;
+  }
+  .clue-list li { cursor: pointer; }
+  .clue-list li.active { box-shadow: 0 0 0 2px var(--gold), 0 1px 4px rgba(0,0,0,0.4); }
+  @keyframes tipIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Action bar */
+  .actions {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+    background: linear-gradient(to top, var(--bg) 75%, rgba(26,20,8,0));
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    max-width: 600px;
+    margin: 0 auto;
+    z-index: 10;
+  }
+  button {
+    flex: 1;
+    min-height: 54px;
+    border: 2px solid var(--frame-2);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: bold;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+  }
+  button:active { transform: translateY(1px); }
+  .btn-primary {
+    background: linear-gradient(180deg, #e0bc62, #b88c30);
+    color: #1a1408;
+    border-color: var(--gold);
+  }
+  .btn-secondary {
+    background: linear-gradient(180deg, #4a3820, #2a2010);
+    color: var(--ink);
+  }
+
+  /* Modal */
+  .modal-bg {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.78);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 16px;
+  }
+  .modal-bg.show { display: flex; }
+
+  /* Confetti shower on a correct accusation. Spawned in JS, removed
+     after the animation completes. */
+  .confetti-container {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 200;
+    overflow: hidden;
+  }
+  .confetti-piece {
+    position: absolute;
+    top: -24px;
+    width: 9px;
+    height: 14px;
+    --rot: 0deg;
+    --drift: 0px;
+    --dur: 3s;
+    --delay: 0s;
+    animation: confetti-fall var(--dur) ease-in var(--delay) forwards;
+    box-shadow: 0 0 4px rgba(0,0,0,0.4);
+  }
+  .confetti-piece.circle { border-radius: 50%; width: 10px; height: 10px; }
+  .confetti-piece.thin { width: 4px; height: 16px; }
+  @keyframes confetti-fall {
+    0%   { transform: translate3d(0, -30px, 0) rotate(var(--rot)); opacity: 1; }
+    100% { transform: translate3d(var(--drift), 110vh, 0) rotate(calc(var(--rot) + 720deg)); opacity: 0.5; }
+  }
+  .modal {
+    background: linear-gradient(180deg, var(--panel) 0%, var(--bg-2) 100%);
+    border: 2px solid var(--gold-dim);
+    border-radius: 12px;
+    padding: 18px;
+    width: 100%;
+    max-width: 460px;
+    max-height: 92vh;
+    overflow-y: auto;
+    box-shadow: 0 0 40px rgba(0,0,0,0.8);
+  }
+  .modal h2 {
+    margin: 0 0 12px;
+    color: var(--gold);
+    font-size: 18px;
+    letter-spacing: 1.5px;
+    text-align: center;
+  }
+  .modal label {
+    display: block;
+    margin: 14px 0 6px;
+    font-size: 11px;
+    color: var(--ink-dim);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+  .picker {
+    display: grid;
+    gap: 6px;
+  }
+  body.mode-hard .picker { grid-template-columns: repeat(3, 1fr); }
+  body.mode-easy .picker { grid-template-columns: repeat(2, 1fr); }
+  .picker .opt {
+    border: 1.5px solid var(--frame);
+    background: var(--bg-2);
+    color: var(--ink);
+    border-radius: 6px;
+    padding: 6px 3px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    font-size: 10px;
+    line-height: 1.1;
+    min-height: 70px;
+  }
+  .picker .opt .opt-art {
+    width: 38px; height: 38px;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gold);
+  }
+  .picker .opt .opt-art svg { width: 100%; height: 100%; }
+  .picker .opt.selected {
+    background: var(--gold);
+    color: #1a1408;
+    border-color: var(--gold);
+    box-shadow: 0 0 10px rgba(224,188,98,0.6);
+  }
+  .picker .opt.selected .opt-art { color: #1a1408; }
+  .modal .row {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+  }
+  .verdict {
+    text-align: center;
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 14px;
+    font-size: 14px;
+    line-height: 1.45;
+  }
+  .verdict.win { background: rgba(107,168,88,0.18); color: var(--green); border: 1px solid var(--green); }
+  .verdict.lose { background: rgba(208,74,58,0.18); color: var(--red); border: 1px solid var(--red); }
+  .verdict-art {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin: 10px 0;
+    flex-wrap: wrap;
+  }
+  .verdict-art .pic {
+    width: 64px;
+    text-align: center;
+    font-size: 10px;
+    color: var(--ink-dim);
+  }
+  .verdict-art .pic .frame {
+    width: 64px; height: 64px;
+    border: 2px solid var(--frame-2);
+    border-radius: 6px;
+    background: var(--bg);
+    margin-bottom: 4px;
+    overflow: hidden;
+    color: var(--gold);
+  }
+  .verdict-art .pic .frame.circle { border-radius: 50%; }
+  .verdict-art .pic .frame svg { width: 100%; height: 100%; }
+  .verdict-art .pic .label { font-size: 10px; color: var(--ink); }
+  .truth { font-size: 12px; color: var(--ink-dim); margin-top: 6px; }
+  .truth b { color: var(--ink); }
+  .solve-time {
+    font-size: 13px;
+    color: var(--gold);
+    margin-top: 6px;
+    text-align: center;
+    letter-spacing: 0.3px;
+  }
+  .solve-time b {
+    font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+    font-size: 15px;
+    color: var(--gold);
+  }
+  /* Once the player has submitted, collapse the picker section so the
+     verdict + the Cancel/Next-Level buttons fit on screen without
+     scrolling. (The portraits in the verdict already say who/what/where.) */
+  #modalAccuse.verdict-shown .modal > h2,
+  #modalAccuse.verdict-shown .modal > label,
+  #modalAccuse.verdict-shown .modal > .picker { display: none; }
+  #modalAccuse.verdict-shown .modal .row { margin-top: 14px; }
+  #modalAccuse.verdict-shown .verdict { margin-top: 0; }
+  #modalAccuse.verdict-shown .verdict-art { gap: 10px; margin: 8px 0; }
+  #modalAccuse.verdict-shown .verdict-art .pic { width: 56px; }
+  #modalAccuse.verdict-shown .verdict-art .pic .frame { width: 56px; height: 56px; }
+
+  .help-text { font-size: 13px; line-height: 1.5; color: var(--ink); }
+  .help-text ul { padding-left: 20px; }
+  .help-text li { margin-bottom: 6px; }
+  .help-text .legend {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 6px 0;
+  }
+  .help-text .legend .swatch {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: linear-gradient(90deg, #2e2210, #1f1408);
+    border: 1px solid var(--gold-dim);
+    border-radius: 6px;
+    padding: 3px 6px;
+  }
+  .help-text .legend .swatch .chip-icon { width: 24px; height: 24px; }
+
+  /* ===== Tutorial modal (same content as on the homepage) ===== */
+  .tut-bg {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.78);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    padding: 14px;
+  }
+  .tut-bg.show { display: flex; }
+  .tut-modal {
+    background: linear-gradient(180deg, var(--panel) 0%, #1a1408 100%);
+    border: 2px solid var(--gold-dim);
+    border-radius: 12px;
+    padding: 16px 18px;
+    width: 100%;
+    max-width: 480px;
+    max-height: 92vh;
+    overflow-y: auto;
+    box-shadow: 0 0 40px rgba(0,0,0,0.8);
+  }
+  .tut-title {
+    text-align: center;
+    margin: 0 0 14px;
+    color: var(--gold);
+    font-size: 18px;
+    letter-spacing: 1.5px;
+  }
+  .tut-step { display: none; }
+  .tut-step.active { display: block; }
+  .tut-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .tut-stepnum {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: var(--gold);
+    color: #1a1408;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold; font-size: 15px; flex-shrink: 0;
+  }
+  .tut-head h3 { margin: 0; color: var(--gold); font-size: 17px; letter-spacing: 0.5px; }
+  .tut-step > p {
+    margin: 0 0 12px;
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--ink);
+  }
+  .tut-step > p b { color: var(--gold); }
+  .tut-art {
+    background: #1a1208;
+    border: 2px solid var(--frame);
+    border-radius: 8px;
+    padding: 14px;
+    margin: 8px 0 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 140px;
+    position: relative;
+    overflow: hidden;
+  }
+  .tut-caption {
+    font-size: 12px;
+    color: var(--ink-dim);
+    text-align: center;
+    font-style: italic;
+    line-height: 1.4;
+  }
+  .tut-caption b { color: var(--gold); font-style: normal; }
+  .tut-ic {
+    width: 38px; height: 38px;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.18);
+    background: linear-gradient(180deg, #2a1f10, #1a1208);
+    color: var(--gold);
+  }
+  .tut-ic > svg { width: 100%; height: 100%; display: block; }
+  .tut-ic.weapon { background: linear-gradient(180deg, #3a2c18, #1f1408); }
+  .tut-ic.room { background: rgba(0,0,0,0.55); color: var(--gold); border: 1px solid var(--gold-dim); }
+  .tut-ic.room > svg { width: 78%; height: 78%; }
+  .tut-ic.skull { background: rgba(0,0,0,0.5); color: #d8d8d8; border: 1px solid var(--frame-2); }
+  .tut-ic.skull > svg { width: 70%; height: 70%; }
+  .tut-mini-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 100%;
+    max-width: 280px;
+    margin-bottom: 10px;
+  }
+  .tut-mini-room {
+    border: 1.5px solid var(--frame);
+    border-radius: 6px;
+    padding: 6px 8px;
+    background: linear-gradient(180deg, #3a2c18, #1f1408);
+    display: flex; gap: 10px;
+    align-items: center;
+    justify-content: center;
+    min-height: 52px;
+  }
+  .tut-mini-grid.tiny .tut-mini-room { min-height: 44px; }
+  .tut-mini-room.highlight {
+    border-color: #4ee0ff;
+    animation: tut-cyan-pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes tut-cyan-pulse {
+    0%, 100% { box-shadow: 0 0 0 2px #4ee0ff, 0 0 6px rgba(78,224,255,0.45); }
+    50%      { box-shadow: 0 0 0 2px #4ee0ff, 0 0 16px rgba(78,224,255,0.95); }
+  }
+
+  /* Static cross / keep marks for any .tut-ic (used in step 3) */
+  .tut-ic.x-mark { position: relative; }
+  .tut-ic.x-mark::after {
+    content: '';
+    position: absolute; inset: 3px;
+    background:
+      linear-gradient(45deg, transparent 44%, rgba(208,74,58,0.95) 47%, rgba(208,74,58,0.95) 53%, transparent 56%),
+      linear-gradient(-45deg, transparent 44%, rgba(208,74,58,0.95) 47%, rgba(208,74,58,0.95) 53%, transparent 56%);
+    pointer-events: none;
+    z-index: 1;
+  }
+  .tut-ic.keep-mark {
+    border-color: #4ee0ff;
+    box-shadow: 0 0 0 2px #4ee0ff, 0 0 14px rgba(78,224,255,0.7);
+    animation: tut-cyan-pulse 1.8s ease-in-out infinite;
+  }
+  .tut-chip-wrap { position: relative; margin-bottom: 26px; }
+  .tut-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: linear-gradient(90deg, #2e2210, #1f1408);
+    border: 1px solid var(--gold-dim);
+    border-radius: 8px;
+    padding: 5px 9px;
+  }
+  .tut-chip .tut-ic { width: 30px; height: 30px; font-size: 11px; }
+  .tut-chip-rel { color: var(--gold); font-size: 18px; font-weight: bold; min-width: 18px; text-align: center; }
+  .tut-chip-rel.pos { color: var(--green); }
+  .tut-chip-rel.neg { color: var(--red); }
+  .tut-tap {
+    position: absolute;
+    left: 50%; top: 100%;
+    transform: translate(-50%, 6px);
+    width: 24px; height: 24px;
+    pointer-events: none;
+  }
+  .tut-tap::before {
+    content: '';
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    border: 2px solid var(--gold);
+    background: rgba(224,188,98,0.3);
+    animation: tut-tap-ring 1.6s ease-in-out infinite;
+  }
+  .tut-tap::after {
+    content: '';
+    position: absolute; inset: 7px;
+    border-radius: 50%;
+    background: var(--gold);
+  }
+  @keyframes tut-tap-ring {
+    0%, 100% { transform: scale(0.85); opacity: 0.5; }
+    50%      { transform: scale(1.3); opacity: 1; }
+  }
+  .tut-tip {
+    background: linear-gradient(180deg, var(--panel-2), var(--panel));
+    border: 2px solid var(--gold);
+    border-radius: 8px;
+    padding: 6px 12px;
+    color: var(--ink);
+    font-size: 12px;
+    text-align: center;
+    margin: 0 0 12px;
+    max-width: 300px;
+  }
+  .tut-elim-row { display: flex; gap: 12px; margin: 6px 0; }
+  .tut-elim-ic { width: 48px; height: 48px; position: relative; }
+  .tut-elim-ic.cross-1, .tut-elim-ic.cross-2, .tut-elim-ic.cross-3 {
+    animation: tut-fade-cycle 4.5s linear infinite;
+  }
+  .tut-elim-ic.cross-1 { animation-delay: 0.3s; }
+  .tut-elim-ic.cross-2 { animation-delay: 1.4s; }
+  .tut-elim-ic.cross-3 { animation-delay: 2.5s; }
+  .tut-elim-ic.cross-1::after, .tut-elim-ic.cross-2::after, .tut-elim-ic.cross-3::after {
+    content: '';
+    position: absolute; inset: 3px;
+    background:
+      linear-gradient(45deg, transparent 44%, rgba(208,74,58,0.95) 47%, rgba(208,74,58,0.95) 53%, transparent 56%),
+      linear-gradient(-45deg, transparent 44%, rgba(208,74,58,0.95) 47%, rgba(208,74,58,0.95) 53%, transparent 56%);
+    opacity: 0;
+    animation: tut-x-cycle 4.5s linear infinite;
+  }
+  .tut-elim-ic.cross-1::after { animation-delay: 0.3s; }
+  .tut-elim-ic.cross-2::after { animation-delay: 1.4s; }
+  .tut-elim-ic.cross-3::after { animation-delay: 2.5s; }
+  @keyframes tut-x-cycle {
+    0%, 1%   { opacity: 0; transform: scale(1.6); }
+    6%       { opacity: 1; transform: scale(1); }
+    90%      { opacity: 1; transform: scale(1); }
+    100%     { opacity: 0; }
+  }
+  @keyframes tut-fade-cycle {
+    0%, 4%   { opacity: 1; }
+    8%, 95%  { opacity: 0.4; }
+    100%     { opacity: 1; }
+  }
+  .tut-elim-ic.keep {
+    border-color: #4ee0ff;
+    box-shadow: 0 0 0 2px #4ee0ff, 0 0 14px rgba(78,224,255,0.7);
+    animation: tut-cyan-pulse 1.8s ease-in-out infinite;
+  }
+  .tut-accuse-row {
+    position: relative;
+    display: flex; justify-content: center; align-items: center;
+    height: 110px; width: 100%;
+  }
+  .tut-accuse-btn {
+    background: linear-gradient(180deg, #e0bc62, #b88c30);
+    color: #1a1408;
+    font-weight: bold; letter-spacing: 2px;
+    padding: 12px 26px;
+    border-radius: 8px;
+    border: 2px solid var(--gold);
+    font-family: Georgia, serif;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.5);
+    animation: tut-btn-pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes tut-btn-pulse {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.06); }
+  }
+  .tut-confetti { position: absolute; inset: 0; pointer-events: none; }
+  .tut-confetti span {
+    position: absolute;
+    top: 0; left: 50%;
+    width: 8px; height: 12px;
+    background: var(--c);
+    border-radius: 2px;
+    animation: tut-conf-fall 2.5s linear var(--d) infinite;
+  }
+  @keyframes tut-conf-fall {
+    0%   { transform: translate(0, -10px) rotate(0deg); opacity: 0; }
+    10%  { opacity: 1; }
+    100% { transform: translate(var(--x), 110px) rotate(540deg); opacity: 0; }
+  }
+  .tut-legend { display: grid; gap: 7px; width: 100%; }
+  .tut-leg-row {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 12.5px; color: var(--ink-dim); line-height: 1.4;
+  }
+  .tut-leg-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: linear-gradient(90deg, #2e2210, #1f1408);
+    border: 1px solid var(--gold-dim);
+    border-radius: 6px;
+    padding: 3px 6px;
+    flex-shrink: 0;
+  }
+  .tut-leg-chip .tut-ic { width: 22px; height: 22px; font-size: 9px; }
+  .tut-leg-chip .tut-chip-rel { font-size: 13px; min-width: 14px; }
+  .tut-nav {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 8px;
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--frame);
+  }
+  .tut-btn {
+    min-height: 42px;
+    background: linear-gradient(180deg, #4a3820, #2a2010);
+    color: var(--ink);
+    border: 2px solid var(--frame-2);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    padding: 0 14px;
+    cursor: pointer;
+  }
+  .tut-btn.primary {
+    background: linear-gradient(180deg, #e0bc62, #b88c30);
+    color: #1a1408;
+    border-color: var(--gold);
+  }
+  .tut-btn:disabled { opacity: 0.4; cursor: default; }
+  .tut-dots { display: flex; gap: 6px; }
+  .tut-dots span {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: var(--frame);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .tut-dots span.active { background: var(--gold); }
+
+  @media (max-width: 360px) {
+    .cell { min-height: 124px; }
+    .cell .room-header .room-name { font-size: 10px; }
+    header h1 { font-size: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- SVG sprite definitions: all original line/silhouette art -->
+<svg id="sprites" width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- Shared overlay gradient: soft vignette darkening at frame edges -->
+    <radialGradient id="vignette" cx="50%" cy="40%" r="75%">
+      <stop offset="55%" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.55"/>
+    </radialGradient>
+
+    <!-- Banner: manor silhouette with moon -->
+    <symbol id="banner" viewBox="0 0 320 56">
+      <circle cx="270" cy="18" r="10" fill="currentColor" opacity="0.7"/>
+      <circle cx="266" cy="14" r="8" fill="#1a1408"/>
+      <path d="M20 50 L20 30 L40 30 L40 20 L60 20 L60 8 L100 8 L100 20 L130 20 L130 14 L170 14 L170 20 L200 20 L200 8 L240 8 L240 20 L260 20 L260 30 L280 30 L280 50 Z"
+            fill="currentColor"/>
+      <rect x="68" y="22" width="6" height="8" fill="#e0bc62" opacity="0.6"/>
+      <rect x="84" y="22" width="6" height="8" fill="#e0bc62" opacity="0.6"/>
+      <rect x="148" y="22" width="6" height="6" fill="#e0bc62" opacity="0.4"/>
+      <rect x="210" y="22" width="6" height="8" fill="#e0bc62" opacity="0.6"/>
+      <rect x="224" y="22" width="6" height="8" fill="#e0bc62" opacity="0.6"/>
+    </symbol>
+
+    <symbol id="ic-sound" viewBox="0 0 24 24">
+      <path d="M4 9v6h4l5 4V5L8 9H4z M16 8c1.5 1.5 1.5 6.5 0 8 M19 5c3 3 3 11 0 14"
+            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-mute" viewBox="0 0 24 24">
+      <path d="M4 9v6h4l5 4V5L8 9H4z M15 9l6 6 M21 9l-6 6"
+            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-help" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/>
+      <path d="M9 9c0-2 1.5-3 3-3s3 1 3 3-3 2-3 4 M12 17v.5"
+            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </symbol>
+
+    <!-- Skull (murder marker) -->
+    <symbol id="ic-skull" viewBox="0 0 64 64">
+      <path d="M16 30 Q16 12 32 12 Q48 12 48 30 L48 42 L44 44 L44 50 L36 50 L36 46 L32 48 L28 46 L28 50 L20 50 L20 44 L16 42 Z" fill="currentColor"/>
+      <circle cx="24" cy="32" r="4" fill="#1a1408"/>
+      <circle cx="40" cy="32" r="4" fill="#1a1408"/>
+      <path d="M28 40 L30 36 L32 40 L34 36 L36 40" stroke="#1a1408" stroke-width="1.5" fill="none" stroke-linejoin="round"/>
+      <rect x="29" y="44" width="2" height="4" fill="#1a1408"/>
+      <rect x="33" y="44" width="2" height="4" fill="#1a1408"/>
+    </symbol>
+
+    <!-- ROOMS -->
+    <symbol id="room-library" viewBox="0 0 64 64">
+      <g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round">
+        <rect x="10" y="18" width="6" height="28"/>
+        <rect x="18" y="20" width="6" height="26"/>
+        <rect x="26" y="16" width="6" height="30"/>
+        <rect x="34" y="22" width="6" height="24"/>
+        <path d="M42 24 L50 22 L52 46 L44 48 Z"/>
+        <line x1="6" y1="48" x2="58" y2="48"/>
+        <line x1="6" y1="52" x2="58" y2="52"/>
+      </g>
+    </symbol>
+    <symbol id="room-conservatory" viewBox="0 0 64 64">
+      <g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M22 46 L42 46 L40 56 L24 56 Z"/>
+        <path d="M32 46 L32 30"/>
+        <path d="M32 38 Q22 36 18 22 Q26 26 32 36"/>
+        <path d="M32 38 Q42 36 46 22 Q38 26 32 36"/>
+        <path d="M32 30 Q26 24 24 14 Q30 18 32 28"/>
+      </g>
+    </symbol>
+    <symbol id="room-study" viewBox="0 0 64 64">
+      <g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round">
+        <rect x="8" y="38" width="48" height="6"/>
+        <line x1="12" y1="44" x2="12" y2="56"/>
+        <line x1="52" y1="44" x2="52" y2="56"/>
+        <rect x="38" y="20" width="14" height="6"/>
+        <path d="M34 14 L52 14 L46 20 L40 20 Z"/>
+        <line x1="44" y1="26" x2="44" y2="38"/>
+        <rect x="14" y="32" width="14" height="6"/>
+      </g>
+    </symbol>
+    <symbol id="room-billiard" viewBox="0 0 64 64">
+      <g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+        <circle cx="20" cy="44" r="8"/>
+        <line x1="28" y1="36" x2="58" y2="8"/>
+        <circle cx="20" cy="44" r="3"/>
+        <line x1="6" y1="56" x2="58" y2="56"/>
+      </g>
+    </symbol>
+    <symbol id="room-drawing" viewBox="0 0 64 64">
+      <g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round">
+        <rect x="12" y="16" width="40" height="22"/>
+        <rect x="8" y="20" width="6" height="22"/>
+        <rect x="50" y="20" width="6" height="22"/>
+        <rect x="10" y="38" width="44" height="10"/>
+        <line x1="14" y1="48" x2="14" y2="56"/>
+        <line x1="50" y1="48" x2="50" y2="56"/>
+      </g>
+    </symbol>
+    <symbol id="room-kitchen" viewBox="0 0 64 64">
+      <g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M16 30 L48 30 L46 44 L18 44 Z"/>
+        <line x1="14" y1="30" x2="50" y2="30"/>
+        <line x1="12" y1="32" x2="16" y2="32"/>
+        <line x1="48" y1="32" x2="52" y2="32"/>
+        <path d="M24 14 Q22 18 26 22 M32 12 Q30 16 34 20 M40 14 Q38 18 42 22"/>
+        <rect x="10" y="44" width="44" height="10"/>
+      </g>
+    </symbol>
+    <symbol id="room-cellar" viewBox="0 0 64 64">
+      <g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round">
+        <path d="M28 12 L36 12 L36 22 L40 26 L40 52 L24 52 L24 26 L28 22 Z"/>
+        <rect x="26" y="30" width="12" height="12"/>
+        <line x1="26" y1="36" x2="38" y2="36"/>
+        <circle cx="48" cy="18" r="4"/>
+      </g>
+    </symbol>
+    <symbol id="room-observatory" viewBox="0 0 64 64">
+      <g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M20 50 L32 30 L44 50"/>
+        <line x1="32" y1="30" x2="32" y2="40"/>
+        <path d="M38 18 L52 32 L48 36 L34 22 Z"/>
+        <line x1="38" y1="18" x2="34" y2="14"/>
+        <line x1="52" y1="32" x2="56" y2="28"/>
+        <circle cx="12" cy="14" r="1.2" fill="currentColor"/>
+        <circle cx="22" cy="10" r="1.2" fill="currentColor"/>
+        <circle cx="16" cy="22" r="1" fill="currentColor"/>
+      </g>
+    </symbol>
+    <symbol id="room-ballroom" viewBox="0 0 64 64">
+      <g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+        <line x1="32" y1="6" x2="32" y2="14"/>
+        <circle cx="32" cy="20" r="5"/>
+        <path d="M18 26 L32 20 L46 26"/>
+        <line x1="18" y1="26" x2="18" y2="38"/>
+        <line x1="26" y1="28" x2="26" y2="38"/>
+        <line x1="38" y1="28" x2="38" y2="38"/>
+        <line x1="46" y1="26" x2="46" y2="38"/>
+        <line x1="14" y1="38" x2="22" y2="38"/>
+        <line x1="22" y1="38" x2="30" y2="38"/>
+        <line x1="34" y1="38" x2="42" y2="38"/>
+        <line x1="42" y1="38" x2="50" y2="38"/>
+      </g>
+    </symbol>
+
+    <!-- WEAPONS — colored, shaded illustrations -->
+    <symbol id="weap-candlestick" viewBox="0 0 64 64">
+      <path d="M32 4 Q28 10 32 18 Q36 10 32 4 Z" fill="#f4a020"/>
+      <path d="M32 8 Q30 12 32 16 Q34 12 32 8 Z" fill="#f4e040"/>
+      <rect x="31.5" y="18" width="1" height="3" fill="#1a1408"/>
+      <rect x="29" y="21" width="6" height="6" fill="#f4e6c8"/>
+      <rect x="29" y="21" width="6" height="1" fill="#ffffff"/>
+      <rect x="29" y="26" width="6" height="1" fill="#d8c0a0"/>
+      <path d="M27 27 L37 27 L36 30 L28 30 Z" fill="#b8b8b8"/>
+      <path d="M27 27 L37 27 L37 28 L27 28 Z" fill="#e8e8e8"/>
+      <rect x="31" y="30" width="2" height="14" fill="#b8b8b8"/>
+      <rect x="31" y="30" width="0.8" height="14" fill="#ffffff" opacity="0.5"/>
+      <ellipse cx="32" cy="38" rx="3" ry="2" fill="#b8b8b8"/>
+      <ellipse cx="31" cy="37.5" rx="1.2" ry="0.6" fill="#ffffff" opacity="0.6"/>
+      <path d="M22 46 L42 46 L40 56 L24 56 Z" fill="#b8b8b8"/>
+      <path d="M22 46 L42 46 L42 48 L22 48 Z" fill="#e8e8e8"/>
+      <path d="M24 54 L40 54 L40 56 L24 56 Z" fill="#7a7a7a"/>
+    </symbol>
+    <symbol id="weap-revolver" viewBox="0 0 64 64">
+      <rect x="4" y="26" width="34" height="10" fill="#5a6a72"/>
+      <rect x="4" y="26" width="34" height="2" fill="#8a9aa2"/>
+      <rect x="4" y="34" width="34" height="2" fill="#3a4a52"/>
+      <rect x="6" y="24" width="2" height="2" fill="#3a4a52"/>
+      <circle cx="44" cy="34" r="9" fill="#8a7a4a"/>
+      <circle cx="44" cy="34" r="9" fill="none" stroke="#3a2a14" stroke-width="0.8"/>
+      <circle cx="44" cy="34" r="3" fill="#3a2a14"/>
+      <circle cx="44" cy="28" r="1.2" fill="#1a1408"/>
+      <circle cx="49" cy="32" r="1.2" fill="#1a1408"/>
+      <circle cx="48" cy="38" r="1.2" fill="#1a1408"/>
+      <circle cx="40" cy="38" r="1.2" fill="#1a1408"/>
+      <circle cx="39" cy="32" r="1.2" fill="#1a1408"/>
+      <path d="M40 43 L40 58 L24 58 L22 46 L34 46 Z" fill="#5a3a1a"/>
+      <path d="M40 43 L40 58 L36 58 L36 43 Z" fill="#3a2a14"/>
+      <path d="M22 46 L24 58 L26 58 L24 46 Z" fill="#3a2a14"/>
+      <line x1="28" y1="50" x2="36" y2="50" stroke="#4a2a14" stroke-width="0.6"/>
+      <line x1="28" y1="54" x2="36" y2="54" stroke="#4a2a14" stroke-width="0.6"/>
+      <path d="M40 38 L40 45 L33 45 L33 38" fill="none" stroke="#3a4a52" stroke-width="1"/>
+    </symbol>
+    <symbol id="weap-shears" viewBox="0 0 64 64">
+      <path d="M14 14 L18 18 L34 36 L30 40 L18 22 Z" fill="#d8d8d8"/>
+      <path d="M14 14 L18 18 L34 36" stroke="#7a7a7a" stroke-width="0.6" fill="none"/>
+      <path d="M50 14 L46 18 L30 36 L34 40 L46 22 Z" fill="#d8d8d8"/>
+      <path d="M50 14 L46 18 L30 36" stroke="#7a7a7a" stroke-width="0.6" fill="none"/>
+      <circle cx="32" cy="38" r="2.5" fill="#a8741a"/>
+      <circle cx="32" cy="38" r="1" fill="#5a3a14"/>
+      <circle cx="14" cy="14" r="6" fill="#a82828"/>
+      <circle cx="14" cy="14" r="6" fill="none" stroke="#5a1a14" stroke-width="0.8"/>
+      <circle cx="14" cy="14" r="3" fill="#1a1408"/>
+      <path d="M11 10 Q13 11 15 11" stroke="#d04a4a" stroke-width="0.8" fill="none"/>
+      <circle cx="50" cy="14" r="6" fill="#a82828"/>
+      <circle cx="50" cy="14" r="6" fill="none" stroke="#5a1a14" stroke-width="0.8"/>
+      <circle cx="50" cy="14" r="3" fill="#1a1408"/>
+      <path d="M47 10 Q49 11 51 11" stroke="#d04a4a" stroke-width="0.8" fill="none"/>
+    </symbol>
+    <symbol id="weap-decanter" viewBox="0 0 64 64">
+      <rect x="28" y="4" width="8" height="6" fill="#a8741a"/>
+      <rect x="28" y="4" width="8" height="1" fill="#c8945a"/>
+      <rect x="28" y="9" width="8" height="1" fill="#7a4a14"/>
+      <path d="M28 10 L36 10 L36 18 L34 22 L30 22 L28 18 Z" fill="#a8d8e0" opacity="0.7"/>
+      <path d="M22 22 L42 22 L42 56 L22 56 Z" fill="#a8d8e0" opacity="0.4"/>
+      <path d="M22 32 L42 32 L42 56 L22 56 Z" fill="#c08a30" opacity="0.85"/>
+      <rect x="22" y="32" width="20" height="1" fill="#f4d090" opacity="0.7"/>
+      <rect x="26" y="38" width="12" height="10" fill="#f4e9c8"/>
+      <rect x="26" y="38" width="12" height="1.5" fill="#a82a14"/>
+      <line x1="28" y1="43" x2="36" y2="43" stroke="#5a3a14" stroke-width="0.4"/>
+      <line x1="28" y1="45" x2="36" y2="45" stroke="#5a3a14" stroke-width="0.4"/>
+      <rect x="24" y="24" width="1.5" height="30" fill="#ffffff" opacity="0.4"/>
+      <rect x="40" y="24" width="0.8" height="20" fill="#ffffff" opacity="0.25"/>
+      <path d="M28 10 L36 10 L36 18 L34 22 L42 22 L42 56 L22 56 L22 22 L30 22 L28 18 Z" fill="none" stroke="#5a7a82" stroke-width="0.6"/>
+    </symbol>
+    <symbol id="weap-pipe" viewBox="0 0 64 64">
+      <rect x="4" y="28" width="56" height="10" fill="#8a8a8a"/>
+      <rect x="4" y="28" width="56" height="2" fill="#c8c8c8"/>
+      <rect x="4" y="36" width="56" height="2" fill="#4a4a4a"/>
+      <ellipse cx="4" cy="33" rx="2.5" ry="5" fill="#4a4a4a"/>
+      <ellipse cx="4" cy="33" rx="1.2" ry="3" fill="#1a1408"/>
+      <ellipse cx="60" cy="33" rx="2.5" ry="5" fill="#4a4a4a"/>
+      <ellipse cx="60" cy="33" rx="1.2" ry="3" fill="#1a1408"/>
+      <rect x="14" y="28" width="3" height="10" fill="#5a5a5a"/>
+      <rect x="14" y="28" width="3" height="1" fill="#8a8a8a"/>
+      <rect x="46" y="28" width="3" height="10" fill="#5a5a5a"/>
+      <rect x="46" y="28" width="3" height="1" fill="#8a8a8a"/>
+      <ellipse cx="32" cy="34" rx="6" ry="2" fill="#a8541a" opacity="0.45"/>
+      <ellipse cx="32" cy="33" rx="3" ry="1" fill="#c87a3a" opacity="0.4"/>
+      <rect x="4" y="33" width="56" height="0.5" fill="#ffffff" opacity="0.3"/>
+    </symbol>
+    <symbol id="weap-tea" viewBox="0 0 64 64">
+      <path d="M20 24 Q18 28 22 32" fill="none" stroke="#7aa87a" stroke-width="1.6" stroke-linecap="round" opacity="0.75"/>
+      <path d="M30 18 Q28 22 32 26" fill="none" stroke="#7aa87a" stroke-width="1.6" stroke-linecap="round" opacity="0.75"/>
+      <path d="M40 22 Q38 26 42 30" fill="none" stroke="#7aa87a" stroke-width="1.6" stroke-linecap="round" opacity="0.75"/>
+      <ellipse cx="32" cy="56" rx="24" ry="3.5" fill="#e8e8e8"/>
+      <ellipse cx="32" cy="56" rx="24" ry="3.5" fill="#8a8a8a" opacity="0.4"/>
+      <ellipse cx="32" cy="55" rx="22" ry="1.5" fill="#f8f8f8"/>
+      <path d="M16 32 L48 32 L46 52 L18 52 Z" fill="#f4f4f4"/>
+      <path d="M16 32 L20 32 L20 52 L18 52 Z" fill="#1a1408" opacity="0.1"/>
+      <rect x="16" y="32" width="32" height="2" fill="#2a4a8a"/>
+      <rect x="16" y="34" width="32" height="0.5" fill="#5a7aba"/>
+      <rect x="18" y="34.5" width="28" height="2" fill="#3a1a08"/>
+      <circle cx="24" cy="44" r="1.4" fill="#2a4a8a"/>
+      <circle cx="32" cy="46" r="1.4" fill="#2a4a8a"/>
+      <circle cx="40" cy="44" r="1.4" fill="#2a4a8a"/>
+      <path d="M48 36 Q56 36 56 42 Q56 48 48 48" fill="none" stroke="#f4f4f4" stroke-width="3"/>
+      <path d="M48 36 Q56 36 56 42 Q56 48 48 48" fill="none" stroke="#8a8a8a" stroke-width="0.8" opacity="0.4"/>
+    </symbol>
+    <symbol id="weap-opener" viewBox="0 0 64 64">
+      <path d="M32 4 L34 12 L34 38 L32 42 L30 38 L30 12 Z" fill="#d8d8d8"/>
+      <path d="M32 4 L34 12 L34 38 L32 42 Z" fill="#a8a8a8"/>
+      <path d="M30 12 L30.8 12 L30.8 38 L30 38 Z" fill="#ffffff"/>
+      <rect x="25" y="38" width="14" height="4" fill="#a8741a"/>
+      <rect x="25" y="38" width="14" height="1" fill="#c8945a"/>
+      <rect x="25" y="41" width="14" height="1" fill="#7a4a14"/>
+      <rect x="29" y="42" width="6" height="14" fill="#5a3a14"/>
+      <rect x="29" y="42" width="1.5" height="14" fill="#7a5a30"/>
+      <rect x="33.5" y="42" width="1.5" height="14" fill="#3a2010"/>
+      <line x1="29" y1="46" x2="35" y2="46" stroke="#3a2010" stroke-width="0.3"/>
+      <line x1="29" y1="50" x2="35" y2="50" stroke="#3a2010" stroke-width="0.3"/>
+      <circle cx="32" cy="58" r="3" fill="#a82828"/>
+      <circle cx="32" cy="58" r="3" fill="none" stroke="#c8a040" stroke-width="0.8"/>
+      <circle cx="31" cy="57" r="1" fill="#f8a0a0"/>
+    </symbol>
+    <symbol id="weap-rope" viewBox="0 0 64 64">
+      <rect x="6" y="56" width="14" height="3" fill="#5a3a14"/>
+      <rect x="6" y="56" width="14" height="1" fill="#7a5a30"/>
+      <rect x="11" y="18" width="3" height="38" fill="#a8741a"/>
+      <rect x="11" y="18" width="1" height="38" fill="#c8945a"/>
+      <rect x="13" y="18" width="1" height="38" fill="#7a4a14"/>
+      <circle cx="12.5" cy="14" r="5" fill="#c8a040"/>
+      <circle cx="12.5" cy="14" r="5" fill="none" stroke="#7a5a14" stroke-width="0.5"/>
+      <ellipse cx="11" cy="12" rx="1.5" ry="1" fill="#f8d870"/>
+      <rect x="44" y="56" width="14" height="3" fill="#5a3a14"/>
+      <rect x="44" y="56" width="14" height="1" fill="#7a5a30"/>
+      <rect x="50" y="18" width="3" height="38" fill="#a8741a"/>
+      <rect x="50" y="18" width="1" height="38" fill="#c8945a"/>
+      <rect x="52" y="18" width="1" height="38" fill="#7a4a14"/>
+      <circle cx="51.5" cy="14" r="5" fill="#c8a040"/>
+      <circle cx="51.5" cy="14" r="5" fill="none" stroke="#7a5a14" stroke-width="0.5"/>
+      <ellipse cx="50" cy="12" rx="1.5" ry="1" fill="#f8d870"/>
+      <path d="M12 20 Q32 42 52 20" fill="none" stroke="#7a1a1a" stroke-width="5" stroke-linecap="round"/>
+      <path d="M12 20 Q32 40 52 20" fill="none" stroke="#a82a2a" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M14 22 Q32 36 50 22" fill="none" stroke="#d04a4a" stroke-width="0.8" stroke-linecap="round" opacity="0.7"/>
+    </symbol>
+    <symbol id="weap-wrench" viewBox="0 0 64 64">
+      <path d="M10 12 L18 6 L26 12 L26 22 L10 22 Z" fill="#c8c8c8"/>
+      <path d="M10 12 L18 6 L26 12 Z" fill="#a8a8a8"/>
+      <path d="M11 14 L18 8 L25 14" fill="none" stroke="#ffffff" stroke-width="0.8" opacity="0.6"/>
+      <rect x="14" y="14" width="8" height="8" fill="#5a5a5a"/>
+      <rect x="14" y="16" width="8" height="0.5" fill="#3a3a3a"/>
+      <rect x="14" y="19" width="8" height="0.5" fill="#3a3a3a"/>
+      <path d="M22 22 L26 22 L40 38 L36 42 Z" fill="#c8c8c8"/>
+      <path d="M22 22 L23 22 L37 40" fill="none" stroke="#ffffff" stroke-width="0.5" opacity="0.5"/>
+      <path d="M54 52 L46 58 L38 52 L38 42 L54 42 Z" fill="#c8c8c8"/>
+      <path d="M54 52 L46 58 L38 52 Z" fill="#a8a8a8"/>
+      <rect x="42" y="42" width="8" height="8" fill="#5a5a5a"/>
+      <rect x="42" y="44" width="8" height="0.5" fill="#3a3a3a"/>
+      <rect x="42" y="48" width="8" height="0.5" fill="#3a3a3a"/>
+      <circle cx="40" cy="38" r="1.5" fill="#3a3a3a"/>
+    </symbol>
+
+    <!-- SUSPECTS — whimsical gothic, each on own background, gold-framed -->
+    <symbol id="sus-1" viewBox="0 0 64 64">
+      <rect width="64" height="64" fill="#2a4a4a"/>
+      <rect width="64" height="64" fill="url(#vignette)"/>
+      <path d="M8 64 Q32 50 56 64 Z" fill="#1a2a2a"/>
+      <rect x="29" y="40" width="6" height="8" fill="#f0d8c0"/>
+      <ellipse cx="32" cy="32" rx="11" ry="12" fill="#f0d8c0"/>
+      <path d="M18 26 Q14 6 32 4 Q50 6 46 26 Q46 30 32 26 Q18 30 18 26 Z" fill="#1a0814"/>
+      <ellipse cx="32" cy="4" rx="14" ry="4" fill="#1a0814"/>
+      <path d="M18 24 Q10 14 14 6 Q16 14 22 18" fill="#1a0814"/>
+      <path d="M46 24 Q54 14 50 6 Q48 14 42 18" fill="#1a0814"/>
+      <circle cx="27" cy="31" r="2.5" fill="#f8f0e0"/>
+      <circle cx="37" cy="31" r="2.5" fill="#f8f0e0"/>
+      <circle cx="27" cy="32" r="1.4" fill="#1a0814"/>
+      <circle cx="37" cy="32" r="1.4" fill="#1a0814"/>
+      <circle cx="27.5" cy="31" r="0.4" fill="#ffffff"/>
+      <circle cx="37.5" cy="31" r="0.4" fill="#ffffff"/>
+      <path d="M24 28 Q27 26 30 28" fill="none" stroke="#1a0814" stroke-width="0.8" stroke-linecap="round"/>
+      <path d="M34 28 Q37 26 40 28" fill="none" stroke="#1a0814" stroke-width="0.8" stroke-linecap="round"/>
+      <ellipse cx="32" cy="38" rx="1.6" ry="0.9" fill="#a82a3a"/>
+      <circle cx="24" cy="34" r="2" fill="#e8a0a0" opacity="0.5"/>
+      <circle cx="40" cy="34" r="2" fill="#e8a0a0" opacity="0.5"/>
+      <circle cx="26" cy="50" r="1" fill="#f4e9b0"/>
+      <circle cx="29" cy="52" r="1" fill="#f4e9b0"/>
+      <circle cx="32" cy="53" r="1" fill="#f4e9b0"/>
+      <circle cx="35" cy="52" r="1" fill="#f4e9b0"/>
+      <circle cx="38" cy="50" r="1" fill="#f4e9b0"/>
+      <rect x="1" y="1" width="62" height="62" fill="none" stroke="#d9b65a" stroke-width="1.2"/>
+      <circle cx="1.5" cy="1.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="62.5" cy="1.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="1.5" cy="62.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="62.5" cy="62.5" r="1.8" fill="#d9b65a"/>
+    </symbol>
+    <symbol id="sus-2" viewBox="0 0 64 64">
+      <rect width="64" height="64" fill="#4a4a1a"/>
+      <rect width="64" height="64" fill="url(#vignette)"/>
+      <path d="M8 64 Q32 50 56 64 Z" fill="#2a2a14"/>
+      <rect x="29" y="40" width="6" height="8" fill="#e0c0a0"/>
+      <ellipse cx="32" cy="32" rx="11" ry="12" fill="#e0c0a0"/>
+      <path d="M16 22 L48 22 L42 12 L22 12 Z" fill="#2a3a14"/>
+      <rect x="14" y="20" width="36" height="6" fill="#0a1a08"/>
+      <rect x="28" y="14" width="8" height="4" fill="#a8741a"/>
+      <path d="M14 26 L50 26 L48 28 L16 28 Z" fill="#0a1a08" opacity="0.8"/>
+      <circle cx="27" cy="32" r="1.6" fill="#1a0814"/>
+      <circle cx="37" cy="32" r="1.6" fill="#1a0814"/>
+      <path d="M23 29 Q27 27 31 29" fill="none" stroke="#3a2814" stroke-width="2" stroke-linecap="round"/>
+      <path d="M33 29 Q37 27 41 29" fill="none" stroke="#3a2814" stroke-width="2" stroke-linecap="round"/>
+      <path d="M22 38 Q26 36 30 38 Q32 36 34 38 Q38 36 42 38 Q40 44 32 44 Q24 44 22 38 Z" fill="#3a2814"/>
+      <circle cx="24" cy="36" r="1.8" fill="#c8806a" opacity="0.4"/>
+      <circle cx="40" cy="36" r="1.8" fill="#c8806a" opacity="0.4"/>
+      <rect x="26" y="52" width="3" height="3" fill="#a87a30"/>
+      <rect x="30" y="52" width="3" height="3" fill="#c8a040"/>
+      <rect x="34" y="52" width="3" height="3" fill="#a87a30"/>
+      <rect x="1" y="1" width="62" height="62" fill="none" stroke="#d9b65a" stroke-width="1.2"/>
+      <circle cx="1.5" cy="1.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="62.5" cy="1.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="1.5" cy="62.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="62.5" cy="62.5" r="1.8" fill="#d9b65a"/>
+    </symbol>
+    <symbol id="sus-3" viewBox="0 0 64 64">
+      <rect width="64" height="64" fill="#2a3a5a"/>
+      <rect width="64" height="64" fill="url(#vignette)"/>
+      <path d="M8 64 Q32 50 56 64 Z" fill="#1a1f3a"/>
+      <rect x="29" y="40" width="6" height="8" fill="#e8c8a8"/>
+      <path d="M22 52 L42 52 L40 56 L24 56 Z" fill="#f4e9c8"/>
+      <path d="M28 52 L36 52 L34 58 L30 58 L28 56 L30 54 Z" fill="#7a1a1a"/>
+      <ellipse cx="32" cy="30" rx="13" ry="14" fill="#e8c8a8"/>
+      <path d="M19 24 Q18 18 22 14 Q23 22 25 26" fill="#a8a8a8"/>
+      <path d="M45 24 Q46 18 42 14 Q41 22 39 26" fill="#a8a8a8"/>
+      <ellipse cx="29" cy="20" rx="4" ry="2" fill="#ffffff" opacity="0.3"/>
+      <circle cx="26" cy="32" r="4" fill="none" stroke="#1a1408" stroke-width="1.4"/>
+      <circle cx="38" cy="32" r="4" fill="none" stroke="#1a1408" stroke-width="1.4"/>
+      <line x1="30" y1="32" x2="34" y2="32" stroke="#1a1408" stroke-width="1"/>
+      <circle cx="26" cy="32" r="1.2" fill="#1a0814"/>
+      <circle cx="38" cy="32" r="1.2" fill="#1a0814"/>
+      <path d="M27 39 Q32 38 37 39 Q32 40 27 39 Z" fill="#7a7a7a"/>
+      <path d="M30 41 Q32 42 34 41" fill="none" stroke="#1a0814" stroke-width="0.8" stroke-linecap="round"/>
+      <rect x="1" y="1" width="62" height="62" fill="none" stroke="#d9b65a" stroke-width="1.2"/>
+      <circle cx="1.5" cy="1.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="62.5" cy="1.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="1.5" cy="62.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="62.5" cy="62.5" r="1.8" fill="#d9b65a"/>
+    </symbol>
+    <symbol id="sus-4" viewBox="0 0 64 64">
+      <rect width="64" height="64" fill="#5a3a4a"/>
+      <rect width="64" height="64" fill="url(#vignette)"/>
+      <path d="M8 64 Q32 50 56 64 Z" fill="#2a1820"/>
+      <rect x="29" y="40" width="6" height="8" fill="#f4d8c0"/>
+      <ellipse cx="32" cy="32" rx="11" ry="12" fill="#f4d8c0"/>
+      <path d="M19 32 Q17 18 32 14 Q47 18 45 32 L45 38 L41 32 L41 24 Q39 22 32 22 Q25 22 23 24 L23 32 L19 38 Z" fill="#3a1a14"/>
+      <ellipse cx="32" cy="13" rx="14" ry="4" fill="#7a1a1a"/>
+      <ellipse cx="32" cy="12" rx="13" ry="3.5" fill="#a82828"/>
+      <circle cx="40" cy="9" r="1.5" fill="#a82828"/>
+      <circle cx="27" cy="32" r="2.4" fill="#f8f0e0"/>
+      <circle cx="37" cy="32" r="2.4" fill="#f8f0e0"/>
+      <circle cx="27" cy="33" r="1.3" fill="#1a0814"/>
+      <circle cx="37" cy="33" r="1.3" fill="#1a0814"/>
+      <circle cx="27.5" cy="32" r="0.4" fill="#ffffff"/>
+      <circle cx="37.5" cy="32" r="0.4" fill="#ffffff"/>
+      <path d="M24 28 Q27 27 30 28" fill="none" stroke="#3a1a14" stroke-width="0.8" stroke-linecap="round"/>
+      <path d="M34 28 Q37 27 40 28" fill="none" stroke="#3a1a14" stroke-width="0.8" stroke-linecap="round"/>
+      <circle cx="25" cy="36" r="0.4" fill="#7a4a3a"/>
+      <circle cx="28" cy="37" r="0.4" fill="#7a4a3a"/>
+      <circle cx="36" cy="37" r="0.4" fill="#7a4a3a"/>
+      <circle cx="39" cy="36" r="0.4" fill="#7a4a3a"/>
+      <circle cx="32" cy="35" r="0.4" fill="#7a4a3a"/>
+      <ellipse cx="32" cy="39.5" rx="1.6" ry="0.9" fill="#a82828"/>
+      <circle cx="24" cy="35" r="2" fill="#e8a0a0" opacity="0.5"/>
+      <circle cx="40" cy="35" r="2" fill="#e8a0a0" opacity="0.5"/>
+      <rect x="1" y="1" width="62" height="62" fill="none" stroke="#d9b65a" stroke-width="1.2"/>
+      <circle cx="1.5" cy="1.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="62.5" cy="1.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="1.5" cy="62.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="62.5" cy="62.5" r="1.8" fill="#d9b65a"/>
+    </symbol>
+    <symbol id="sus-5" viewBox="0 0 64 64">
+      <rect width="64" height="64" fill="#2a2a2a"/>
+      <rect width="64" height="64" fill="url(#vignette)"/>
+      <path d="M8 64 Q32 50 56 64 Z" fill="#1a1a1a"/>
+      <rect x="22" y="48" width="20" height="4" fill="#f4e9c8"/>
+      <rect x="22" y="48" width="20" height="0.6" fill="#ffffff"/>
+      <rect x="29" y="40" width="6" height="8" fill="#e8c8a8"/>
+      <ellipse cx="32" cy="32" rx="11" ry="12" fill="#e8c8a8"/>
+      <path d="M19 26 Q19 14 32 12 Q45 14 45 26 Q40 20 32 22 Q24 20 19 26 Z" fill="#1a0a0a"/>
+      <line x1="32" y1="14" x2="32" y2="22" stroke="#0a0408" stroke-width="0.6"/>
+      <circle cx="27" cy="32" r="1.7" fill="#1a0814"/>
+      <circle cx="37" cy="32" r="1.7" fill="#1a0814"/>
+      <path d="M24 28 Q27 30 30 30" fill="none" stroke="#1a0a0a" stroke-width="1" stroke-linecap="round"/>
+      <path d="M34 30 Q37 30 40 28" fill="none" stroke="#1a0a0a" stroke-width="1" stroke-linecap="round"/>
+      <path d="M28 40 Q32 39 36 40" fill="none" stroke="#5a1a14" stroke-width="1" stroke-linecap="round"/>
+      <circle cx="24" cy="35" r="1.5" fill="#c8806a" opacity="0.3"/>
+      <circle cx="40" cy="35" r="1.5" fill="#c8806a" opacity="0.3"/>
+      <rect x="31" y="56" width="2" height="6" fill="#c8a040"/>
+      <rect x="29" y="58" width="6" height="1.5" fill="#c8a040"/>
+      <rect x="1" y="1" width="62" height="62" fill="none" stroke="#d9b65a" stroke-width="1.2"/>
+      <circle cx="1.5" cy="1.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="62.5" cy="1.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="1.5" cy="62.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="62.5" cy="62.5" r="1.8" fill="#d9b65a"/>
+    </symbol>
+    <symbol id="sus-6" viewBox="0 0 64 64">
+      <rect width="64" height="64" fill="#1a2a5a"/>
+      <rect width="64" height="64" fill="url(#vignette)"/>
+      <path d="M8 64 Q32 50 56 64 Z" fill="#0a1a3a"/>
+      <path d="M14 56 L50 56 L48 60 L16 60 Z" fill="#f4e9c8"/>
+      <path d="M22 56 L24 60 M28 56 L30 60 M34 56 L36 60 M40 56 L42 60" stroke="#1a2a5a" stroke-width="2"/>
+      <rect x="29" y="44" width="6" height="6" fill="#d8a890"/>
+      <ellipse cx="32" cy="32" rx="11" ry="11" fill="#d8a890"/>
+      <ellipse cx="32" cy="20" rx="14" ry="4" fill="#0a1a3a"/>
+      <path d="M18 20 L46 20 L46 10 Q32 6 18 10 Z" fill="#f4e9c8"/>
+      <rect x="18" y="20" width="28" height="2" fill="#0a1a3a"/>
+      <rect x="29" y="14" width="6" height="3" fill="#a82828"/>
+      <path d="M26 32 L29 32" stroke="#1a0814" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M35 32 L38 32" stroke="#1a0814" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M23 29 Q27 28 30 30" fill="none" stroke="#5a3a14" stroke-width="2" stroke-linecap="round"/>
+      <path d="M34 30 Q37 28 41 29" fill="none" stroke="#5a3a14" stroke-width="2" stroke-linecap="round"/>
+      <path d="M20 36 Q20 50 32 52 Q44 50 44 36 Q40 40 32 40 Q24 40 20 36 Z" fill="#5a3a14"/>
+      <path d="M22 38 Q24 46 30 48 M42 38 Q40 46 34 48" fill="none" stroke="#7a5a30" stroke-width="0.5"/>
+      <ellipse cx="32" cy="35" rx="1.5" ry="2" fill="#a85a3a" opacity="0.6"/>
+      <rect x="1" y="1" width="62" height="62" fill="none" stroke="#d9b65a" stroke-width="1.2"/>
+      <circle cx="1.5" cy="1.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="62.5" cy="1.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="1.5" cy="62.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="62.5" cy="62.5" r="1.8" fill="#d9b65a"/>
+    </symbol>
+    <symbol id="sus-7" viewBox="0 0 64 64">
+      <rect width="64" height="64" fill="#4a2a5a"/>
+      <rect width="64" height="64" fill="url(#vignette)"/>
+      <path d="M8 64 Q32 50 56 64 Z" fill="#2a1a3a"/>
+      <rect x="29" y="40" width="6" height="8" fill="#d8a880"/>
+      <ellipse cx="32" cy="32" rx="11" ry="12" fill="#d8a880"/>
+      <path d="M18 22 Q14 8 32 6 Q50 8 46 22 Q42 18 32 18 Q22 18 18 22 Z" fill="#5a1a4a"/>
+      <path d="M19 19 Q24 14 32 14 Q40 14 45 19 Q40 12 32 12 Q24 12 19 19 Z" fill="#7a2a6a"/>
+      <path d="M20 16 Q26 10 32 10 Q38 10 44 16" fill="none" stroke="#a83a8a" stroke-width="1.5"/>
+      <ellipse cx="32" cy="12" rx="3" ry="2" fill="#d9b65a"/>
+      <circle cx="32" cy="12" r="1" fill="#f4e0a0"/>
+      <circle cx="18" cy="32" r="1.6" fill="#d9b65a"/>
+      <path d="M18 33 L18 38" stroke="#d9b65a" stroke-width="0.6"/>
+      <circle cx="18" cy="38" r="1.2" fill="#d9b65a"/>
+      <circle cx="46" cy="32" r="1.6" fill="#d9b65a"/>
+      <path d="M46 33 L46 38" stroke="#d9b65a" stroke-width="0.6"/>
+      <circle cx="46" cy="38" r="1.2" fill="#d9b65a"/>
+      <ellipse cx="27" cy="32" rx="2.6" ry="1.8" fill="#f8f0e0"/>
+      <ellipse cx="37" cy="32" rx="2.6" ry="1.8" fill="#f8f0e0"/>
+      <circle cx="27" cy="32" r="1.4" fill="#1a0814"/>
+      <circle cx="37" cy="32" r="1.4" fill="#1a0814"/>
+      <path d="M23 31 Q27 28 31 31" fill="none" stroke="#1a0814" stroke-width="1" stroke-linecap="round"/>
+      <path d="M33 31 Q37 28 41 31" fill="none" stroke="#1a0814" stroke-width="1" stroke-linecap="round"/>
+      <ellipse cx="32" cy="39" rx="2" ry="1" fill="#a82828"/>
+      <rect x="1" y="1" width="62" height="62" fill="none" stroke="#d9b65a" stroke-width="1.2"/>
+      <circle cx="1.5" cy="1.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="62.5" cy="1.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="1.5" cy="62.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="62.5" cy="62.5" r="1.8" fill="#d9b65a"/>
+    </symbol>
+    <symbol id="sus-8" viewBox="0 0 64 64">
+      <rect width="64" height="64" fill="#5a2a14"/>
+      <rect width="64" height="64" fill="url(#vignette)"/>
+      <path d="M8 64 Q32 48 56 64 Z" fill="#3a1808"/>
+      <rect x="29" y="42" width="6" height="6" fill="#e0a890"/>
+      <ellipse cx="32" cy="34" rx="13" ry="13" fill="#e0a890"/>
+      <ellipse cx="22" cy="42" rx="4" ry="3" fill="#e0a890"/>
+      <ellipse cx="42" cy="42" rx="4" ry="3" fill="#e0a890"/>
+      <path d="M18 22 Q18 12 32 10 Q46 12 46 22" fill="#1a1408"/>
+      <ellipse cx="32" cy="11" rx="13" ry="2" fill="#0a0408"/>
+      <rect x="14" y="20" width="36" height="4" fill="#1a1408"/>
+      <rect x="20" y="18" width="24" height="2" fill="#3a2814"/>
+      <circle cx="27" cy="32" r="1.3" fill="#1a0814"/>
+      <circle cx="37" cy="32" r="1.3" fill="#1a0814"/>
+      <path d="M23 28 Q27 27 31 29" fill="none" stroke="#5a3a14" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M33 29 Q37 27 41 28" fill="none" stroke="#5a3a14" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M20 38 Q26 36 32 39 Q38 36 44 38 Q42 46 32 46 Q22 46 20 38 Z" fill="#3a2814"/>
+      <path d="M20 38 Q22 41 26 40 M38 40 Q42 41 44 38" fill="none" stroke="#5a3a14" stroke-width="0.5"/>
+      <ellipse cx="32" cy="36" rx="2" ry="2.5" fill="#a85a3a" opacity="0.6"/>
+      <circle cx="22" cy="40" r="2.5" fill="#c87a5a" opacity="0.5"/>
+      <circle cx="42" cy="40" r="2.5" fill="#c87a5a" opacity="0.5"/>
+      <rect x="1" y="1" width="62" height="62" fill="none" stroke="#d9b65a" stroke-width="1.2"/>
+      <circle cx="1.5" cy="1.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="62.5" cy="1.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="1.5" cy="62.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="62.5" cy="62.5" r="1.8" fill="#d9b65a"/>
+    </symbol>
+    <symbol id="sus-9" viewBox="0 0 64 64">
+      <rect width="64" height="64" fill="#2a4a3a"/>
+      <rect width="64" height="64" fill="url(#vignette)"/>
+      <path d="M8 64 Q32 50 56 64 Z" fill="#3a2814"/>
+      <rect x="29" y="40" width="6" height="8" fill="#e8d4b8"/>
+      <ellipse cx="32" cy="32" rx="11" ry="12" fill="#e8d4b8"/>
+      <path d="M18 24 Q12 4 22 8 Q24 2 30 10 Q32 4 34 10 Q40 2 42 8 Q52 4 46 24 Q42 18 32 20 Q22 18 18 24 Z" fill="#f0f0e0"/>
+      <path d="M16 26 Q8 32 12 40" stroke="#f0f0e0" stroke-width="4" stroke-linecap="round" fill="none"/>
+      <path d="M48 26 Q56 32 52 40" stroke="#f0f0e0" stroke-width="4" stroke-linecap="round" fill="none"/>
+      <path d="M22 27 Q26 25 30 28" fill="none" stroke="#f0f0e0" stroke-width="2.2" stroke-linecap="round"/>
+      <path d="M34 28 Q38 25 42 27" fill="none" stroke="#f0f0e0" stroke-width="2.2" stroke-linecap="round"/>
+      <circle cx="37" cy="32" r="4" fill="none" stroke="#1a1408" stroke-width="1.3"/>
+      <line x1="41" y1="34" x2="44" y2="42" stroke="#1a1408" stroke-width="0.8"/>
+      <circle cx="37" cy="32" r="1.2" fill="#1a0814"/>
+      <circle cx="27" cy="32" r="1.6" fill="#1a0814"/>
+      <path d="M26 39 Q32 38 38 39 Q32 40 26 39 Z" fill="#f0f0e0"/>
+      <path d="M30 42 Q32 43 34 42" fill="none" stroke="#5a3a14" stroke-width="0.8" stroke-linecap="round"/>
+      <path d="M26 52 L30 50 L34 52 L30 54 Z" fill="#5a1a14"/>
+      <path d="M34 52 L38 50 L42 52 L38 54 Z" fill="#5a1a14"/>
+      <circle cx="34" cy="52" r="0.8" fill="#a82828"/>
+      <rect x="1" y="1" width="62" height="62" fill="none" stroke="#d9b65a" stroke-width="1.2"/>
+      <circle cx="1.5" cy="1.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="62.5" cy="1.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="1.5" cy="62.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="62.5" cy="62.5" r="1.8" fill="#d9b65a"/>
+    </symbol>
+
+    <!-- VICTIMS — same whimsical gothic style with X eyes -->
+    <symbol id="vic-1" viewBox="0 0 64 64">
+      <rect width="64" height="64" fill="#4a1a2a"/>
+      <rect width="64" height="64" fill="url(#vignette)"/>
+      <path d="M8 64 Q32 50 56 64 Z" fill="#2a0a18"/>
+      <rect x="29" y="42" width="6" height="6" fill="#d8a890"/>
+      <ellipse cx="32" cy="32" rx="12" ry="13" fill="#d8a890"/>
+      <path d="M19 26 Q18 18 22 14 Q24 22 26 26" fill="#7a4a3a"/>
+      <path d="M45 26 Q46 18 42 14 Q40 22 38 26" fill="#7a4a3a"/>
+      <ellipse cx="32" cy="20" rx="6" ry="2" fill="#f4d8b8" opacity="0.4"/>
+      <line x1="24" y1="29" x2="29" y2="34" stroke="#1a1408" stroke-width="1.6" stroke-linecap="round"/>
+      <line x1="29" y1="29" x2="24" y2="34" stroke="#1a1408" stroke-width="1.6" stroke-linecap="round"/>
+      <line x1="35" y1="29" x2="40" y2="34" stroke="#1a1408" stroke-width="1.6" stroke-linecap="round"/>
+      <line x1="40" y1="29" x2="35" y2="34" stroke="#1a1408" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M22 39 Q27 37 32 39 Q37 37 42 39 Q40 46 32 46 Q24 46 22 39 Z" fill="#5a3a2a"/>
+      <rect x="1" y="1" width="62" height="62" fill="none" stroke="#d9b65a" stroke-width="1.2"/>
+      <circle cx="1.5" cy="1.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="62.5" cy="1.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="1.5" cy="62.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="62.5" cy="62.5" r="1.8" fill="#d9b65a"/>
+    </symbol>
+    <symbol id="vic-2" viewBox="0 0 64 64">
+      <rect width="64" height="64" fill="#4a2a4a"/>
+      <rect width="64" height="64" fill="url(#vignette)"/>
+      <path d="M8 64 Q32 50 56 64 Z" fill="#2a1828"/>
+      <rect x="29" y="40" width="6" height="6" fill="#f0d8c0"/>
+      <rect x="22" y="46" width="20" height="3" fill="#d9b65a"/>
+      <circle cx="32" cy="47.5" r="2.5" fill="#a82828"/>
+      <circle cx="31" cy="47" r="0.8" fill="#f8a0a0"/>
+      <ellipse cx="32" cy="32" rx="11" ry="12" fill="#f0d8c0"/>
+      <path d="M18 26 Q14 6 32 4 Q50 6 46 26 Q46 30 32 26 Q18 30 18 26 Z" fill="#a8a8a8"/>
+      <ellipse cx="32" cy="4" rx="14" ry="4" fill="#a8a8a8"/>
+      <line x1="24" y1="29" x2="29" y2="34" stroke="#1a1408" stroke-width="1.6" stroke-linecap="round"/>
+      <line x1="29" y1="29" x2="24" y2="34" stroke="#1a1408" stroke-width="1.6" stroke-linecap="round"/>
+      <line x1="35" y1="29" x2="40" y2="34" stroke="#1a1408" stroke-width="1.6" stroke-linecap="round"/>
+      <line x1="40" y1="29" x2="35" y2="34" stroke="#1a1408" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M28 41 Q32 39 36 41" fill="none" stroke="#5a1a14" stroke-width="1.2" stroke-linecap="round"/>
+      <rect x="1" y="1" width="62" height="62" fill="none" stroke="#d9b65a" stroke-width="1.2"/>
+      <circle cx="1.5" cy="1.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="62.5" cy="1.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="1.5" cy="62.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="62.5" cy="62.5" r="1.8" fill="#d9b65a"/>
+    </symbol>
+    <symbol id="vic-3" viewBox="0 0 64 64">
+      <rect width="64" height="64" fill="#4a4a14"/>
+      <rect width="64" height="64" fill="url(#vignette)"/>
+      <path d="M8 64 Q32 50 56 64 Z" fill="#2a2a08"/>
+      <rect x="29" y="40" width="6" height="8" fill="#e8c8a8"/>
+      <ellipse cx="32" cy="32" rx="11" ry="12" fill="#e8c8a8"/>
+      <path d="M18 22 Q14 6 24 8 Q26 4 32 12 Q38 4 40 8 Q50 6 46 22 Q42 18 32 20 Q22 18 18 22 Z" fill="#5a3a14"/>
+      <path d="M16 24 Q10 30 14 38" stroke="#5a3a14" stroke-width="3" stroke-linecap="round" fill="none"/>
+      <path d="M48 24 Q54 30 50 38" stroke="#5a3a14" stroke-width="3" stroke-linecap="round" fill="none"/>
+      <line x1="24" y1="29" x2="29" y2="34" stroke="#1a1408" stroke-width="1.6" stroke-linecap="round"/>
+      <line x1="29" y1="29" x2="24" y2="34" stroke="#1a1408" stroke-width="1.6" stroke-linecap="round"/>
+      <line x1="35" y1="29" x2="40" y2="34" stroke="#1a1408" stroke-width="1.6" stroke-linecap="round"/>
+      <line x1="40" y1="29" x2="35" y2="34" stroke="#1a1408" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M28 41 Q32 43 36 41" fill="none" stroke="#5a1a14" stroke-width="1" stroke-linecap="round"/>
+      <rect x="1" y="1" width="62" height="62" fill="none" stroke="#d9b65a" stroke-width="1.2"/>
+      <circle cx="1.5" cy="1.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="62.5" cy="1.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="1.5" cy="62.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="62.5" cy="62.5" r="1.8" fill="#d9b65a"/>
+    </symbol>
+    <symbol id="vic-4" viewBox="0 0 64 64">
+      <rect width="64" height="64" fill="#1a2a4a"/>
+      <rect width="64" height="64" fill="url(#vignette)"/>
+      <path d="M8 64 Q32 50 56 64 Z" fill="#0a1a2a"/>
+      <path d="M44 56 L48 54 L48 60 L44 60 Z" fill="#f4e9c8"/>
+      <rect x="29" y="40" width="6" height="8" fill="#e8c8a8"/>
+      <ellipse cx="32" cy="32" rx="11" ry="12" fill="#e8c8a8"/>
+      <path d="M18 26 Q18 12 32 10 Q46 12 46 26 Q42 16 32 18 Q22 16 18 26 Z" fill="#1a0a08"/>
+      <line x1="22" y1="14" x2="26" y2="20" stroke="#3a1a08" stroke-width="0.5"/>
+      <line x1="42" y1="14" x2="38" y2="20" stroke="#3a1a08" stroke-width="0.5"/>
+      <line x1="24" y1="29" x2="29" y2="34" stroke="#1a1408" stroke-width="1.6" stroke-linecap="round"/>
+      <line x1="29" y1="29" x2="24" y2="34" stroke="#1a1408" stroke-width="1.6" stroke-linecap="round"/>
+      <line x1="35" y1="29" x2="40" y2="34" stroke="#1a1408" stroke-width="1.6" stroke-linecap="round"/>
+      <line x1="40" y1="29" x2="35" y2="34" stroke="#1a1408" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M28 39 Q32 38 36 39" fill="none" stroke="#1a0a08" stroke-width="1.2"/>
+      <rect x="1" y="1" width="62" height="62" fill="none" stroke="#d9b65a" stroke-width="1.2"/>
+      <circle cx="1.5" cy="1.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="62.5" cy="1.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="1.5" cy="62.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="62.5" cy="62.5" r="1.8" fill="#d9b65a"/>
+    </symbol>
+    <symbol id="vic-5" viewBox="0 0 64 64">
+      <rect width="64" height="64" fill="#3a2a14"/>
+      <rect width="64" height="64" fill="url(#vignette)"/>
+      <path d="M8 64 Q32 50 56 64 Z" fill="#1a1408"/>
+      <rect x="29" y="42" width="6" height="6" fill="#e0c8a8"/>
+      <ellipse cx="32" cy="32" rx="11" ry="12" fill="#e0c8a8"/>
+      <rect x="14" y="14" width="36" height="3" fill="#1a0a08"/>
+      <path d="M16 17 L48 17 L46 22 L18 22 Z" fill="#1a0a08"/>
+      <line x1="32" y1="14" x2="42" y2="10" stroke="#a82828" stroke-width="0.6"/>
+      <ellipse cx="42" cy="10" rx="1.5" ry="1.5" fill="#a82828"/>
+      <path d="M20 22 Q24 24 28 22" fill="#7a5a14"/>
+      <path d="M36 22 Q40 24 44 22" fill="#7a5a14"/>
+      <line x1="24" y1="29" x2="29" y2="34" stroke="#1a1408" stroke-width="1.6" stroke-linecap="round"/>
+      <line x1="29" y1="29" x2="24" y2="34" stroke="#1a1408" stroke-width="1.6" stroke-linecap="round"/>
+      <line x1="35" y1="29" x2="40" y2="34" stroke="#1a1408" stroke-width="1.6" stroke-linecap="round"/>
+      <line x1="40" y1="29" x2="35" y2="34" stroke="#1a1408" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M22 38 Q22 48 32 50 Q42 48 42 38 Q38 42 32 40 Q26 42 22 38 Z" fill="#7a5a14"/>
+      <rect x="1" y="1" width="62" height="62" fill="none" stroke="#d9b65a" stroke-width="1.2"/>
+      <circle cx="1.5" cy="1.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="62.5" cy="1.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="1.5" cy="62.5" r="1.8" fill="#d9b65a"/>
+      <circle cx="62.5" cy="62.5" r="1.8" fill="#d9b65a"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div id="app">
+  <header>
+    <div class="banner"><svg><use href="#banner"/></svg></div>
+    <h1>INSPECTOR PARKER</h1>
+    <div class="sub">— Logic Mysteries —</div>
+    <div class="topbar">
+      <button class="iconbtn" id="btnHelp" title="How to play"><svg><use href="#ic-help"/></svg></button>
+      <span class="score" id="scoreLine">Case <b id="caseNum">1</b> · Solved <b id="wins">0</b> / Missed <b id="losses">0</b></span>
+      <span class="timer" id="timer" title="Time on this case">⏱ 0:00</span>
+      <button class="iconbtn" id="btnSound" title="Sound"><svg id="soundIcon"><use href="#ic-sound"/></svg></button>
+    </div>
+  </header>
+
+  <div class="panel">
+    <h2>The Case</h2>
+    <div class="briefing">
+      <div class="victim-frame"><svg id="victimArt"></svg></div>
+      <div class="text" id="briefing"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>The Manor</h2>
+    <div class="manor-wrap">
+      <div class="manor">
+        <div class="grid" id="grid"></div>
+      </div>
+    </div>
+    <div class="hint">Tap a mini-icon to cross it out · Swipe the manor sideways to see all rooms</div>
+  </div>
+
+  <div class="panel">
+    <h2>Clues <span class="panel-hint">tap any to explain</span></h2>
+    <ol id="clues" class="clue-list"></ol>
+  </div>
+</div>
+
+<div class="actions">
+  <button class="btn-secondary" id="btnNew">New Case</button>
+  <button class="btn-secondary" id="btnReset">Reset</button>
+  <button class="btn-primary" id="btnAccuse">Accuse</button>
+</div>
+
+<!-- Floating clue tooltip -->
+<div id="clueTooltip" class="clue-tooltip" role="status" aria-live="polite">
+  <div class="tooltip-text"></div>
+</div>
+
+<!-- Accusation modal -->
+<div class="modal-bg" id="modalAccuse">
+  <div class="modal">
+    <h2>Make Your Accusation</h2>
+    <label>The Crime Scene</label>
+    <div class="picker" id="pickRoom"></div>
+    <label>The Murderer</label>
+    <div class="picker" id="pickSuspect"></div>
+    <label>The Weapon</label>
+    <div class="picker" id="pickWeapon"></div>
+    <div id="verdict"></div>
+    <div class="row">
+      <button class="btn-secondary" id="btnCancel">Cancel</button>
+      <button class="btn-primary" id="btnSubmit">J'accuse!</button>
+    </div>
+  </div>
+</div>
+
+<!-- Help modal -->
+<!-- Tutorial modal: 5 steps + symbol legend, animated illustrations -->
+<div class="tut-bg" id="modalTutorial">
+  <div class="tut-modal">
+    <div class="tut-title">How to Play</div>
+
+    <div class="tut-step active" data-step="1">
+      <div class="tut-head"><span class="tut-stepnum">1</span><h3>One per room</h3></div>
+      <p>The manor is a grid of rooms (2 × 2 on Easy, 3 × 3 on Hard). <b>Each room holds exactly one suspect and one weapon</b>, and every suspect and weapon is in one and only one room. Find who's where with what.</p>
+      <div class="tut-art">
+        <div class="tut-mini-grid">
+          <div class="tut-mini-room"><div class="tut-ic"><svg><use href="#sus-1"/></svg></div><div class="tut-ic weapon"><svg><use href="#weap-shears"/></svg></div></div>
+          <div class="tut-mini-room"><div class="tut-ic"><svg><use href="#sus-2"/></svg></div><div class="tut-ic weapon"><svg><use href="#weap-revolver"/></svg></div></div>
+          <div class="tut-mini-room"><div class="tut-ic"><svg><use href="#sus-3"/></svg></div><div class="tut-ic weapon"><svg><use href="#weap-candlestick"/></svg></div></div>
+          <div class="tut-mini-room"><div class="tut-ic"><svg><use href="#sus-4"/></svg></div><div class="tut-ic weapon"><svg><use href="#weap-pipe"/></svg></div></div>
+        </div>
+        <div class="tut-caption">Each cell has <b>one suspect</b> + <b>one weapon</b>. Always.</div>
+      </div>
+    </div>
+
+    <div class="tut-step" data-step="2">
+      <div class="tut-head"><span class="tut-stepnum">2</span><h3>Tap the picture clues</h3></div>
+      <p>Picture clues live under the manor. <b>Tap a clue chip</b> to read what it means in plain English and to make every place those items appear glow on the map.</p>
+      <div class="tut-art">
+        <div class="tut-chip-wrap">
+          <div class="tut-chip">
+            <div class="tut-ic"><svg><use href="#sus-1"/></svg></div>
+            <span class="tut-chip-rel">↓</span>
+            <div class="tut-ic weapon"><svg><use href="#weap-shears"/></svg></div>
+          </div>
+          <div class="tut-tap"></div>
+        </div>
+        <div class="tut-tip">Lady Ashcroft's room is directly above (one row up, same column as) the room with the Garden Shears.</div>
+        <div class="tut-mini-grid tiny">
+          <div class="tut-mini-room highlight"><div class="tut-ic"><svg><use href="#sus-1"/></svg></div></div>
+          <div class="tut-mini-room highlight"><div class="tut-ic"><svg><use href="#sus-1"/></svg></div></div>
+          <div class="tut-mini-room highlight"><div class="tut-ic weapon"><svg><use href="#weap-shears"/></svg></div></div>
+          <div class="tut-mini-room"></div>
+        </div>
+        <div class="tut-caption">Tap a chip → tooltip + cyan glow on every room that holds a referenced item.</div>
+      </div>
+    </div>
+
+    <div class="tut-step" data-step="3">
+      <div class="tut-head"><span class="tut-stepnum">3</span><h3>Cross out impossibilities</h3></div>
+      <p>Now use the clue. The Garden Shears is only in the bottom-left room, so Lady Ashcroft can't be in the top-right (no shears below her there). <b>Tap her there to cross her out</b> — the one still glowing is the answer.</p>
+      <div class="tut-art">
+        <div class="tut-mini-grid tiny">
+          <div class="tut-mini-room"><div class="tut-ic keep-mark"><svg><use href="#sus-1"/></svg></div></div>
+          <div class="tut-mini-room"><div class="tut-ic x-mark"><svg><use href="#sus-1"/></svg></div></div>
+          <div class="tut-mini-room"><div class="tut-ic weapon"><svg><use href="#weap-shears"/></svg></div></div>
+          <div class="tut-mini-room"></div>
+        </div>
+        <div class="tut-caption">Cross out the impossible candidates · the one still glowing is the answer for that room.</div>
+      </div>
+    </div>
+
+    <div class="tut-step" data-step="4">
+      <div class="tut-head"><span class="tut-stepnum">4</span><h3>Accuse the killer</h3></div>
+      <p>When you've narrowed it down, tap <b>Accuse</b>, pick the crime scene, the killer, and the weapon. Get all three right and the manor erupts in confetti and applause — and your solve time is saved as your best.</p>
+      <div class="tut-art">
+        <div class="tut-accuse-row">
+          <div class="tut-accuse-btn">ACCUSE</div>
+          <div class="tut-confetti">
+            <span style="--c:#e0bc62; --x:-40px; --d:0s"></span>
+            <span style="--c:#c04a3a; --x:-15px; --d:0.15s"></span>
+            <span style="--c:#6ba858; --x:15px;  --d:0.3s"></span>
+            <span style="--c:#4a82b8; --x:40px;  --d:0.45s"></span>
+            <span style="--c:#a82a5a; --x:0;     --d:0.6s"></span>
+            <span style="--c:#f4e040; --x:-25px; --d:0.75s"></span>
+            <span style="--c:#f48a30; --x:25px;  --d:0.9s"></span>
+          </div>
+        </div>
+        <div class="tut-caption">Three right answers → confetti + applause + best-time saved.</div>
+      </div>
+    </div>
+
+    <div class="tut-nav">
+      <button class="tut-btn" id="tutPrev" type="button">← Back</button>
+      <div class="tut-dots">
+        <span class="active" data-step="1"></span>
+        <span data-step="2"></span>
+        <span data-step="3"></span>
+        <span data-step="4"></span>
+      </div>
+      <button class="tut-btn primary" id="tutNext" type="button">Next →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ============================================================
+  //  DATA
+  // ============================================================
+  const ALL_SUSPECTS = [
+    { name: 'Lady Ashcroft',       icon: 'sus-1' },
+    { name: 'Colonel Vance',       icon: 'sus-2' },
+    { name: 'Dr. Mortimer',        icon: 'sus-3' },
+    { name: 'Miss Penrose',        icon: 'sus-4' },
+    { name: 'Reverend Holt',       icon: 'sus-5' },
+    { name: 'Captain Bligh',       icon: 'sus-6' },
+    { name: 'Madame Zara',         icon: 'sus-7' },
+    { name: 'Mr. Grimsby',         icon: 'sus-8' },
+    { name: 'Professor Whittaker', icon: 'sus-9' }
+  ];
+  const ALL_WEAPONS = [
+    { name: 'Silver Candlestick',  icon: 'weap-candlestick' },
+    { name: 'Antique Revolver',    icon: 'weap-revolver' },
+    { name: 'Garden Shears',       icon: 'weap-shears' },
+    { name: 'Crystal Decanter',    icon: 'weap-decanter' },
+    { name: 'Lead Pipe',           icon: 'weap-pipe' },
+    { name: 'Poisoned Tea',        icon: 'weap-tea' },
+    { name: 'Letter Opener',       icon: 'weap-opener' },
+    { name: 'Velvet Rope',         icon: 'weap-rope' },
+    { name: 'Heavy Wrench',        icon: 'weap-wrench' }
+  ];
+  const ALL_ROOMS = [
+    { name: 'Library',       icon: 'room-library' },
+    { name: 'Conservatory',  icon: 'room-conservatory' },
+    { name: 'Study',         icon: 'room-study' },
+    { name: 'Billiard Room', icon: 'room-billiard' },
+    { name: 'Drawing Room',  icon: 'room-drawing' },
+    { name: 'Kitchen',       icon: 'room-kitchen' },
+    { name: 'Wine Cellar',   icon: 'room-cellar' },
+    { name: 'Observatory',   icon: 'room-observatory' },
+    { name: 'Ballroom',      icon: 'room-ballroom' }
+  ];
+  const ALL_VICTIMS = [
+    { name: 'Sir Edmund Halloway', icon: 'vic-1' },
+    { name: 'Baroness Hartwood',   icon: 'vic-2' },
+    { name: 'Mr. Cornelius Pike',  icon: 'vic-3' },
+    { name: 'Lord Ashby',          icon: 'vic-4' },
+    { name: 'Professor Fenwick',   icon: 'vic-5' }
+  ];
+  const SCENARIOS = [
+    'Found slumped behind a locked door just after the dinner gong.',
+    'Discovered in a pool of moonlight, the candles still burning.',
+    'Last seen alive at midnight; cold by the chiming of three.',
+    'Sprawled across a writing desk, an unfinished letter beneath the body.',
+    'Crumpled at the foot of the grand staircase as the storm raged.'
+  ];
+
+  // ============================================================
+  //  MODE + LEVEL (parsed from URL on load)
+  // ============================================================
+  // ?d=easy&n=1..50  → deterministic 2x2 level
+  // ?d=hard&n=1..50  → deterministic 3x3 level
+  // No params       → free-play 3x3 with fresh random cases
+  const PARAMS = new URLSearchParams(location.search);
+  const DIFF   = PARAMS.get('d') === 'easy' ? 'easy' : (PARAMS.get('d') === 'hard' ? 'hard' : null);
+  const LEVEL  = (() => { const v = parseInt(PARAMS.get('n'), 10); return (v >= 1 && v <= 50) ? v : null; })();
+  const IS_LEVEL = !!(DIFF && LEVEL);
+
+  // Grid size depends on difficulty (defaults to 3x3 hard for free play).
+  let ROWS, COLS, N;
+  if (DIFF === 'easy') { ROWS = 2; COLS = 2; N = 4; }
+  else                 { ROWS = 3; COLS = 3; N = 9; }
+  const ROW = i => Math.floor(i / COLS);
+  const COL = i => i % COLS;
+
+  // Tag the document so CSS can pick the right layout (cell sizes,
+  // mini-icon grid columns, accusation picker grid).
+  document.body.classList.add('mode-' + (DIFF || 'hard'));
+
+  // Seeded PRNG (Mulberry32). For level mode we override Math.random
+  // for the lifetime of the case generation so the same level
+  // produces identical truth + visible candidates + clues for every
+  // player. Audio noise also goes through Math.random but that's
+  // not user-visible.
+  function makeRng(seed) {
+    let s = seed >>> 0;
+    return function () {
+      s = (s + 0x6D2B79F5) | 0;
+      let t = s;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function levelSeed(diff, level) {
+    // Distinct seed-spaces per difficulty so easy-1 != hard-1.
+    return (diff === 'easy' ? 0x10000000 : 0x20000000) | (level * 73856093);
+  }
+  if (IS_LEVEL) {
+    Math.random = makeRng(levelSeed(DIFF, LEVEL));
+  }
+
+  // ============================================================
+  //  PROGRESS (localStorage per-difficulty)
+  // ============================================================
+  function readCompleted(diff) {
+    try { return JSON.parse(localStorage.getItem('parker-completed-' + diff) || '{}') || {}; }
+    catch (e) { return {}; }
+  }
+  // Storage format: { "1": 87, "2": 145 } where the value is the
+  // best (lowest) solve time in seconds. Legacy `true` entries are
+  // treated as completed-but-time-unknown.
+  function markLevelCompleted(diff, level, seconds) {
+    const store = readCompleted(diff);
+    const prev = store[level];
+    const t = (typeof seconds === 'number' && seconds >= 0) ? seconds : true;
+    if (typeof prev === 'number' && typeof t === 'number' && prev <= t) return; // keep faster
+    store[level] = t;
+    try { localStorage.setItem('parker-completed-' + diff, JSON.stringify(store)); } catch (e) {}
+  }
+  function fmtTime(s) {
+    if (typeof s !== 'number' || s < 0) return '';
+    const m = Math.floor(s / 60), sec = s % 60;
+    return m + ':' + (sec < 10 ? '0' : '') + sec;
+  }
+
+  // ============================================================
+  //  TIMER (per-case stopwatch)
+  // ============================================================
+  let timerStartMs = 0, timerInterval = null, timerFrozen = 0, timerRunning = false;
+  function timerElapsed() {
+    if (timerRunning) return Math.floor((Date.now() - timerStartMs) / 1000);
+    return timerFrozen;
+  }
+  function timerRender() {
+    const el = document.getElementById('timer');
+    if (el) el.textContent = '⏱ ' + fmtTime(timerElapsed());
+  }
+  function timerStart() {
+    if (timerInterval) clearInterval(timerInterval);
+    timerStartMs = Date.now();
+    timerFrozen = 0;
+    timerRunning = true;
+    timerRender();
+    timerInterval = setInterval(timerRender, 1000);
+  }
+  function timerStop() {
+    if (!timerRunning) return;
+    timerFrozen = timerElapsed();
+    timerRunning = false;
+    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+    timerRender();
+  }
+
+  // ============================================================
+  //  AUDIO
+  // ============================================================
+  const Audio = (function () {
+    let ctx = null, muted = false;
+    function getCtx() {
+      if (!ctx) { try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; } }
+      return ctx;
+    }
+    function unlock() { const c = getCtx(); if (c && c.state === 'suspended') c.resume(); }
+    function tone(freq, dur, type, vol, atTime) {
+      const c = getCtx(); if (!c || muted) return;
+      const t0 = atTime || c.currentTime;
+      const osc = c.createOscillator(), g = c.createGain();
+      osc.type = type || 'sine'; osc.frequency.setValueAtTime(freq, t0);
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(vol, t0 + 0.005);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      osc.connect(g).connect(c.destination);
+      osc.start(t0); osc.stop(t0 + dur + 0.02);
+    }
+    function noise(dur, vol, lowpassHz) {
+      const c = getCtx(); if (!c || muted) return;
+      const buf = c.createBuffer(1, Math.floor(c.sampleRate * dur), c.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < data.length; i++) { const env = Math.pow(1 - i / data.length, 1.6); data[i] = (Math.random() * 2 - 1) * env; }
+      const src = c.createBufferSource(); src.buffer = buf;
+      const g = c.createGain(); g.gain.value = vol;
+      const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = lowpassHz || 2000;
+      src.connect(f).connect(g).connect(c.destination); src.start();
+    }
+    function chord(freqs, dur, type, vol, stagger) {
+      const c = getCtx(); if (!c) return;
+      const t0 = c.currentTime, step = stagger || 0;
+      freqs.forEach((f, i) => tone(f, dur, type, vol, t0 + i * step));
+    }
+    return {
+      unlock,
+      tick:  () => tone(880, 0.04, 'square', 0.05),
+      cross: () => tone(420, 0.06, 'square', 0.08),
+      uncross: () => tone(700, 0.05, 'sine', 0.06),
+      page:  () => noise(0.18, 0.12, 1500),
+      open:  () => { tone(440, 0.08, 'sine', 0.08); setTimeout(() => tone(660, 0.1, 'sine', 0.08), 70); },
+      win:   () => chord([523.25, 659.25, 783.99, 1046.5], 0.55, 'triangle', 0.10, 0.10),
+      lose:  () => chord([311.1, 277.18, 233.08], 0.7, 'triangle', 0.12, 0.13),
+      // Crowd applause — synthesizes ~80 short noise bursts into a
+      // single buffer with a brief swell and fade, band-passed around
+      // 2 kHz so it sounds like clapping hands rather than static.
+      // Crowd applause — schedules many short noise-burst "claps" as
+      // individual buffer sources, with random spacing, random pitch
+      // (via per-clap bandpass), and a swell-in / fade-out envelope.
+      // Each clap is independent so a single buggy node can't silence
+      // the whole sound; the context is force-resumed first.
+      applause: (durationSec) => {
+        const c = getCtx(); if (!c || muted) return;
+        if (c.state === 'suspended' && c.resume) { try { c.resume(); } catch (e) {} }
+        const dur  = durationSec || 2.5;
+        const t0   = c.currentTime;
+        const rate = 30;
+        const totalClaps = Math.floor(dur * rate);
+        const clapLenSec = 0.04;
+        const sr = c.sampleRate;
+        const clapLen = Math.floor(sr * clapLenSec);
+        for (let i = 0; i < totalClaps; i++) {
+          const offset = (i / rate) + (Math.random() * 0.05 - 0.025);
+          if (offset < 0) continue;
+          // Envelope: swell in 0.25s, hold, fade out 0.5s
+          let envScale;
+          if (offset < 0.25)      envScale = offset / 0.25;
+          else if (offset > dur - 0.5) envScale = Math.max(0, (dur - offset) / 0.5);
+          else envScale = 1;
+          const buf = c.createBuffer(1, clapLen, sr);
+          const data = buf.getChannelData(0);
+          for (let j = 0; j < clapLen; j++) {
+            const env = Math.pow(1 - j / clapLen, 1.8);
+            data[j] = (Math.random() * 2 - 1) * env;
+          }
+          const src = c.createBufferSource(); src.buffer = buf;
+          const g = c.createGain();
+          g.gain.value = (0.25 + Math.random() * 0.3) * envScale;
+          const f = c.createBiquadFilter();
+          f.type = 'bandpass';
+          f.frequency.value = 1500 + Math.random() * 1800;
+          f.Q.value = 0.8;
+          src.connect(f).connect(g).connect(c.destination);
+          src.start(t0 + offset);
+        }
+      },
+      // Per-suspect "elimination" tone — short musical motif keyed to
+      // the character's vibe. Synthesised, no audio files.
+      susSound: (suspect) => {
+        const c = getCtx(); if (!c || muted || !suspect) return;
+        const id = suspect.icon;
+        const t0 = c.currentTime;
+        switch (id) {
+          case 'sus-1': // Lady Ashcroft — crystal bell
+            tone(880, 0.22, 'sine', 0.09, t0);
+            tone(1320, 0.18, 'sine', 0.04, t0);
+            break;
+          case 'sus-2': // Colonel Vance — short bugle call
+            tone(392, 0.10, 'sawtooth', 0.07, t0);
+            tone(523, 0.16, 'sawtooth', 0.07, t0 + 0.07);
+            break;
+          case 'sus-3': // Dr. Mortimer — low cello
+            tone(220, 0.30, 'sine', 0.08, t0);
+            tone(440, 0.30, 'sine', 0.03, t0);
+            break;
+          case 'sus-4': // Miss Penrose — light glockenspiel
+            tone(1320, 0.14, 'sine', 0.07, t0);
+            break;
+          case 'sus-5': // Reverend Holt — pipe-organ triad
+            tone(220, 0.40, 'sine', 0.05, t0);
+            tone(277.18, 0.40, 'sine', 0.04, t0);
+            tone(329.63, 0.40, 'sine', 0.04, t0);
+            break;
+          case 'sus-6': // Captain Bligh — ship's bell
+            tone(349.23, 0.35, 'square', 0.05, t0);
+            tone(698.46, 0.35, 'sine', 0.03, t0);
+            break;
+          case 'sus-7': // Madame Zara — mystical glissando
+            tone(660, 0.16, 'sine', 0.07, t0);
+            tone(880, 0.18, 'sine', 0.06, t0 + 0.08);
+            break;
+          case 'sus-8': // Mr. Grimsby — gruff bass thud
+            tone(110, 0.30, 'square', 0.08, t0);
+            break;
+          case 'sus-9': // Professor Whittaker — quirky two-note
+            tone(587.33, 0.13, 'sine', 0.07, t0);
+            tone(739.99, 0.16, 'triangle', 0.06, t0 + 0.07);
+            break;
+          default:
+            tone(420, 0.06, 'square', 0.08, t0);
+        }
+      },
+      // Per-weapon "elimination" sound — percussive or noise-based,
+      // matched to what the weapon would actually sound like.
+      wpnSound: (weapon) => {
+        const c = getCtx(); if (!c || muted || !weapon) return;
+        const id = weapon.icon;
+        const t0 = c.currentTime;
+        switch (id) {
+          case 'weap-candlestick': // soft puff
+            noise(0.18, 0.12, 700);
+            break;
+          case 'weap-revolver': // hammer click (NOT a gunshot)
+            noise(0.02, 0.18, 6000);
+            setTimeout(() => noise(0.04, 0.10, 3000), 35);
+            break;
+          case 'weap-shears': // metallic snip-snip
+            tone(2200, 0.04, 'square', 0.08, t0);
+            tone(2400, 0.04, 'square', 0.08, t0 + 0.07);
+            break;
+          case 'weap-decanter': // glass clink
+            tone(1760, 0.20, 'sine', 0.08, t0);
+            tone(2640, 0.18, 'sine', 0.04, t0);
+            break;
+          case 'weap-pipe': // dull metallic thunk
+            tone(220, 0.28, 'square', 0.09, t0);
+            tone(330, 0.20, 'sine', 0.04, t0);
+            break;
+          case 'weap-tea': // gentle pour / gurgle
+            noise(0.30, 0.08, 600);
+            break;
+          case 'weap-opener': // blade ring
+            tone(1175, 0.25, 'triangle', 0.07, t0);
+            tone(1568, 0.20, 'sine', 0.04, t0);
+            break;
+          case 'weap-rope': // rope swish
+            noise(0.22, 0.10, 1400);
+            break;
+          case 'weap-wrench': // metal clang
+            tone(440, 0.22, 'square', 0.08, t0);
+            tone(660, 0.18, 'square', 0.05, t0);
+            tone(880, 0.18, 'sine', 0.03, t0);
+            break;
+          default:
+            tone(420, 0.06, 'square', 0.08, t0);
+        }
+      },
+      isMuted: () => muted,
+      setMuted: (v) => { muted = v; }
+    };
+  })();
+
+  // ============================================================
+  //  HELPERS
+  // ============================================================
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+    return a;
+  }
+  function randInt(n) { return Math.floor(Math.random() * n); }
+  function randEl(a) { return a[randInt(a.length)]; }
+  function pickN(arr, n) { return shuffle(arr).slice(0, n); }
+  function permutations(arr) {
+    if (arr.length <= 1) return [arr.slice()];
+    const result = [];
+    for (let i = 0; i < arr.length; i++) {
+      const rest = arr.slice(0, i).concat(arr.slice(i + 1));
+      for (const p of permutations(rest)) result.push([arr[i]].concat(p));
+    }
+    return result;
+  }
+  // ============================================================
+  //  CLUE GENERATION (constraint propagation — 9x9x9 is far too
+  //  large to enumerate cases, so we track per-room possibility
+  //  sets and prune them by applying clues.)
+  // ============================================================
+  // PState: { sus: Set<int>[N], wpn: Set<int>[N], mr: Set<int> }
+  //   sus[r] = possible suspect ids for room r
+  //   wpn[r] = possible weapon  ids for room r
+  //   mr     = possible murder rooms
+
+  function newPState(visSus, visWpn) {
+    const all = [];
+    for (let i = 0; i < N; i++) all.push(i);
+    return {
+      sus: visSus ? visSus.map(s => new Set(s)) : Array.from({ length: N }, () => new Set(all)),
+      wpn: visWpn ? visWpn.map(w => new Set(w)) : Array.from({ length: N }, () => new Set(all)),
+      mr:  new Set(all)
+    };
+  }
+  // Each room hides a few suspects and weapons from the start — they're
+  // simply not present in that room. The truth occupant is always shown.
+  function generateVisible(truth) {
+    const visSus = [], visWpn = [];
+    // In easy 2x2 mode (N=4) every candidate is shown — no dark slots.
+    // In hard 3x3 mode (N=9) each room hides a few candidates per category.
+    const showAll = N <= 4;
+    for (let r = 0; r < N; r++) {
+      const ks = showAll ? N : 5 + randInt(3); // 5–7 visible suspects per room (or all)
+      const kw = showAll ? N : 5 + randInt(3); // 5–7 visible weapons per room (or all)
+      const otherS = [], otherW = [];
+      for (let i = 0; i < N; i++) {
+        if (i !== truth.sa[r]) otherS.push(i);
+        if (i !== truth.wa[r]) otherW.push(i);
+      }
+      for (let i = otherS.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [otherS[i], otherS[j]] = [otherS[j], otherS[i]]; }
+      for (let i = otherW.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [otherW[i], otherW[j]] = [otherW[j], otherW[i]]; }
+      visSus.push(new Set([truth.sa[r], ...otherS.slice(0, ks - 1)]));
+      visWpn.push(new Set([truth.wa[r], ...otherW.slice(0, kw - 1)]));
+    }
+    return { visSus, visWpn };
+  }
+  function clonePState(s) {
+    return {
+      sus: s.sus.map(set => new Set(set)),
+      wpn: s.wpn.map(set => new Set(set)),
+      mr:  new Set(s.mr)
+    };
+  }
+  function totalSize(state) {
+    let n = state.mr.size;
+    state.sus.forEach(s => n += s.size);
+    state.wpn.forEach(w => n += w.size);
+    return n;
+  }
+  function isSolvedState(state) {
+    return state.sus.every(s => s.size === 1) &&
+           state.wpn.every(w => w.size === 1) &&
+           state.mr.size === 1;
+  }
+  // Each suspect (and weapon) lives in exactly one room. After any
+  // direct removal, propagate that uniqueness across rooms.
+  function propagate(state) {
+    let changed = true;
+    while (changed) {
+      changed = false;
+      for (const cat of ['sus', 'wpn']) {
+        // Room with a single candidate → strip that value from siblings.
+        for (let r = 0; r < N; r++) {
+          if (state[cat][r].size === 0) return false;
+          if (state[cat][r].size === 1) {
+            const x = state[cat][r].values().next().value;
+            for (let r2 = 0; r2 < N; r2++) {
+              if (r2 !== r && state[cat][r2].has(x)) {
+                state[cat][r2].delete(x);
+                if (state[cat][r2].size === 0) return false;
+                changed = true;
+              }
+            }
+          }
+        }
+        // Value that fits in only one room → fix that room to it.
+        for (let x = 0; x < N; x++) {
+          let only = -1, count = 0;
+          for (let r = 0; r < N; r++) {
+            if (state[cat][r].has(x)) { count++; only = r; if (count > 1) break; }
+          }
+          if (count === 0) return false;
+          if (count === 1 && state[cat][only].size > 1) {
+            state[cat][only] = new Set([x]);
+            changed = true;
+          }
+        }
+      }
+    }
+    return true;
+  }
+
+  // Shared helper: spatial relation between a suspect and a weapon.
+  // pred(susRoom, wpnRoom) is true when those room indices satisfy the relation.
+  function applySpatialSW(state, s, w, pred) {
+    let changed = true;
+    while (changed) {
+      changed = false;
+      const sRooms = [], wRooms = [];
+      for (let r = 0; r < N; r++) {
+        if (state.sus[r].has(s)) sRooms.push(r);
+        if (state.wpn[r].has(w)) wRooms.push(r);
+      }
+      for (const sr of sRooms) {
+        if (!wRooms.some(wr => pred(sr, wr))) {
+          state.sus[sr].delete(s);
+          if (state.sus[sr].size === 0) return false;
+          changed = true;
+        }
+      }
+      for (const wr of wRooms) {
+        if (!sRooms.some(sr => pred(sr, wr))) {
+          state.wpn[wr].delete(w);
+          if (state.wpn[wr].size === 0) return false;
+          changed = true;
+        }
+      }
+    }
+    return propagate(state);
+  }
+  // Two items of the same category share a row (or column).
+  function applySameLine(state, cat, a, b, sameLine) {
+    if (a === b) return propagate(state);
+    let changed = true;
+    while (changed) {
+      changed = false;
+      const ar = [], br = [];
+      for (let r = 0; r < N; r++) {
+        if (state[cat][r].has(a)) ar.push(r);
+        if (state[cat][r].has(b)) br.push(r);
+      }
+      for (const r of ar) {
+        if (!br.some(r2 => r2 !== r && sameLine(r, r2))) {
+          state[cat][r].delete(a);
+          if (state[cat][r].size === 0) return false;
+          changed = true;
+        }
+      }
+      for (const r of br) {
+        if (!ar.some(r2 => r2 !== r && sameLine(r, r2))) {
+          state[cat][r].delete(b);
+          if (state[cat][r].size === 0) return false;
+          changed = true;
+        }
+      }
+    }
+    return propagate(state);
+  }
+
+  // --- Clue factories. Each returns { key, apply, refs, render, describe } or null. ---
+  function clueSusInRoom(truth) {
+    const r = randInt(N), s = truth.sa[r];
+    return {
+      key: 'SIR' + s + ':' + r,
+      apply: state => {
+        if (!state.sus[r].has(s)) return false;
+        state.sus[r] = new Set([s]);
+        return propagate(state);
+      },
+      render: (S, W, R) => chip(susIc(S[s]), 'pos', '✓', roomIc(R[r])),
+      describe: (S, W, R) => S[s].name + ' is in the ' + R[r].name + '.',
+      refs: { sus: [s], wpn: [], room: [r] }
+    };
+  }
+  function clueSusNotInRoom(truth) {
+    const r = randInt(N), s = randInt(N);
+    if (truth.sa[r] === s) return null;
+    return {
+      key: 'SNI' + s + ':' + r,
+      apply: state => {
+        if (!state.sus[r].has(s)) return true;
+        state.sus[r].delete(s);
+        if (state.sus[r].size === 0) return false;
+        return propagate(state);
+      },
+      render: (S, W, R) => chip(susIc(S[s]), 'neg', '✕', roomIc(R[r])),
+      describe: (S, W, R) => S[s].name + ' is NOT in the ' + R[r].name + '.',
+      refs: { sus: [s], wpn: [], room: [r] }
+    };
+  }
+  function clueWpnInRoom(truth) {
+    const r = randInt(N), w = truth.wa[r];
+    return {
+      key: 'WIR' + w + ':' + r,
+      apply: state => {
+        if (!state.wpn[r].has(w)) return false;
+        state.wpn[r] = new Set([w]);
+        return propagate(state);
+      },
+      render: (S, W, R) => chip(wpnIc(W[w]), 'pos', '✓', roomIc(R[r])),
+      describe: (S, W, R) => 'The ' + W[w].name + ' is in the ' + R[r].name + '.',
+      refs: { sus: [], wpn: [w], room: [r] }
+    };
+  }
+  function clueWpnNotInRoom(truth) {
+    const r = randInt(N), w = randInt(N);
+    if (truth.wa[r] === w) return null;
+    return {
+      key: 'WNI' + w + ':' + r,
+      apply: state => {
+        if (!state.wpn[r].has(w)) return true;
+        state.wpn[r].delete(w);
+        if (state.wpn[r].size === 0) return false;
+        return propagate(state);
+      },
+      render: (S, W, R) => chip(wpnIc(W[w]), 'neg', '✕', roomIc(R[r])),
+      describe: (S, W, R) => 'The ' + W[w].name + ' is NOT in the ' + R[r].name + '.',
+      refs: { sus: [], wpn: [w], room: [r] }
+    };
+  }
+  function clueSameRoom(truth) {
+    const s = randInt(N), w = randInt(N);
+    if (truth.sa.indexOf(s) !== truth.wa.indexOf(w)) return null;
+    return {
+      key: 'SAME' + s + ':' + w,
+      apply: state => applySpatialSW(state, s, w, (sr, wr) => sr === wr),
+      render: (S, W, R) => chip(susIc(S[s]), 'pos', '=', wpnIc(W[w])),
+      describe: (S, W, R) => S[s].name + ' is in the same room as the ' + W[w].name + '.',
+      refs: { sus: [s], wpn: [w], room: [] }
+    };
+  }
+  function clueDiffRoom(truth) {
+    const s = randInt(N), w = randInt(N);
+    if (truth.sa.indexOf(s) === truth.wa.indexOf(w)) return null;
+    return {
+      key: 'DIFF' + s + ':' + w,
+      apply: state => applySpatialSW(state, s, w, (sr, wr) => sr !== wr),
+      render: (S, W, R) => chip(susIc(S[s]), 'neg', '≠', wpnIc(W[w])),
+      describe: (S, W, R) => S[s].name + ' and the ' + W[w].name + ' are in different rooms.',
+      refs: { sus: [s], wpn: [w], room: [] }
+    };
+  }
+  function clueSusNorthWpn(truth) {
+    const s = randInt(N), w = randInt(N);
+    const sr = truth.sa.indexOf(s), wr = truth.wa.indexOf(w);
+    if (!(COL(sr) === COL(wr) && ROW(sr) === ROW(wr) - 1)) return null;
+    return {
+      key: 'SNW' + s + ':' + w,
+      apply: state => applySpatialSW(state, s, w, (a, b) => COL(a) === COL(b) && ROW(a) === ROW(b) - 1),
+      render: (S, W, R) => chip(susIc(S[s]), '', '↓', wpnIc(W[w])),
+      describe: (S, W, R) => S[s].name + "'s room is directly above (one row up, same column as) the room with the " + W[w].name + '.',
+      refs: { sus: [s], wpn: [w], room: [] }
+    };
+  }
+  function clueSusWestWpn(truth) {
+    const s = randInt(N), w = randInt(N);
+    const sr = truth.sa.indexOf(s), wr = truth.wa.indexOf(w);
+    if (!(ROW(sr) === ROW(wr) && COL(sr) === COL(wr) - 1)) return null;
+    return {
+      key: 'SWW' + s + ':' + w,
+      apply: state => applySpatialSW(state, s, w, (a, b) => ROW(a) === ROW(b) && COL(a) === COL(b) - 1),
+      render: (S, W, R) => chip(susIc(S[s]), '', '→', wpnIc(W[w])),
+      describe: (S, W, R) => S[s].name + "'s room is directly to the left of (one column left, same row as) the room with the " + W[w].name + '.',
+      refs: { sus: [s], wpn: [w], room: [] }
+    };
+  }
+  function clueSusSouthWpn(truth) {
+    const s = randInt(N), w = randInt(N);
+    const sr = truth.sa.indexOf(s), wr = truth.wa.indexOf(w);
+    if (!(COL(sr) === COL(wr) && ROW(sr) === ROW(wr) + 1)) return null;
+    return {
+      key: 'SSW' + s + ':' + w,
+      apply: state => applySpatialSW(state, s, w, (a, b) => COL(a) === COL(b) && ROW(a) === ROW(b) + 1),
+      render: (S, W, R) => chip(susIc(S[s]), '', '↑', wpnIc(W[w])),
+      describe: (S, W, R) => S[s].name + "'s room is directly below (one row down, same column as) the room with the " + W[w].name + '.',
+      refs: { sus: [s], wpn: [w], room: [] }
+    };
+  }
+  function clueSusEastWpn(truth) {
+    const s = randInt(N), w = randInt(N);
+    const sr = truth.sa.indexOf(s), wr = truth.wa.indexOf(w);
+    if (!(ROW(sr) === ROW(wr) && COL(sr) === COL(wr) + 1)) return null;
+    return {
+      key: 'SEW' + s + ':' + w,
+      apply: state => applySpatialSW(state, s, w, (a, b) => ROW(a) === ROW(b) && COL(a) === COL(b) + 1),
+      render: (S, W, R) => chip(susIc(S[s]), '', '←', wpnIc(W[w])),
+      describe: (S, W, R) => S[s].name + "'s room is directly to the right of (one column right, same row as) the room with the " + W[w].name + '.',
+      refs: { sus: [s], wpn: [w], room: [] }
+    };
+  }
+  function clueSusSameRow(truth) {
+    const a = randInt(N), b = randInt(N);
+    if (a === b) return null;
+    const ar = truth.sa.indexOf(a), br = truth.sa.indexOf(b);
+    if (ROW(ar) !== ROW(br)) return null;
+    return {
+      key: 'SSR' + Math.min(a,b) + ':' + Math.max(a,b),
+      apply: state => applySameLine(state, 'sus', a, b, (r1, r2) => ROW(r1) === ROW(r2)),
+      render: (S, W, R) => chip(susIc(S[a]), 'pos', '⇔', susIc(S[b])),
+      describe: (S, W, R) => S[a].name + ' and ' + S[b].name + ' are in the same row.',
+      refs: { sus: [a, b], wpn: [], room: [] }
+    };
+  }
+  function clueWpnSameCol(truth) {
+    const a = randInt(N), b = randInt(N);
+    if (a === b) return null;
+    const ar = truth.wa.indexOf(a), br = truth.wa.indexOf(b);
+    if (COL(ar) !== COL(br)) return null;
+    return {
+      key: 'WSC' + Math.min(a,b) + ':' + Math.max(a,b),
+      apply: state => applySameLine(state, 'wpn', a, b, (r1, r2) => COL(r1) === COL(r2)),
+      render: (S, W, R) => chip(wpnIc(W[a]), 'pos', '⇕', wpnIc(W[b])),
+      describe: (S, W, R) => 'The ' + W[a].name + ' and the ' + W[b].name + ' are in the same column.',
+      refs: { sus: [], wpn: [a, b], room: [] }
+    };
+  }
+  function clueSusSameCol(truth) {
+    const a = randInt(N), b = randInt(N);
+    if (a === b) return null;
+    const ar = truth.sa.indexOf(a), br = truth.sa.indexOf(b);
+    if (COL(ar) !== COL(br)) return null;
+    return {
+      key: 'SSC' + Math.min(a,b) + ':' + Math.max(a,b),
+      apply: state => applySameLine(state, 'sus', a, b, (r1, r2) => COL(r1) === COL(r2)),
+      render: (S, W, R) => chip(susIc(S[a]), 'pos', '⇕', susIc(S[b])),
+      describe: (S, W, R) => S[a].name + ' and ' + S[b].name + ' are in the same column.',
+      refs: { sus: [a, b], wpn: [], room: [] }
+    };
+  }
+  function clueWpnSameRow(truth) {
+    const a = randInt(N), b = randInt(N);
+    if (a === b) return null;
+    const ar = truth.wa.indexOf(a), br = truth.wa.indexOf(b);
+    if (ROW(ar) !== ROW(br)) return null;
+    return {
+      key: 'WSR' + Math.min(a,b) + ':' + Math.max(a,b),
+      apply: state => applySameLine(state, 'wpn', a, b, (r1, r2) => ROW(r1) === ROW(r2)),
+      render: (S, W, R) => chip(wpnIc(W[a]), 'pos', '⇔', wpnIc(W[b])),
+      describe: (S, W, R) => 'The ' + W[a].name + ' and the ' + W[b].name + ' are in the same row.',
+      refs: { sus: [], wpn: [a, b], room: [] }
+    };
+  }
+  function clueSusWpnSameRow(truth) {
+    const s = randInt(N), w = randInt(N);
+    const sr = truth.sa.indexOf(s), wr = truth.wa.indexOf(w);
+    if (ROW(sr) !== ROW(wr)) return null;
+    return {
+      key: 'SWR' + s + ':' + w,
+      apply: state => applySpatialSW(state, s, w, (a, b) => ROW(a) === ROW(b)),
+      render: (S, W, R) => chip(susIc(S[s]), 'pos', '⇔', wpnIc(W[w])),
+      describe: (S, W, R) => S[s].name + ' is in a room in the same row as the room with the ' + W[w].name + '.',
+      refs: { sus: [s], wpn: [w], room: [] }
+    };
+  }
+  function clueSusWpnSameCol(truth) {
+    const s = randInt(N), w = randInt(N);
+    const sr = truth.sa.indexOf(s), wr = truth.wa.indexOf(w);
+    if (COL(sr) !== COL(wr)) return null;
+    return {
+      key: 'SWC' + s + ':' + w,
+      apply: state => applySpatialSW(state, s, w, (a, b) => COL(a) === COL(b)),
+      render: (S, W, R) => chip(susIc(S[s]), 'pos', '⇕', wpnIc(W[w])),
+      describe: (S, W, R) => S[s].name + ' is in a room in the same column as the room with the ' + W[w].name + '.',
+      refs: { sus: [s], wpn: [w], room: [] }
+    };
+  }
+  function clueMurderInRoom(truth) {
+    const r = truth.mr;
+    return {
+      key: 'MIR' + r,
+      apply: state => {
+        if (!state.mr.has(r)) return false;
+        state.mr = new Set([r]);
+        return propagate(state);
+      },
+      render: (S, W, R) => chip(skullIc(), 'pos', '✓', roomIc(R[r])),
+      describe: (S, W, R) => 'The murder happened in the ' + R[r].name + '.',
+      refs: { sus: [], wpn: [], room: [r] }
+    };
+  }
+  function clueMurderNotInRoom(truth) {
+    const r = randInt(N);
+    if (truth.mr === r) return null;
+    return {
+      key: 'MNI' + r,
+      apply: state => {
+        if (!state.mr.has(r)) return true;
+        state.mr.delete(r);
+        if (state.mr.size === 0) return false;
+        return propagate(state);
+      },
+      render: (S, W, R) => chip(skullIc(), 'neg', '✕', roomIc(R[r])),
+      describe: (S, W, R) => 'The murder did NOT happen in the ' + R[r].name + '.',
+      refs: { sus: [], wpn: [], room: [r] }
+    };
+  }
+  // "Suspect in the murder room is not S" — couples mr with sus[mr].
+  function applyMurdererNotIs(state, cat, x) {
+    let changed = true;
+    while (changed) {
+      changed = false;
+      if (state.mr.size === 1) {
+        const r = state.mr.values().next().value;
+        if (state[cat][r].has(x)) {
+          state[cat][r].delete(x);
+          if (state[cat][r].size === 0) return false;
+          changed = true;
+        }
+      }
+      for (const r of [...state.mr]) {
+        if (state[cat][r].size === 1 && state[cat][r].has(x)) {
+          state.mr.delete(r);
+          if (state.mr.size === 0) return false;
+          changed = true;
+        }
+      }
+    }
+    return propagate(state);
+  }
+  function clueMurdererNotSus(truth) {
+    const s = randInt(N);
+    if (truth.sa[truth.mr] === s) return null;
+    return {
+      key: 'MNS' + s,
+      apply: state => applyMurdererNotIs(state, 'sus', s),
+      render: (S, W, R) => chip(skullIc(), 'neg', '✕', susIc(S[s])),
+      describe: (S, W, R) => 'The murderer is NOT ' + S[s].name + '.',
+      refs: { sus: [s], wpn: [], room: [] }
+    };
+  }
+  function clueWeaponNotWpn(truth) {
+    const w = randInt(N);
+    if (truth.wa[truth.mr] === w) return null;
+    return {
+      key: 'WNW' + w,
+      apply: state => applyMurdererNotIs(state, 'wpn', w),
+      render: (S, W, R) => chip(skullIc(), 'neg', '✕', wpnIc(W[w])),
+      describe: (S, W, R) => 'The murder weapon was NOT the ' + W[w].name + '.',
+      refs: { sus: [], wpn: [w], room: [] }
+    };
+  }
+
+  // ----- Distance-2 spatial clues (skip a row/column) -----
+  function clueSusTwoNorthOfWpn(truth) {
+    const s = randInt(N), w = randInt(N);
+    const sr = truth.sa.indexOf(s), wr = truth.wa.indexOf(w);
+    if (!(COL(sr) === COL(wr) && ROW(sr) === ROW(wr) - 2)) return null;
+    return {
+      key: 'S2N' + s + ':' + w,
+      apply: state => applySpatialSW(state, s, w, (a, b) => COL(a) === COL(b) && ROW(a) === ROW(b) - 2),
+      render: (S, W, R) => chip(susIc(S[s]), '', '⇊', wpnIc(W[w])),
+      describe: (S, W, R) => S[s].name + "'s room is two rooms above (same column, two rows up from) the room with the " + W[w].name + '.',
+      refs: { sus: [s], wpn: [w], room: [] }
+    };
+  }
+  function clueSusTwoSouthOfWpn(truth) {
+    const s = randInt(N), w = randInt(N);
+    const sr = truth.sa.indexOf(s), wr = truth.wa.indexOf(w);
+    if (!(COL(sr) === COL(wr) && ROW(sr) === ROW(wr) + 2)) return null;
+    return {
+      key: 'S2S' + s + ':' + w,
+      apply: state => applySpatialSW(state, s, w, (a, b) => COL(a) === COL(b) && ROW(a) === ROW(b) + 2),
+      render: (S, W, R) => chip(susIc(S[s]), '', '⇈', wpnIc(W[w])),
+      describe: (S, W, R) => S[s].name + "'s room is two rooms below (same column, two rows down from) the room with the " + W[w].name + '.',
+      refs: { sus: [s], wpn: [w], room: [] }
+    };
+  }
+  function clueSusTwoWestOfWpn(truth) {
+    const s = randInt(N), w = randInt(N);
+    const sr = truth.sa.indexOf(s), wr = truth.wa.indexOf(w);
+    if (!(ROW(sr) === ROW(wr) && COL(sr) === COL(wr) - 2)) return null;
+    return {
+      key: 'S2W' + s + ':' + w,
+      apply: state => applySpatialSW(state, s, w, (a, b) => ROW(a) === ROW(b) && COL(a) === COL(b) - 2),
+      render: (S, W, R) => chip(susIc(S[s]), '', '⇉', wpnIc(W[w])),
+      describe: (S, W, R) => S[s].name + "'s room is two rooms to the left of (same row, two columns left of) the room with the " + W[w].name + '.',
+      refs: { sus: [s], wpn: [w], room: [] }
+    };
+  }
+  function clueSusTwoEastOfWpn(truth) {
+    const s = randInt(N), w = randInt(N);
+    const sr = truth.sa.indexOf(s), wr = truth.wa.indexOf(w);
+    if (!(ROW(sr) === ROW(wr) && COL(sr) === COL(wr) + 2)) return null;
+    return {
+      key: 'S2E' + s + ':' + w,
+      apply: state => applySpatialSW(state, s, w, (a, b) => ROW(a) === ROW(b) && COL(a) === COL(b) + 2),
+      render: (S, W, R) => chip(susIc(S[s]), '', '⇇', wpnIc(W[w])),
+      describe: (S, W, R) => S[s].name + "'s room is two rooms to the right of (same row, two columns right of) the room with the " + W[w].name + '.',
+      refs: { sus: [s], wpn: [w], room: [] }
+    };
+  }
+
+  // ----- Diagonal spatial clues (above-and-right, etc., any distance) -----
+  function clueSusNEofWpn(truth) {
+    const s = randInt(N), w = randInt(N);
+    const sr = truth.sa.indexOf(s), wr = truth.wa.indexOf(w);
+    if (!(ROW(sr) === ROW(wr) - 1 && COL(sr) === COL(wr) + 1)) return null;
+    return {
+      key: 'SDNE' + s + ':' + w,
+      apply: state => applySpatialSW(state, s, w, (a, b) => ROW(a) === ROW(b) - 1 && COL(a) === COL(b) + 1),
+      render: (S, W, R) => chip(susIc(S[s]), '', '↙', wpnIc(W[w])),
+      describe: (S, W, R) => S[s].name + "'s room is diagonally adjacent, one row above and one column to the right of, the room with the " + W[w].name + '.',
+      refs: { sus: [s], wpn: [w], room: [] }
+    };
+  }
+  function clueSusNWofWpn(truth) {
+    const s = randInt(N), w = randInt(N);
+    const sr = truth.sa.indexOf(s), wr = truth.wa.indexOf(w);
+    if (!(ROW(sr) === ROW(wr) - 1 && COL(sr) === COL(wr) - 1)) return null;
+    return {
+      key: 'SDNW' + s + ':' + w,
+      apply: state => applySpatialSW(state, s, w, (a, b) => ROW(a) === ROW(b) - 1 && COL(a) === COL(b) - 1),
+      render: (S, W, R) => chip(susIc(S[s]), '', '↘', wpnIc(W[w])),
+      describe: (S, W, R) => S[s].name + "'s room is diagonally adjacent, one row above and one column to the left of, the room with the " + W[w].name + '.',
+      refs: { sus: [s], wpn: [w], room: [] }
+    };
+  }
+  function clueSusSEofWpn(truth) {
+    const s = randInt(N), w = randInt(N);
+    const sr = truth.sa.indexOf(s), wr = truth.wa.indexOf(w);
+    if (!(ROW(sr) === ROW(wr) + 1 && COL(sr) === COL(wr) + 1)) return null;
+    return {
+      key: 'SDSE' + s + ':' + w,
+      apply: state => applySpatialSW(state, s, w, (a, b) => ROW(a) === ROW(b) + 1 && COL(a) === COL(b) + 1),
+      render: (S, W, R) => chip(susIc(S[s]), '', '↖', wpnIc(W[w])),
+      describe: (S, W, R) => S[s].name + "'s room is diagonally adjacent, one row below and one column to the right of, the room with the " + W[w].name + '.',
+      refs: { sus: [s], wpn: [w], room: [] }
+    };
+  }
+  function clueSusSWofWpn(truth) {
+    const s = randInt(N), w = randInt(N);
+    const sr = truth.sa.indexOf(s), wr = truth.wa.indexOf(w);
+    if (!(ROW(sr) === ROW(wr) + 1 && COL(sr) === COL(wr) - 1)) return null;
+    return {
+      key: 'SDSW' + s + ':' + w,
+      apply: state => applySpatialSW(state, s, w, (a, b) => ROW(a) === ROW(b) + 1 && COL(a) === COL(b) - 1),
+      render: (S, W, R) => chip(susIc(S[s]), '', '↗', wpnIc(W[w])),
+      describe: (S, W, R) => S[s].name + "'s room is diagonally adjacent, one row below and one column to the left of, the room with the " + W[w].name + '.',
+      refs: { sus: [s], wpn: [w], room: [] }
+    };
+  }
+
+  // ----- Three-item chain clues (A before B before C on a row/column) -----
+  // Prunes any candidate that can't be part of a valid ordered triple.
+  function applyChainSameLine(state, cat, a, b, c, axis) {
+    if (a === b || a === c || b === c) return propagate(state);
+    const before = axis === 'row'
+      ? (x, y) => ROW(x) === ROW(y) && COL(x) < COL(y)
+      : (x, y) => COL(x) === COL(y) && ROW(x) < ROW(y);
+    let changed = true;
+    while (changed) {
+      changed = false;
+      const aR = [], bR = [], cR = [];
+      for (let r = 0; r < N; r++) {
+        if (state[cat][r].has(a)) aR.push(r);
+        if (state[cat][r].has(b)) bR.push(r);
+        if (state[cat][r].has(c)) cR.push(r);
+      }
+      const hasTriple = (xa, xb, xc) => before(xa, xb) && before(xb, xc) && xa !== xb && xb !== xc && xa !== xc;
+      for (const ar of aR) {
+        let ok = false;
+        for (const br of bR) {
+          if (!before(ar, br)) continue;
+          for (const cr of cR) {
+            if (hasTriple(ar, br, cr)) { ok = true; break; }
+          }
+          if (ok) break;
+        }
+        if (!ok) {
+          state[cat][ar].delete(a);
+          if (state[cat][ar].size === 0) return false;
+          changed = true;
+        }
+      }
+      for (const br of bR) {
+        let ok = false;
+        for (const ar of aR) {
+          if (!before(ar, br)) continue;
+          for (const cr of cR) {
+            if (hasTriple(ar, br, cr)) { ok = true; break; }
+          }
+          if (ok) break;
+        }
+        if (!ok) {
+          state[cat][br].delete(b);
+          if (state[cat][br].size === 0) return false;
+          changed = true;
+        }
+      }
+      for (const cr of cR) {
+        let ok = false;
+        for (const ar of aR) {
+          for (const br of bR) {
+            if (hasTriple(ar, br, cr)) { ok = true; break; }
+          }
+          if (ok) break;
+        }
+        if (!ok) {
+          state[cat][cr].delete(c);
+          if (state[cat][cr].size === 0) return false;
+          changed = true;
+        }
+      }
+    }
+    return propagate(state);
+  }
+  function clueChainSusRow(truth) {
+    for (let tries = 0; tries < 20; tries++) {
+      const a = randInt(N), b = randInt(N), c = randInt(N);
+      if (a === b || a === c || b === c) continue;
+      const ar = truth.sa.indexOf(a), br = truth.sa.indexOf(b), cr = truth.sa.indexOf(c);
+      if (ROW(ar) === ROW(br) && ROW(br) === ROW(cr) && COL(ar) < COL(br) && COL(br) < COL(cr)) {
+        return {
+          key: 'CSR' + a + ':' + b + ':' + c,
+          apply: state => applyChainSameLine(state, 'sus', a, b, c, 'row'),
+          render: (S, W, R) => chip3(susIc(S[a]), '→', susIc(S[b]), '→', susIc(S[c])),
+          describe: (S, W, R) => S[a].name + ' is in a room left of ' + S[b].name + ", who is left of " + S[c].name + ' — all three in the same row.',
+          refs: { sus: [a, b, c], wpn: [], room: [] }
+        };
+      }
+    }
+    return null;
+  }
+  function clueChainWpnCol(truth) {
+    for (let tries = 0; tries < 20; tries++) {
+      const a = randInt(N), b = randInt(N), c = randInt(N);
+      if (a === b || a === c || b === c) continue;
+      const ar = truth.wa.indexOf(a), br = truth.wa.indexOf(b), cr = truth.wa.indexOf(c);
+      if (COL(ar) === COL(br) && COL(br) === COL(cr) && ROW(ar) < ROW(br) && ROW(br) < ROW(cr)) {
+        return {
+          key: 'CWC' + a + ':' + b + ':' + c,
+          apply: state => applyChainSameLine(state, 'wpn', a, b, c, 'col'),
+          render: (S, W, R) => chip3(wpnIc(W[a]), '↓', wpnIc(W[b]), '↓', wpnIc(W[c])),
+          describe: (S, W, R) => 'The ' + W[a].name + ' is in a room above the ' + W[b].name + ', which is above the ' + W[c].name + ' — all three in the same column.',
+          refs: { sus: [], wpn: [a, b, c], room: [] }
+        };
+      }
+    }
+    return null;
+  }
+
+  const FACTORIES = [
+    { fn: clueSusInRoom,         w: 2 },
+    { fn: clueSusNotInRoom,      w: 5 },
+    { fn: clueWpnInRoom,         w: 2 },
+    { fn: clueWpnNotInRoom,      w: 5 },
+    { fn: clueSameRoom,          w: 3 },
+    { fn: clueDiffRoom,          w: 4 },
+    { fn: clueSusNorthWpn,       w: 2 },
+    { fn: clueSusSouthWpn,       w: 2 },
+    { fn: clueSusWestWpn,        w: 2 },
+    { fn: clueSusEastWpn,        w: 2 },
+    { fn: clueSusSameRow,        w: 4 },
+    { fn: clueSusSameCol,        w: 4 },
+    { fn: clueWpnSameRow,        w: 4 },
+    { fn: clueWpnSameCol,        w: 4 },
+    { fn: clueSusWpnSameRow,     w: 3 },
+    { fn: clueSusWpnSameCol,     w: 3 },
+    { fn: clueMurderInRoom,      w: 1 },
+    { fn: clueMurderNotInRoom,   w: 3 },
+    { fn: clueMurdererNotSus,    w: 2 },
+    { fn: clueWeaponNotWpn,      w: 2 },
+    // 3x3-only clue shapes:
+    { fn: clueSusTwoNorthOfWpn,  w: 2 },
+    { fn: clueSusTwoSouthOfWpn,  w: 2 },
+    { fn: clueSusTwoWestOfWpn,   w: 2 },
+    { fn: clueSusTwoEastOfWpn,   w: 2 },
+    { fn: clueSusNEofWpn,        w: 2 },
+    { fn: clueSusNWofWpn,        w: 2 },
+    { fn: clueSusSEofWpn,        w: 2 },
+    { fn: clueSusSWofWpn,        w: 2 },
+    { fn: clueChainSusRow,       w: 3 },
+    { fn: clueChainWpnCol,       w: 3 }
+  ];
+
+  function pickFactory() {
+    const tot = FACTORIES.reduce((s, f) => s + f.w, 0);
+    let r = Math.random() * tot;
+    for (const f of FACTORIES) { r -= f.w; if (r <= 0) return f.fn; }
+    return FACTORIES[0].fn;
+  }
+
+  function generateClues(truth, visSus, visWpn) {
+    let state = newPState(visSus, visWpn);
+    propagate(state);
+    const clues = [];
+    const seen = new Set();
+    let attempts = 0, dryStreak = 0;
+    while (!isSolvedState(state) && attempts < 3000 && clues.length < 30) {
+      attempts++;
+      // Greedy: try a batch of random candidate clues, pick the one
+      // that prunes the most cells in one step.
+      let bestClue = null, bestNext = null, bestReduction = 0;
+      for (let k = 0; k < 24; k++) {
+        const fn = pickFactory();
+        const clue = fn(truth);
+        if (!clue || seen.has(clue.key)) continue;
+        const next = clonePState(state);
+        const ok = clue.apply(next);
+        if (!ok) continue;
+        const reduction = totalSize(state) - totalSize(next);
+        if (reduction <= 0) continue;
+        if (reduction > bestReduction) { bestReduction = reduction; bestClue = clue; bestNext = next; }
+      }
+      if (bestClue) { state = bestNext; clues.push(bestClue); seen.add(bestClue.key); dryStreak = 0; }
+      else { dryStreak++; if (dryStreak > 40) break; }
+    }
+    return isSolvedState(state) ? clues : null;
+  }
+
+  // ============================================================
+  //  GAME STATE
+  // ============================================================
+  let state;
+
+  function newCase() {
+    const range = Array.from({ length: N }, (_, i) => i);
+    let clues = null, sa, wa, mr, visSus, visWpn;
+    let attempts = 0;
+    while (!clues && attempts < 30) {
+      sa = shuffle(range);
+      wa = shuffle(range);
+      mr = randInt(N);
+      const v = generateVisible({ sa, wa, mr });
+      visSus = v.visSus;
+      visWpn = v.visWpn;
+      clues = generateClues({ sa, wa, mr }, visSus, visWpn);
+      attempts++;
+    }
+    if (!clues) {
+      // ultra-safe fallback: directly reveal everything (and show every
+      // candidate so the fallback puzzle is always playable).
+      visSus = Array.from({ length: N }, () => new Set(range));
+      visWpn = Array.from({ length: N }, () => new Set(range));
+      clues = [];
+      for (let r = 0; r < N; r++) {
+        const sr = sa[r], wr = wa[r];
+        clues.push({
+          key: 'F-SIR' + r,
+          apply: state => {
+            if (!state.sus[r].has(sr)) return false;
+            state.sus[r] = new Set([sr]);
+            return propagate(state);
+          },
+          render: (S, W, R) => chip(susIc(S[sr]), 'pos', '✓', roomIc(R[r])),
+          describe: (S, W, R) => S[sr].name + ' is in the ' + R[r].name + '.',
+          refs: { sus: [sr], wpn: [], room: [r] }
+        });
+        clues.push({
+          key: 'F-WIR' + r,
+          apply: state => {
+            if (!state.wpn[r].has(wr)) return false;
+            state.wpn[r] = new Set([wr]);
+            return propagate(state);
+          },
+          render: (S, W, R) => chip(wpnIc(W[wr]), 'pos', '✓', roomIc(R[r])),
+          describe: (S, W, R) => 'The ' + W[wr].name + ' is in the ' + R[r].name + '.',
+          refs: { sus: [], wpn: [wr], room: [r] }
+        });
+      }
+      clues.push({
+        key: 'F-MIR',
+        apply: state => {
+          if (!state.mr.has(mr)) return false;
+          state.mr = new Set([mr]);
+          return propagate(state);
+        },
+        render: (S, W, R) => chip(skullIc(), 'pos', '✓', roomIc(R[mr])),
+        describe: (S, W, R) => 'The murder happened in the ' + R[mr].name + '.',
+        refs: { sus: [], wpn: [], room: [mr] }
+      });
+    }
+
+    // Pick the visual props for this case
+    const suspects = pickN(ALL_SUSPECTS, N);
+    const weapons  = pickN(ALL_WEAPONS, N);
+    const rooms    = pickN(ALL_ROOMS, N);
+    const victim   = randEl(ALL_VICTIMS);
+    const scenario = randEl(SCENARIOS);
+
+    state.case = {
+      suspects, weapons, rooms, victim, scenario,
+      sa, wa, mr, clues,
+      visSus, visWpn,
+      // Per-room marks: marks[room][category][index] = true if crossed
+      marks: Array.from({ length: N }, () => ({
+        sus: new Array(N).fill(false),
+        wpn: new Array(N).fill(false)
+      })),
+      solved: false
+    };
+    state.caseNum++;
+    render();
+    Audio.page();
+    timerStart();
+  }
+
+  // Reset the current case: clear every player-applied X without
+  // touching the truth, clues, or initially-hidden slots. Lets the
+  // player start the same case from scratch.
+  function resetCase() {
+    if (!state.case) return;
+    state.case.marks = Array.from({ length: N }, () => ({
+      sus: new Array(N).fill(false),
+      wpn: new Array(N).fill(false)
+    }));
+    state.case.solved = false;
+    renderGrid();
+    Audio.page();
+    timerStart();
+  }
+
+  // ============================================================
+  //  ICON HELPERS (for chip rendering)
+  // ============================================================
+  function susIc(s) { return { kind: 'sus', id: s.icon }; }
+  function wpnIc(w) { return { kind: 'wpn', id: w.icon }; }
+  function roomIc(r) { return { kind: 'room', id: r.icon }; }
+  function skullIc() { return { kind: 'skull', id: 'ic-skull' }; }
+  function chip(a, relClass, relSym, b) {
+    const cls = a => 'chip-icon' + (a.kind === 'sus' ? '' : ' ' + a.kind);
+    return '<div class="' + cls(a) + '"><svg><use href="#' + a.id + '"/></svg></div>' +
+           '<span class="chip-rel ' + (relClass || '') + '">' + relSym + '</span>' +
+           '<div class="' + cls(b) + '"><svg><use href="#' + b.id + '"/></svg></div>';
+  }
+  // Three-icon chip for ordered-triple clues (A → B → C).
+  function chip3(a, sym1, b, sym2, c) {
+    const cls = x => 'chip-icon' + (x.kind === 'sus' ? '' : ' ' + x.kind);
+    return '<div class="' + cls(a) + '"><svg><use href="#' + a.id + '"/></svg></div>' +
+           '<span class="chip-rel">' + sym1 + '</span>' +
+           '<div class="' + cls(b) + '"><svg><use href="#' + b.id + '"/></svg></div>' +
+           '<span class="chip-rel">' + sym2 + '</span>' +
+           '<div class="' + cls(c) + '"><svg><use href="#' + c.id + '"/></svg></div>';
+  }
+
+  // ============================================================
+  //  RENDERING
+  // ============================================================
+  function render() {
+    const c = state.case;
+    if (IS_LEVEL) {
+      document.getElementById('scoreLine').innerHTML =
+        (DIFF === 'easy' ? 'Easy' : 'Hard') + ' · Level <b>' + LEVEL + '</b> of 50';
+    } else {
+      document.getElementById('caseNum').textContent = state.caseNum;
+      document.getElementById('wins').textContent = state.wins;
+      document.getElementById('losses').textContent = state.losses;
+    }
+    document.getElementById('victimArt').innerHTML = '<use href="#' + c.victim.icon + '"/>';
+    document.getElementById('briefing').innerHTML =
+      '<span class="victim">' + c.victim.name + '</span> has been murdered. ' +
+      c.scenario +
+      ' <b>Each of the ' + N + ' rooms holds exactly one suspect and one weapon</b> — ' +
+      'so confirming one fact lets you cross out the rest in that row and column. Find the room where the crime occurred.';
+    renderGrid();
+    renderClues();
+  }
+
+  function renderGrid() {
+    const c = state.case;
+    const grid = document.getElementById('grid');
+    grid.innerHTML = '';
+    for (let r = 0; r < N; r++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.dataset.room = r;
+
+      // Header with small room icon (same as in clues) next to name
+      const header =
+        '<div class="room-header">' +
+          '<div class="room-thumb"><svg><use href="#' + c.rooms[r].icon + '"/></svg></div>' +
+          '<div class="room-name">' + c.rooms[r].name + '</div>' +
+        '</div>';
+
+      // Suspect mini icons — slot is "hidden" if the suspect isn't in
+      // this room's starting candidate set, drawn as a dark empty cell.
+      const susRow = ['<div class="mini-row">'];
+      for (let i = 0; i < N; i++) {
+        const visible = c.visSus[r].has(i);
+        const crossed = visible && c.marks[r].sus[i] ? ' crossed' : '';
+        const hidden  = visible ? '' : ' hidden';
+        susRow.push(
+          '<div class="mini-icon' + hidden + crossed + '" data-cat="sus" data-room="' + r + '" data-idx="' + i + '">' +
+            (visible ? '<svg><use href="#' + c.suspects[i].icon + '"/></svg>' : '') +
+          '</div>'
+        );
+      }
+      susRow.push('</div>');
+
+      // Weapon mini icons
+      const wpnRow = ['<div class="mini-row">'];
+      for (let i = 0; i < N; i++) {
+        const visible = c.visWpn[r].has(i);
+        const crossed = visible && c.marks[r].wpn[i] ? ' crossed' : '';
+        const hidden  = visible ? '' : ' hidden';
+        wpnRow.push(
+          '<div class="mini-icon weapon' + hidden + crossed + '" data-cat="wpn" data-room="' + r + '" data-idx="' + i + '">' +
+            (visible ? '<svg><use href="#' + c.weapons[i].icon + '"/></svg>' : '') +
+          '</div>'
+        );
+      }
+      wpnRow.push('</div>');
+
+      cell.innerHTML = header + susRow.join('') + wpnRow.join('');
+      cell.querySelectorAll('.mini-icon').forEach(el => el.addEventListener('click', onMiniClick));
+      grid.appendChild(cell);
+    }
+  }
+
+  function onMiniClick(e) {
+    Audio.unlock();
+    const el = e.currentTarget;
+    if (el.classList.contains('hidden')) return; // empty slot, not interactive
+    const r = +el.dataset.room, i = +el.dataset.idx, cat = el.dataset.cat;
+    const was = state.case.marks[r][cat][i];
+    state.case.marks[r][cat][i] = !was;
+    if (was) {
+      el.classList.remove('crossed');
+      Audio.uncross();
+    } else {
+      el.classList.add('crossed');
+      // Play a unique elimination sound for the suspect or weapon being
+      // crossed out — fall back to the generic cross tone if the sound
+      // module isn't available for some reason.
+      if (cat === 'sus') Audio.susSound(state.case.suspects[i]);
+      else if (cat === 'wpn') Audio.wpnSound(state.case.weapons[i]);
+      else Audio.cross();
+    }
+  }
+
+  function renderClues() {
+    const c = state.case;
+    const ol = document.getElementById('clues');
+    ol.innerHTML = '';
+    c.clues.forEach((clue, idx) => {
+      const li = document.createElement('li');
+      li.innerHTML = clue.render(c.suspects, c.weapons, c.rooms);
+      li.dataset.idx = idx;
+      li.addEventListener('click', onClueClick);
+      ol.appendChild(li);
+    });
+  }
+
+  let activeClueLi = null;
+  function onClueClick(e) {
+    e.stopPropagation();
+    Audio.unlock(); Audio.tick();
+    const li = e.currentTarget;
+    // Toggle: tapping the currently active clue deselects it.
+    if (activeClueLi === li) {
+      hideClueTooltip();
+      return;
+    }
+    const idx = +li.dataset.idx;
+    const clue = state.case.clues[idx];
+    const text = clue.describe
+      ? clue.describe(state.case.suspects, state.case.weapons, state.case.rooms)
+      : 'Tap the help icon to see clue meanings.';
+    showClueTooltip(text, li, clue.refs);
+  }
+  function applyHighlights(refs) {
+    clearHighlights();
+    if (!refs) return;
+    (refs.sus || []).forEach(idx => {
+      document.querySelectorAll('.mini-icon[data-cat="sus"][data-idx="' + idx + '"]:not(.hidden)')
+        .forEach(el => el.classList.add('highlight'));
+    });
+    (refs.wpn || []).forEach(idx => {
+      document.querySelectorAll('.mini-icon[data-cat="wpn"][data-idx="' + idx + '"]:not(.hidden)')
+        .forEach(el => el.classList.add('highlight'));
+    });
+    (refs.room || []).forEach(idx => {
+      const cell = document.querySelector('.cell[data-room="' + idx + '"]');
+      if (cell) cell.classList.add('highlight');
+    });
+  }
+  function clearHighlights() {
+    document.querySelectorAll('.mini-icon.highlight, .cell.highlight')
+      .forEach(el => el.classList.remove('highlight'));
+  }
+  function showClueTooltip(text, sourceLi, refs) {
+    const tip = document.getElementById('clueTooltip');
+    tip.querySelector('.tooltip-text').innerHTML = text +
+      '<div class="tip-close">Tap this clue again to close · tap another to switch</div>';
+    tip.classList.add('show');
+    if (activeClueLi) activeClueLi.classList.remove('active');
+    activeClueLi = sourceLi || null;
+    if (activeClueLi) activeClueLi.classList.add('active');
+    applyHighlights(refs);
+  }
+  function hideClueTooltip() {
+    const tip = document.getElementById('clueTooltip');
+    if (!tip.classList.contains('show')) return;
+    tip.classList.remove('show');
+    clearHighlights();
+    if (activeClueLi) { activeClueLi.classList.remove('active'); activeClueLi = null; }
+  }
+
+  // ============================================================
+  //  ACCUSATION
+  // ============================================================
+  function openAccuse() {
+    Audio.unlock(); Audio.open();
+    const c = state.case;
+    buildPicker('pickSuspect', c.suspects);
+    buildPicker('pickWeapon',  c.weapons);
+    buildPicker('pickRoom',    c.rooms);
+    document.getElementById('verdict').innerHTML = '';
+    document.getElementById('btnSubmit').textContent = "J'accuse!";
+    const m = document.getElementById('modalAccuse');
+    m.classList.remove('verdict-shown');
+    m.classList.add('show');
+  }
+  function buildPicker(containerId, items) {
+    const root = document.getElementById(containerId);
+    root.innerHTML = '';
+    items.forEach(item => {
+      const o = document.createElement('div');
+      o.className = 'opt';
+      o.dataset.name = item.name;
+      o.innerHTML =
+        '<div class="opt-art"><svg><use href="#' + item.icon + '"/></svg></div>' +
+        '<div>' + item.name + '</div>';
+      o.addEventListener('click', () => {
+        Audio.tick();
+        root.querySelectorAll('.opt').forEach(x => x.classList.remove('selected'));
+        o.classList.add('selected');
+      });
+      root.appendChild(o);
+    });
+  }
+  function getSelected(containerId) {
+    const sel = document.querySelector('#' + containerId + ' .opt.selected');
+    return sel ? sel.dataset.name : null;
+  }
+  function closeAccuse() { document.getElementById('modalAccuse').classList.remove('show'); }
+
+  function submitAccuse() {
+    const c = state.case;
+    if (c.solved) { closeAccuse(); return; }
+    const s = getSelected('pickSuspect');
+    const w = getSelected('pickWeapon');
+    const r = getSelected('pickRoom');
+    if (!s || !w || !r) {
+      const v = document.getElementById('verdict');
+      v.className = 'verdict lose';
+      v.textContent = 'Pick a suspect, a weapon, and a room first.';
+      return;
+    }
+    const trueMurderer = c.suspects[c.sa[c.mr]];
+    const trueWeapon   = c.weapons[c.wa[c.mr]];
+    const trueRoom     = c.rooms[c.mr];
+    const correct = (s === trueMurderer.name && w === trueWeapon.name && r === trueRoom.name);
+    const verdict = document.getElementById('verdict');
+    // Capture solve time and stop the running stopwatch.
+    const solveSeconds = timerElapsed();
+    timerStop();
+    if (correct) {
+      state.wins++; c.solved = true;
+      if (IS_LEVEL) markLevelCompleted(DIFF, LEVEL, solveSeconds);
+      verdict.className = 'verdict win';
+      verdict.innerHTML =
+        '<b>Case Closed!</b><br>You named the killer.' +
+        '<div class="verdict-art">' +
+          frame(trueMurderer.icon, 'Murderer', true) +
+          frame(trueWeapon.icon, 'Weapon', false) +
+          frame(trueRoom.icon, 'Room', false) +
+        '</div>' +
+        '<div class="truth">It was <b>' + trueMurderer.name + '</b> with the <b>' + trueWeapon.name + '</b> in the <b>' + trueRoom.name + '</b>.</div>' +
+        '<div class="solve-time">You solved it in <b>' + fmtTime(solveSeconds) + '</b>.</div>';
+      Audio.unlock();
+      Audio.win();
+      Audio.applause();
+      launchConfetti();
+    } else {
+      state.losses++; c.solved = true;
+      verdict.className = 'verdict lose';
+      const parts = [];
+      if (s !== trueMurderer.name) parts.push('the murderer was <b>' + trueMurderer.name + '</b>');
+      if (w !== trueWeapon.name)   parts.push('the weapon was the <b>' + trueWeapon.name + '</b>');
+      if (r !== trueRoom.name)     parts.push('the scene was the <b>' + trueRoom.name + '</b>');
+      verdict.innerHTML =
+        '<b>Wrong accusation.</b> The killer slips away.' +
+        '<div class="verdict-art">' +
+          frame(trueMurderer.icon, 'Murderer', true) +
+          frame(trueWeapon.icon, 'Weapon', false) +
+          frame(trueRoom.icon, 'Room', false) +
+        '</div>' +
+        '<div class="truth">In truth, ' + parts.join('; ') + '.</div>';
+      Audio.lose();
+    }
+    // Choose the post-verdict primary action.
+    const submitBtn = document.getElementById('btnSubmit');
+    if (IS_LEVEL && correct) {
+      submitBtn.textContent = (LEVEL < 50) ? ('Level ' + (LEVEL + 1) + ' →') : 'Back to Levels';
+    } else {
+      submitBtn.textContent = 'Close';
+    }
+    // Collapse the picker grids and modal title once a verdict is set so
+    // the verdict text + action buttons fit on screen without scrolling.
+    document.getElementById('modalAccuse').classList.add('verdict-shown');
+    if (!IS_LEVEL) {
+      document.getElementById('caseNum').textContent = state.caseNum;
+      document.getElementById('wins').textContent = state.wins;
+      document.getElementById('losses').textContent = state.losses;
+    }
+  }
+  // Shower of falling pieces, cleaned up after the animation completes.
+  function launchConfetti() {
+    const old = document.querySelector('.confetti-container');
+    if (old) old.remove();
+    const container = document.createElement('div');
+    container.className = 'confetti-container';
+    const colors = ['#e0bc62', '#c04a3a', '#6ba858', '#4a82b8', '#a82a5a', '#f4e040', '#f48a30', '#d8d8d8'];
+    const COUNT = 80;
+    for (let i = 0; i < COUNT; i++) {
+      const piece = document.createElement('div');
+      const shape = i % 4;
+      piece.className = 'confetti-piece' + (shape === 0 ? ' circle' : shape === 1 ? ' thin' : '');
+      piece.style.left = (Math.random() * 100) + '%';
+      piece.style.background = colors[i % colors.length];
+      piece.style.setProperty('--rot', (Math.random() * 360) + 'deg');
+      piece.style.setProperty('--drift', ((Math.random() * 200) - 100) + 'px');
+      piece.style.setProperty('--dur', (2.4 + Math.random() * 1.8) + 's');
+      piece.style.setProperty('--delay', (Math.random() * 0.7) + 's');
+      container.appendChild(piece);
+    }
+    document.body.appendChild(container);
+    setTimeout(() => container.remove(), 6000);
+  }
+
+  function frame(icon, label, circle) {
+    return '<div class="pic">' +
+      '<div class="frame' + (circle ? ' circle' : '') + '"><svg><use href="#' + icon + '"/></svg></div>' +
+      '<div class="label">' + label + '</div>' +
+    '</div>';
+  }
+
+  // ============================================================
+  //  INIT
+  // ============================================================
+  function init() {
+    state = { caseNum: 0, wins: 0, losses: 0, case: null };
+    // Clue tooltip stays open until the same clue is tapped again or a
+    // different clue is tapped. Tapping mini-icons or the tooltip body
+    // itself leaves the selection intact so the highlights stay on
+    // screen while you're crossing icons off.
+    // In level mode the "New Case" button doubles as "← Levels"; tapping it
+    // navigates back to the level select page rather than spinning a new
+    // random case.
+    const btnNew = document.getElementById('btnNew');
+    if (IS_LEVEL) btnNew.textContent = '← Levels';
+    btnNew.addEventListener('click', () => {
+      Audio.unlock(); closeAccuse(); hideClueTooltip();
+      if (IS_LEVEL) { location.href = 'index.html#' + DIFF; }
+      else { newCase(); }
+    });
+    document.getElementById('btnReset').addEventListener('click', () => { Audio.unlock(); closeAccuse(); hideClueTooltip(); resetCase(); });
+    document.getElementById('btnAccuse').addEventListener('click', openAccuse);
+    document.getElementById('btnCancel').addEventListener('click', () => { Audio.tick(); closeAccuse(); });
+    const submitBtn = document.getElementById('btnSubmit');
+    submitBtn.addEventListener('click', () => {
+      const t = submitBtn.textContent;
+      if (t === 'Close') { closeAccuse(); return; }
+      if (t === 'Back to Levels') { location.href = 'index.html#' + DIFF; return; }
+      if (t.indexOf('→') > -1 && IS_LEVEL) { // "Level N →"
+        location.href = 'index2.html?d=' + DIFF + '&n=' + (LEVEL + 1);
+        return;
+      }
+      submitAccuse();
+    });
+    document.getElementById('modalAccuse').addEventListener('click', (e) => {
+      if (e.target.id === 'modalAccuse') closeAccuse();
+    });
+
+    // ===== Tutorial wiring =====
+    const NUM_STEPS = 4;
+    let tutStep = 1;
+    function tutSet(n) {
+      tutStep = Math.max(1, Math.min(NUM_STEPS, n));
+      document.querySelectorAll('.tut-step').forEach(s => s.classList.toggle('active', +s.dataset.step === tutStep));
+      document.querySelectorAll('.tut-dots span').forEach(d => d.classList.toggle('active', +d.dataset.step === tutStep));
+      document.getElementById('tutPrev').disabled = tutStep === 1;
+      document.getElementById('tutNext').textContent = tutStep === NUM_STEPS ? "Let's play!" : 'Next →';
+      const m = document.querySelector('.tut-modal'); if (m) m.scrollTop = 0;
+    }
+    function tutOpen()  { Audio.unlock(); Audio.open(); tutSet(1); document.getElementById('modalTutorial').classList.add('show'); }
+    function tutClose() {
+      Audio.tick();
+      document.getElementById('modalTutorial').classList.remove('show');
+      try { localStorage.setItem('parker-tutorial-seen', '1'); } catch (e) {}
+    }
+    document.getElementById('btnHelp').addEventListener('click', tutOpen);
+    document.getElementById('tutPrev').addEventListener('click', () => tutSet(tutStep - 1));
+    document.getElementById('tutNext').addEventListener('click', () => {
+      if (tutStep === NUM_STEPS) tutClose(); else tutSet(tutStep + 1);
+    });
+    document.querySelectorAll('.tut-dots span').forEach(d =>
+      d.addEventListener('click', () => tutSet(+d.dataset.step))
+    );
+    document.getElementById('modalTutorial').addEventListener('click', (e) => {
+      if (e.target.id === 'modalTutorial') tutClose();
+    });
+    // First-visit auto-open
+    if (!localStorage.getItem('parker-tutorial-seen')) tutOpen();
+
+    document.getElementById('btnSound').addEventListener('click', () => {
+      const muted = !Audio.isMuted();
+      Audio.setMuted(muted);
+      document.getElementById('soundIcon').innerHTML =
+        '<use href="#' + (muted ? 'ic-mute' : 'ic-sound') + '"/>';
+      if (!muted) { Audio.unlock(); Audio.tick(); }
+    });
+
+    newCase();
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+})();
+</script>
+</body>
+</html>
